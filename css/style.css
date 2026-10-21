@@ -234,24 +234,24 @@
 }
 
 [data-theme="volleybal"] {
-  --bg: #fbf3e4;
-  --bg-2: #f5e5c6;
-  --surface: #fffdf8;
-  --surface-2: #f6ecd8;
-  --ink: #1f2d4a;
-  --ink-soft: #44526e;
-  --line: #e4dac4;
-  --line-strong: #1f2d4a;
-  --accent: #f2b632;
-  --accent-strong: #d99a12;
-  --accent-ink: #1f2d4a;
-  --accent-soft: #fbe3a6;
-  --user: #24549c;
-  --given: #1f2d4a;
-  --sel: #5b8fd9;
-  --sel-ink: #0f1a30;
-  --peer: #e4edf9;
-  --same: #c4d7f3;
+  --bg: #fffaea;
+  --bg-2: #fff0bf;
+  --surface: #ffffff;
+  --surface-2: #fff5d1;
+  --ink: #10265c;
+  --ink-soft: #3a4a75;
+  --line: #dfe4ef;
+  --line-strong: #1d4fa3;
+  --accent: #ffcc00;
+  --accent-strong: #e6b400;
+  --accent-ink: #10265c;
+  --accent-soft: #fff0a8;
+  --user: #1d4fa3;
+  --given: #10265c;
+  --sel: #1d4fa3;
+  --sel-ink: #ffffff;
+  --peer: #e3ebfa;
+  --same: #ffe680;
   --same-ring: transparent;
   --hint: #e2774c;
   --wrong: #b02e20;
@@ -262,8 +262,8 @@
   --heart-ink: #9c1f3c;
   --heart-solved: #c8324f;
   --heart-solved-ink: #ffffff;
-  --shadow: 0 1px 2px rgb(31 45 74 / 6%), 0 8px 24px rgb(31 45 74 / 9%);
-  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='240'%3E%3Cdefs%3E%3Cpattern id='n' width='18' height='18' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Cpath d='M0 0H18M0 0V18' stroke='%231f2d4a' stroke-width='1' fill='none'/%3E%3C/pattern%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%25' height='240' fill='url(%23f)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='240' fill='url(%23n)' fill-opacity='0.07' mask='url(%23m)'/%3E%3Crect width='100%25' height='5' y='0' fill='%231f2d4a' fill-opacity='0.08'/%3E%3C/svg%3E") 0 0 / 100% 240px no-repeat;
+  --shadow: 0 1px 2px rgb(16 38 92 / 6%), 0 8px 24px rgb(16 38 92 / 9%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='240'%3E%3Cdefs%3E%3Cpattern id='n' width='18' height='18' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Cpath d='M0 0H18M0 0V18' stroke='%231d4fa3' stroke-width='1' fill='none'/%3E%3C/pattern%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%25' height='240' fill='url(%23f)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='240' fill='url(%23n)' fill-opacity='0.07' mask='url(%23m)'/%3E%3Crect width='100%25' height='5' y='0' fill='%231d4fa3' fill-opacity='0.08'/%3E%3C/svg%3E") 0 0 / 100% 240px no-repeat;
   color-scheme: light;
 }
 
@@ -1131,7 +1131,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 }
 @keyframes board-glow { 40% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 55%, transparent), var(--shadow); } }
 
-/* Volleybal: bloklijnen als strakke veldlijnen. */
+/* Volleybal (in de geel-blauwe clubkleuren van Donitas): bloklijnen als strakke veldlijnen. */
 [data-theme="volleybal"] .board { border-width: 3px; border-radius: 10px; }
 
 /* ---------- Minder beweging ---------- */

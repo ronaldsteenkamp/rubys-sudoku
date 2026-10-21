@@ -4,6 +4,8 @@
 // Seizoensthema's (`season`) komen vrij door te spelen (`unlock`).
 
 export const THEMES = [
+  // Volgorde in de kiezer: eerst Zonnig en Nacht (waar 'Automatisch' tussen wisselt),
+  // dan het andere donkere thema, dan de persoonlijke thema's.
   {
     id: 'zonnig', name: 'Zonnig', scheme: 'light',
     celebrate: ['💛', '🐾', '🌼', '☀️'],
@@ -15,14 +17,9 @@ export const THEMES = [
     swatch: { bg: '#16141d', surface: '#221f2d', accent: '#f5c451', digit: '#ffd36b' },
   },
   {
-    id: 'gran-canaria', name: 'Gran Canaria', scheme: 'light',
-    celebrate: ['🌴', '🐚', '💛', '🌺'],
-    swatch: { bg: '#fbf3e6', surface: '#fffdf8', accent: '#f29b74', digit: '#17606f' },
-  },
-  {
-    id: 'lelie', name: 'Lelie', scheme: 'light',
-    celebrate: ['🌸', '💗', '🐾', '🌷'],
-    swatch: { bg: '#fbf6f7', surface: '#ffffff', accent: '#eab3c4', digit: '#96305a' },
+    id: 'sterren', name: 'Sterren', scheme: 'dark',
+    celebrate: ['⭐', '✨', '🌙', '💫'],
+    swatch: { bg: '#0f1630', surface: '#18213f', accent: '#ffd977', digit: '#ffd977' },
   },
   {
     id: 'liefde', name: 'Liefde', scheme: 'light',
@@ -30,14 +27,19 @@ export const THEMES = [
     swatch: { bg: '#fff1f3', surface: '#ffffff', accent: '#e2557a', digit: '#93204a' },
   },
   {
-    id: 'sterren', name: 'Sterren', scheme: 'dark',
-    celebrate: ['⭐', '✨', '🌙', '💫'],
-    swatch: { bg: '#0f1630', surface: '#18213f', accent: '#ffd977', digit: '#ffd977' },
+    id: 'lelie', name: 'Lelie', scheme: 'light',
+    celebrate: ['🌸', '💗', '🐾', '🌷'],
+    swatch: { bg: '#fbf6f7', surface: '#ffffff', accent: '#eab3c4', digit: '#96305a' },
+  },
+  {
+    id: 'gran-canaria', name: 'Gran Canaria', scheme: 'light',
+    celebrate: ['🌴', '🐚', '💛', '🌺'],
+    swatch: { bg: '#fbf3e6', surface: '#fffdf8', accent: '#f29b74', digit: '#17606f' },
   },
   {
     id: 'volleybal', name: 'Volleybal', scheme: 'light',
     celebrate: ['🏐', '🙌', '⭐', '💛'],
-    swatch: { bg: '#fbf3e4', surface: '#fffdf8', accent: '#f2b632', digit: '#24549c' },
+    swatch: { bg: '#fffaea', surface: '#ffffff', accent: '#ffcc00', digit: '#1d4fa3' },
   },
   // ---------- Seizoenen ----------
   {
