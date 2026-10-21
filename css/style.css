@@ -249,7 +249,7 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 .card.special { background: linear-gradient(135deg, color-mix(in srgb, var(--heart) 14%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--heart) 35%, var(--line)); }
 .card.special .card-kicker { color: var(--heart); }
 .card.continue { border-style: dashed; }
-.milestone-progress { margin: -4px 4px 18px; }
+.milestone-progress { margin: 12px 4px 0; }
 .milestone-progress[hidden] { display: none; }
 .milestone-progress p { margin: 0 0 6px; color: var(--ink-soft); font-size: 0.88rem; font-weight: 600; }
 .milestone-bar { height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }

@@ -1,7 +1,7 @@
 // Service worker: de app werkt volledig offline na het eerste bezoek.
 // Verhoog VERSION bij elke release, dan haalt iedereen de nieuwe bestanden op.
 // Een nieuwe versie wacht netjes tot Ruby op "verversen" tikt (zie ui.js).
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = `rubys-sudoku-${VERSION}`;
 const NETWORK_TIMEOUT = 3000;
 
