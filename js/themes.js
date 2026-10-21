@@ -23,6 +23,21 @@ export const THEMES = [
     celebrate: ['🌸', '💗', '🐾', '🌷'],
     swatch: { bg: '#fbf6f7', surface: '#ffffff', accent: '#eab3c4', digit: '#96305a' },
   },
+  {
+    id: 'liefde', name: 'Liefde', scheme: 'light',
+    celebrate: ['❤️', '💕', '💌', '🌹'],
+    swatch: { bg: '#fff1f3', surface: '#ffffff', accent: '#e2557a', digit: '#93204a' },
+  },
+  {
+    id: 'sterren', name: 'Sterren', scheme: 'dark',
+    celebrate: ['⭐', '✨', '🌙', '💫'],
+    swatch: { bg: '#0f1630', surface: '#18213f', accent: '#ffd977', digit: '#ffd977' },
+  },
+  {
+    id: 'volleybal', name: 'Volleybal', scheme: 'light',
+    celebrate: ['🏐', '🙌', '⭐', '💛'],
+    swatch: { bg: '#fbf3e4', surface: '#fffdf8', accent: '#f2b632', digit: '#24549c' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
