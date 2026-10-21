@@ -45,8 +45,8 @@
   --same: #f8de92;
   --same-ring: transparent;
   --hint: #f08a5d;
-  --wrong: #c03a2b;
-  --wrong-bg: #fde3dc;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
   --heart: #c2456b;
   --heart-fill: #fde6ec;
   --heart-edge: #fad3de;
@@ -111,8 +111,8 @@
   --same: #c3e5e5;
   --same-ring: transparent;
   --hint: #e2774c;
-  --wrong: #b8322a;
-  --wrong-bg: #fbe0d8;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
   --heart: #d24e5f;
   --heart-fill: #fce4e6;
   --heart-edge: #f9d0d4;
@@ -144,12 +144,12 @@
   --same: #dde9d9;
   --same-ring: transparent;
   --hint: #5e8c61;
-  --wrong: #b3261e;
-  --wrong-bg: #fbe1df;
+  --wrong: #a8321a;
+  --wrong-bg: #fcd9c4;
   --heart: #c2456b;
-  --heart-fill: #fbe3ea;
-  --heart-edge: #f7cdda;
-  --heart-ink: #962a50;
+  --heart-fill: #f9d9e3;
+  --heart-edge: #f4c3d3;
+  --heart-ink: #8e2850;
   --heart-solved: #c2365a;
   --heart-solved-ink: #ffffff;
   --shadow: 0 1px 2px rgb(60 30 40 / 6%), 0 8px 24px rgb(60 30 40 / 8%);
@@ -684,8 +684,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   position: relative;
   display: grid;
   place-items: center;
-  background: radial-gradient(120% 90% at 50% 0%, var(--bg-2), var(--bg) 70%);
-  color: var(--ink);
+  background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--tp-accent) 18%, var(--tp-bg)), var(--tp-bg) 70%);
 }
 .tp b {
   width: 32px;
@@ -693,12 +692,12 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   display: grid;
   place-items: center;
   border-radius: 9px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--tp-surface);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-digit) 18%, transparent);
   font: 600 1.15rem/1 "Fraunces", Georgia, serif;
-  color: var(--user);
+  color: var(--tp-digit);
 }
-.tp em { position: absolute; right: 8px; bottom: 8px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+.tp em { position: absolute; right: 8px; bottom: 8px; width: 12px; height: 12px; border-radius: 50%; background: var(--tp-accent); }
 .tp + .tp b, .tp:has(+ .tp) em { display: none; }
 .tp + .tp em { right: auto; left: 50%; bottom: auto; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; }
 .theme-opt input:checked + span { border-color: var(--accent-strong); background: var(--surface-2); }

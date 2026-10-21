@@ -19,6 +19,7 @@ const SHELL = [
   'js/hints.js',
   'js/storage.js',
   'js/messages.js',
+  'js/themes.js',
   'js/feedback.js',
   'js/worker.js',
   'fonts/fraunces-latin.woff2',
