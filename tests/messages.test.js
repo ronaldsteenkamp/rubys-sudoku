@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { greeting, specialDay, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES } from '../js/messages.js';
+import { greeting, specialDay, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
 test('begroeting past bij het dagdeel', () => {
@@ -38,4 +38,10 @@ test('mijlpalen ontgrendelen op het juiste moment', () => {
   assert.deepEqual(newMilestones(st, ['eerste', 'zonderhint']), []);
   st.levels.ruby = { solved: 1 }; st.bestStreak = 7; st.totalSolved = 10;
   assert.deepEqual(newMilestones(st, ['eerste', 'zonderhint']).map((m) => m.id), ['tien', 'streak3', 'streak7', 'ruby']);
+});
+
+test('"Ik hou van je" is bewaard voor de 100e puzzel', () => {
+  assert.ok(LOVE_NOTES.every((m) => !/hou van je/i.test(m)));
+  assert.match(MILESTONES.find((m) => m.id === 'honderd').text, /Ik hou van je/);
+  assert.ok(MILESTONES.filter((m) => m.id !== 'honderd').every((m) => !/hou van je/i.test(m.text)));
 });

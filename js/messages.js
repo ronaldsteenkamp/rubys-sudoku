@@ -32,7 +32,7 @@ export const LOVE_NOTES = [
   'Je hebt een aai over je bol verdiend. Hondenstijl 🐾',
   'Dikke kus van de maker van deze app 😘',
   'Alles klopte. Net als wij samen.',
-  'Ik hou van je, RubyxCube. Ook als je even vastzit 💛',
+  'Jij bent mijn allerliefste puzzel, RubyxCube 💛',
   'Volgende stop: zon, zee en Gran Canaria 🏝️',
   'Je brein is goud waard. Je hart nog meer.',
 ];
@@ -148,7 +148,7 @@ export const MILESTONES = [
     check: (s) => s.totalSolved >= 50 },
   { id: 'honderd', title: 'Honderd!', icon: '💯',
     hint: 'Los 100 puzzels op',
-    text: 'HONDERD PUZZELS. Je bent een legende. En mijn favoriete mens. Laat dit scherm zien voor één enorme knuffel. 🤗',
+    text: 'HONDERD PUZZELS. Je bent een legende. Ik hou van je, RubyxCube. Ook als je even vastzit 💛 Laat dit scherm zien voor één enorme knuffel. 🤗',
     check: (s) => s.totalSolved >= 100 },
 ];
 
