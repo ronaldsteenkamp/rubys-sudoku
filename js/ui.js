@@ -1,7 +1,7 @@
 // De interface: startscherm, bord, bediening, dialogen en het feestje.
 
 import { Game } from './game.js';
-import { LEVELS, levelById, dateKey, dailyLevelFor, HEART_MASK } from './generator.js';
+import { LEVELS, levelById, dateKey, dailyLevelFor, HEART_MASK, HEART_OUTLINE } from './generator.js';
 import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
@@ -50,7 +50,23 @@ const ICONS = {
   erase: svg('<path d="M8 20h12"/><path d="M5.6 13.6l7.5-7.5a2 2 0 012.8 0l2.9 2.9a2 2 0 010 2.8L12 18.6H8.6l-3-3a1.4 1.4 0 010-2z"/>'),
   pencil: svg('<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>'),
   bulb: svg('<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 00-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0012 3z"/>'),
+  close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+  stats: svg('<path d="M4 20h16"/><path d="M6.5 16v-5M12 16V5M17.5 16v-8"/>'),
+  mail: svg('<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 7.5l8 6 8-6"/>'),
+  settings: svg('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'),
+  check: svg('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.2 9.5"/>'),
+  fillNotes: svg('<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17"/>'),
+  reset: svg('<path d="M4.5 12a7.5 7.5 0 107.5-7.5A7.7 7.7 0 006.3 7.2L4.5 9"/><path d="M4.5 4.5V9H9"/>'),
+  help: svg('<circle cx="12" cy="12" r="9"/><path d="M9.6 9.5a2.5 2.5 0 014.9.7c0 1.7-2.5 2.1-2.5 3.8"/><path d="M12 17.3v.1"/>'),
+  install: svg('<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v6.5M9.5 11.5L12 14l2.5-2.5"/><path d="M10.5 18.5h3"/>'),
+  backupSave: svg('<path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19.5h14"/>'),
+  backupRestore: svg('<path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M5 19.5h14"/>'),
 };
+
+// Vult alle <span data-icon="..."> in de pagina met het bijbehorende lijnicoon.
+function fillIcons(root = document) {
+  for (const el of root.querySelectorAll('[data-icon]')) el.innerHTML = ICONS[el.dataset.icon] || '';
+}
 
 // ---------- Hulpjes ----------
 
@@ -81,12 +97,14 @@ function saveGame() {
 // ---------- Thema ----------
 
 const THEMES = [
-  { id: 'auto', name: 'Automatisch', swatch: 'linear-gradient(90deg,#f5c02e 50%,#16141d 50%)' },
-  { id: 'zonnig', name: 'Zonnig', swatch: 'linear-gradient(135deg,#fff8e7,#f5c02e)' },
-  { id: 'nacht', name: 'Nacht', swatch: 'linear-gradient(135deg,#221f2d,#f5c451)' },
-  { id: 'gran-canaria', name: 'Gran Canaria', swatch: 'linear-gradient(135deg,#f6e2c4 30%,#2e6f7c 70%,#f29b74)' },
-  { id: 'lelie', name: 'Lelie', swatch: 'linear-gradient(135deg,#ffffff,#eab3c4 60%,#6f8f70)' },
+  { id: 'auto', name: 'Automatisch' },
+  { id: 'zonnig', name: 'Zonnig' },
+  { id: 'nacht', name: 'Nacht' },
+  { id: 'gran-canaria', name: 'Gran Canaria' },
+  { id: 'lelie', name: 'Lelie' },
 ];
+// Een mini-voorproefje: de kleurvariabelen gelden ook binnen een element met data-theme.
+const themePreview = (id) => `<span class="tp" data-theme="${id}"><b>7</b><em></em></span>`;
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme() {
@@ -207,6 +225,8 @@ function confirmDialog(title, text, yes = 'Ja', no = 'Nee') {
 
 function showMessage({ icon = '💛', title = '', text = '', ok = 'Oké' }) {
   $('#message-icon').textContent = icon;
+  // Staat hetzelfde emoji al groot bovenaan, dan niet nog eens achter de titel.
+  if (icon && title.endsWith(icon)) title = title.slice(0, -icon.length).trimEnd();
   $('#message-title').textContent = title;
   $('#message-text').textContent = text;
   $('#message-ok').textContent = ok;
@@ -250,7 +270,8 @@ function renderHome() {
   // Verder spelen
   const cont = $('#continue-slot');
   cont.innerHTML = '';
-  if (game && !game.solved) {
+  // De dagpuzzel zelf heeft al een "Verder"-knop in z'n eigen kaart.
+  if (game && !game.solved && game.daily !== dateKey(now)) {
     const lvl = levelById(game.levelId);
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -271,20 +292,24 @@ function renderHome() {
   const dl = levelById(dailyLevelFor(now));
   const doneToday = stats.dailyDone.includes(key);
   const doneTime = stats.dailyTimes[key];
+  const busy = game && !game.solved && game.daily === key;
   const streak = store.currentStreak(stats, key);
   $('#daily-title').textContent = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
-  $('#daily-meta').textContent = [
-    doneToday ? `Opgelost ✓${doneTime != null ? ` in ${formatTime(doneTime)}` : ''}` : `${dl.emoji} ${dl.name}`,
-    streak ? `🔥 ${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij` : null,
-  ].filter(Boolean).join(' · ');
+  $('#daily-meta').textContent = `${dl.emoji} ${dl.name}`;
+  const streakEl = $('#daily-streak');
+  streakEl.hidden = !streak;
+  streakEl.textContent = streak ? `🔥 ${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij` : '';
+  const action = $('#daily-action');
+  action.textContent = doneToday ? `Opgelost ✓${doneTime != null ? ` ${formatTime(doneTime)}` : ''}` : busy ? 'Verder' : 'Speel';
+  action.classList.toggle('done', doneToday);
 
-  // Hoe ver is het volgende geheime berichtje?
+  // Hoe ver is het volgende geheime berichtje? (ringetje + badge op de knop Berichtjes)
   const next = M.nextMilestone({ ...stats, streak }, unlocked);
-  $('#milestone-progress').hidden = !next;
-  if (next) {
-    $('#milestone-line').textContent = M.milestoneLine(next);
-    $('#milestone-fill').style.width = `${Math.round((next.current / next.target) * 100)}%`;
-  }
+  const badge = $('#notes-badge');
+  badge.hidden = !next;
+  badge.textContent = next ? `nog ${next.remaining} 🔐` : '';
+  $('#notes-nav .ring').style.setProperty('--p', next ? next.current / next.target : 1);
+  $('#notes-nav').setAttribute('aria-label', next ? `Berichtjes. ${M.milestoneLine(next).replace(' 🔐', '')}` : 'Berichtjes');
 
   // Niveaus
   const levels = $('#levels');
@@ -358,10 +383,11 @@ async function startGame({ kind, levelId, special }) {
 function enterPlay() {
   if (!game) return;
   const lvl = levelById(game.levelId);
-  $('#play-title').textContent = game.special ? 'Speciaal voor jou 💛' : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
+  $('#play-title').textContent = game.special ? 'Speciaal voor jou ❤️' : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
   notesMode = false;
   hint = null;
   paused = false;
+  $('#board').classList.remove('reveal', 'heartbeat');
   $('#play').classList.remove('paused');
   showScreen('play');
   render();
@@ -381,6 +407,7 @@ function buildBoard() {
     b.className = 'cell';
     b.dataset.i = i;
     b.tabIndex = -1;
+    b.style.setProperty('--rd', 8 - rowOf(i)); // voor de hart-onthulling
     board.append(b);
   }
   board.addEventListener('click', (e) => {
@@ -422,6 +449,7 @@ function buildBoard() {
   }
   addLongPress(pad);
 
+  fillIcons();
   $('#back-btn').innerHTML = ICONS.back;
   $('#pause-btn').innerHTML = ICONS.pause;
   $('#menu-btn').innerHTML = ICONS.menu;
@@ -483,7 +511,7 @@ function render() {
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
     if (v) cls.push(given ? 'given' : 'user');
-    if (game.shape === 'heart' && HEART_MASK[i]) cls.push('in-heart', ...(given ? ['shape-heart'] : []));
+    if (game.shape === 'heart' && HEART_MASK[i]) cls.push('in-heart', ...(HEART_OUTLINE[i] ? ['heart-edge'] : []), ...(given ? ['shape-heart'] : []));
     if (peerSet?.has(i)) cls.push('peer');
     if (hlDigit && v === hlDigit) cls.push('same');
     if (i === selected && !stage) cls.push('selected');
@@ -524,8 +552,14 @@ function render() {
     const left = 9 - counts[d];
     b.disabled = left <= 0 || paused || game.solved;
     b.classList.toggle('active', hlDigit === d && !stage);
-    b.querySelector('small').textContent = left > 0 ? left : '✓';
-    b.setAttribute('aria-label', `${d}${notesMode ? ' als notitie' : ''}, nog ${left > 0 ? left : 0} over`);
+    const small = b.querySelector('small');
+    const full = left <= 0;
+    if (b.classList.contains('full') !== full || !small.firstChild) {
+      small.innerHTML = full ? '✓' : '<i></i>'.repeat(9);
+      b.classList.toggle('full', full);
+    }
+    if (!full) [...small.children].forEach((dot, k) => dot.classList.toggle('on', k < counts[d]));
+    b.setAttribute('aria-label', left > 0 ? `${d}${notesMode ? ' als notitie' : ''}, nog ${left} over` : `${d}, staat er al 9 keer`);
   }
   $('#numpad').classList.toggle('notes-mode', notesMode);
   $('#tool-undo').disabled = !game.history.length || game.solved;
@@ -798,8 +832,19 @@ function onSolved() {
   store.saveUnlocked(unlocked);
 
   feedback('solved');
-  $('#board').classList.add('solved-glow');
-  setTimeout(() => $('#board').classList.remove('solved-glow'), 1500);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const board = $('#board');
+  if (g.shape === 'heart') {
+    // Het hart loopt vol (~1,2 s), klopt één keer, en dan pas het opgelost-scherm.
+    board.classList.add('reveal');
+    if (!reduce) {
+      setTimeout(() => board.classList.add('heartbeat'), 1250);
+      setTimeout(() => board.classList.remove('heartbeat'), 2000);
+    }
+  } else {
+    board.classList.add('solved-glow');
+    setTimeout(() => board.classList.remove('solved-glow'), 1500);
+  }
   celebrate(Boolean(g.special));
 
   // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
@@ -834,7 +879,7 @@ function onSolved() {
       if (d.returnValue === 'again') startGame({ kind: 'level', levelId: $('#solved-again').dataset.level });
       else if (d.returnValue === 'home') goHome();
     }, { once: true });
-  }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 1900);
+  }, reduce ? 200 : g.shape === 'heart' ? 2050 : 1900);
 }
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
@@ -908,7 +953,7 @@ function renderSettings() {
   const opts = $('#theme-options');
   opts.innerHTML = THEMES.map((t) => `<label class="theme-opt">
       <input type="radio" name="theme" value="${t.id}" ${settings.theme === t.id ? 'checked' : ''}>
-      <span><i style="background:${t.swatch}"></i>${t.name}</span></label>`).join('');
+      <span><i class="theme-preview" aria-hidden="true">${t.id === 'auto' ? themePreview('zonnig') + themePreview('nacht') : themePreview(t.id)}</i>${t.name}</span></label>`).join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
   for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'sound', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
@@ -1058,13 +1103,12 @@ function renderInstall() {
   slot.innerHTML = '';
   if (!canInstall() || store.loadInstallSnooze() > Date.now()) return;
   const card = document.createElement('div');
-  card.className = 'card install';
+  card.className = 'install-banner';
   card.innerHTML = `<button type="button" class="install-main">
       <img src="icons/icon-192.png" alt="">
-      <span><span class="card-title">Zet me op je beginscherm</span>
-      <span class="card-meta">Dan ben ik altijd één tik weg 📲</span></span>
+      <span>Zet me op je beginscherm 📲</span>
     </button>
-    <button type="button" class="install-later">Later</button>`;
+    <button type="button" class="install-later" aria-label="Later">${ICONS.close}</button>`;
   card.querySelector('.install-main').addEventListener('click', install);
   card.querySelector('.install-later').addEventListener('click', () => {
     store.saveInstallSnooze(Date.now() + 14 * 86400000);

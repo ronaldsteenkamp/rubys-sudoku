@@ -45,9 +45,12 @@ export function loveNote(recent = [], rng = Math.random) {
 
 // ---------- Begroeting per dagdeel ----------
 
+// In de grote begroeting alleen bijnamen van minstens 3 tekens ("Goedemorgen R" leest raar).
+const GREETING_NICKNAMES = NICKNAMES.filter((n) => n.length >= 3);
+
 export function greeting(date = new Date(), rng = Math.random) {
   const h = date.getHours();
-  const nick = nickname(rng);
+  const nick = pick(GREETING_NICKNAMES, rng);
   if (h < 6) return pick([`Nog wakker, ${nick}? 🌙`, `Hé nachtuiltje ${nick} 🦉`], rng);
   if (h < 12) return pick([`Goedemorgen ${nick} ☀️`, `Goeiemorgen ${nick}, koffie al op? ☕`], rng);
   if (h < 18) return pick([`Goedemiddag ${nick} 🌼`, `Hoi ${nick}, tijd voor een pauze? 🌼`], rng);
