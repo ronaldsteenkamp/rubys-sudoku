@@ -1,5 +1,7 @@
 # Ruby's Sudoku 💛
 
+**▶️ Speel hier: [ronaldsteenkamp.github.io/rubys-sudoku](https://ronaldsteenkamp.github.io/rubys-sudoku/)**
+
 Een rustige, warme sudoku-app, speciaal gemaakt voor Ruby. Geen advertenties, geen tracking, geen account.
 Alles draait in de browser en werkt na het eerste bezoek ook offline. Op de iPhone zet je hem op je beginscherm als een echte app.
 
