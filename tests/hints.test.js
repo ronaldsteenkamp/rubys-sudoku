@@ -6,6 +6,9 @@ import { getHint, unitName } from '../js/hints.js';
 import { generateHeart } from '../js/generator.js';
 import { BANK } from '../js/bank.js';
 import { EASY, EASY_SOLUTION } from './fixtures.js';
+import { NICKNAMES } from '../js/messages.js';
+
+const hasNick = (text) => NICKNAMES.some((n) => new RegExp(`\\b${n}\\b`).test(text));
 
 const rng = () => 0.1;
 const gameFrom = (givens) => new Game({ givens, solution: solve(givens) });
@@ -17,6 +20,7 @@ function playWithHints(game) {
     const h = getHint(game, rng);
     assert.ok(h, 'er moet altijd een hint zijn');
     assert.equal(h.stages.length, 3);
+    assert.ok(hasNick(h.stages[0].text), `geen bijnaam in: ${h.stages[0].text}`);
     assert.ok(h.stages[0].units.length > 0, 'stap 1 wijst een regio aan');
     assert.equal(h.stages[0].cells.length, h.kind === 'reveal' ? 1 : 0, 'stap 1 verklapt nog geen vakje');
     kinds[h.technique] = (kinds[h.technique] || 0) + 1;
@@ -95,4 +99,17 @@ test('vangnet: als logica niet genoeg is, krijgt ze een cadeautje', () => {
   assert.equal(h.kind, 'reveal');
   assert.equal(h.action.digit, g.solution[h.action.cell]);
   assert.ok(!(g.notes[h.action.cell] & bit(1)) || true);
+});
+
+test('elke soort hint noemt haar bij een bijnaam', () => {
+  for (const r of [() => 0.01, () => 0.5, () => 0.99]) {
+    const g = new Game({ givens: parseGrid(EASY), solution: parseGrid(EASY_SOLUTION) });
+    assert.ok(hasNick(getHint(g, r).stages[0].text), 'stap');
+    g.toggleNote(0, 1);
+    assert.ok(hasNick(getHint(g, r).stages[0].text), 'notitie');
+    g.erase(0); g.setDigit(0, 1);
+    assert.ok(hasNick(getHint(g, r).stages[0].text), 'foutje');
+    const hard = gameFrom(parseGrid('8..........36......7..9.2...5...7.......457.....1...3...1....68..85...1..9....4..'));
+    assert.ok(hasNick(getHint(hard, r).stages[0].text), 'cadeautje');
+  }
 });

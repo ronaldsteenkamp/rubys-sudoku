@@ -1,4 +1,4 @@
-// Slimme hints in drie stappen, zoals een lieve puzzelcoach:
+// Slimme hints in drie stappen, zoals een lieve puzzelcoach (altijd met een bijnaam):
 //   1. waar moet je kijken (regio)
 //   2. welke techniek en waarom (1–2 zinnen)
 //   3. pas dan: het antwoord
@@ -7,7 +7,7 @@
 
 import { UNITS, bit, rowOf, colOf, boxOf } from './solver.js';
 import { computeCandidates, findStep, applyStep, TECHNIQUES } from './techniques.js';
-import { maybeNick } from './messages.js';
+import { nickname } from './messages.js';
 
 const BOX_NAMES = ['linksboven', 'middenboven', 'rechtsboven', 'linksmidden', 'in het midden', 'rechtsmidden', 'linksonder', 'middenonder', 'rechtsonder'];
 
@@ -25,9 +25,9 @@ const pick = (xs, rng) => xs[Math.floor(rng() * xs.length)];
 function lookHere(units, rng) {
   const where = list(units.map(unitName));
   return pick([
-    `Kijk eens naar ${where}${maybeNick(rng)} 👀`,
-    `Psst… in ${where} valt iets te ontdekken${maybeNick(rng)}.`,
-    `Ik zou even naar ${where} kijken${maybeNick(rng)} 🔎`,
+    `Kijk eens naar ${where}, ${nickname(rng)} 👀`,
+    `Psst… in ${where} valt iets te ontdekken, ${nickname(rng)}.`,
+    `Ik zou even naar ${where} kijken, ${nickname(rng)} 🔎`,
   ], rng);
 }
 
@@ -93,7 +93,7 @@ export function getHint(game, rng = Math.random) {
       kind: 'mistake',
       technique: 'Foutje',
       stages: [
-        { text: `Hmm, in ${unitName(box)} is iets niet helemaal goed gegaan${maybeNick(rng)}. Kijk nog eens?`, units: [box], cells: [] },
+        { text: `Hmm, in ${unitName(box)} is iets niet helemaal goed gegaan, ${nickname(rng)}. Kijk nog eens?`, units: [box], cells: [] },
         { text: `Dit vakje klopt niet: er moet een ander cijfer staan. Geeft niks, dat gebeurt de besten 💛`, units: [box], cells: [wrong] },
         { text: 'Ik heb hem voor je weggehaald. Op naar de volgende!', units: [], cells: [wrong] },
       ],
@@ -108,7 +108,7 @@ export function getHint(game, rng = Math.random) {
       kind: 'notes',
       technique: 'Notitie',
       stages: [
-        { text: `Kijk eens naar de notities in ${unitName(18 + boxOf(badNote))}${maybeNick(rng)}.`, units: [18 + boxOf(badNote)], cells: [] },
+        { text: `Kijk eens naar de notities in ${unitName(18 + boxOf(badNote))}, ${nickname(rng)}.`, units: [18 + boxOf(badNote)], cells: [] },
         { text: 'In dit vakje heb je per ongeluk het juiste cijfer weggestreept. Daardoor raak je straks in de knoop.', units: [], cells: [badNote] },
         { text: 'Ik heb de notitie voor je teruggezet ✏️', units: [], cells: [badNote], digit: solution[badNote] },
       ],
@@ -184,7 +184,7 @@ export function getHint(game, rng = Math.random) {
     kind: 'reveal',
     technique: 'Cadeautje',
     stages: [
-      { text: `Deze is echt pittig${maybeNick(rng)}! Kijk eens naar dit vakje.`, units: peers, cells: [best] },
+      { text: `Deze is echt pittig, ${nickname(rng)}! Kijk eens naar dit vakje.`, units: peers, cells: [best] },
       { text: `Hier zijn nog maar ${bestN} cijfers mogelijk. Probeer in gedachten wat er gebeurt als je er eentje kiest.`, units: peers, cells: [best] },
       { text: `Ik verklap ‘m: hier hoort een ${solution[best]} 🎁`, units: [], cells: [best] },
     ],
