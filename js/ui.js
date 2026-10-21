@@ -278,6 +278,14 @@ function renderHome() {
     streak ? `🔥 ${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij` : null,
   ].filter(Boolean).join(' · ');
 
+  // Hoe ver is het volgende geheime berichtje?
+  const next = M.nextMilestone({ ...stats, streak }, unlocked);
+  $('#milestone-progress').hidden = !next;
+  if (next) {
+    $('#milestone-line').textContent = M.milestoneLine(next);
+    $('#milestone-fill').style.width = `${Math.round((next.current / next.target) * 100)}%`;
+  }
+
   // Niveaus
   const levels = $('#levels');
   levels.innerHTML = '';
@@ -412,10 +420,44 @@ function buildBoard() {
     b.addEventListener('click', () => inputDigit(d));
     pad.append(b);
   }
+  addLongPress(pad);
 
   $('#back-btn').innerHTML = ICONS.back;
   $('#pause-btn').innerHTML = ICONS.pause;
   $('#menu-btn').innerHTML = ICONS.menu;
+}
+
+// Lang drukken (~400 ms) op een cijfer zet het als notitie, ook zonder notitiemodus.
+const LONG_PRESS_MS = 400;
+function addLongPress(pad) {
+  let timer = null;
+  let startX = 0, startY = 0;
+  let firedOn = null; // knop waarop de lange druk al is afgegaan
+  const cancel = () => { clearTimeout(timer); timer = null; };
+
+  pad.addEventListener('pointerdown', (e) => {
+    const b = e.target.closest('.num');
+    if (!b || b.disabled || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    cancel();
+    firedOn = null;
+    startX = e.clientX; startY = e.clientY;
+    timer = setTimeout(() => {
+      timer = null;
+      firedOn = b;
+      feedback('hold');
+      inputDigit(Number(b.dataset.d), { note: true });
+    }, LONG_PRESS_MS);
+  });
+  pad.addEventListener('pointermove', (e) => {
+    if (timer && Math.hypot(e.clientX - startX, e.clientY - startY) > 10) cancel();
+  });
+  for (const t of ['pointerup', 'pointercancel', 'pointerleave']) pad.addEventListener(t, cancel);
+  // De gewone klik na een lange druk niet ook nog laten afgaan.
+  pad.addEventListener('click', (e) => {
+    if (firedOn && e.target.closest('.num') === firedOn) { e.stopImmediatePropagation(); e.preventDefault(); }
+    firedOn = null;
+  }, true);
+  pad.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 // ---------- Tekenen ----------
@@ -777,6 +819,7 @@ function onSolved() {
     formatTime(g.elapsed),
     newBest && stats.levels[g.levelId].solved > 1 ? 'nieuw record! 🏅' : null,
     g.hints ? `${g.hints} ${g.hints === 1 ? 'hint' : 'hints'}` : 'zonder hints',
+    !g.mistakes && settings.errors !== 'uit' ? 'zonder fouten ✨' : null,
   ].filter(Boolean).join(' · ');
   $('#solved-note').textContent = note;
   $('#solved-again').textContent = 'Nog eentje';

@@ -113,15 +113,19 @@ export function specialById(id) {
 }
 
 // ---------- Mijlpalen met geheime berichtjes ----------
+// `progress` (optioneel) zegt hoe ver ze al is; `unit` is waar ze er nog van nodig heeft.
+// Bij reeksen is `s.streak` de reeks van nu, niet de langste ooit.
 
 export const MILESTONES = [
   { id: 'eerste', title: 'De allereerste', icon: '🌱',
     hint: 'Los je eerste puzzel op',
     text: 'Je allereerste puzzel in jouw eigen app! Ik heb hem gemaakt met heel veel liefde (en een beetje te veel koffie). Fijn dat je er bent. 💛',
+    unit: ['puzzel', 'puzzels'], progress: (s) => ({ current: s.totalSolved, target: 1 }),
     check: (s) => s.totalSolved >= 1 },
   { id: 'dag1', title: 'Goedemorgen, dagpuzzel', icon: '📅',
     hint: 'Los een dagpuzzel op',
     text: 'Je eerste dagpuzzel! Elke dag staat hier een nieuwe voor je klaar, net zoals ik er elke dag voor jou ben.',
+    unit: ['dagpuzzel', 'dagpuzzels'], progress: (s) => ({ current: s.dailySolved, target: 1 }),
     check: (s) => s.dailySolved >= 1 },
   { id: 'zonderhint', title: 'Helemaal zelf', icon: '🧠',
     hint: 'Los een puzzel op zonder hints',
@@ -130,14 +134,17 @@ export const MILESTONES = [
   { id: 'tien', title: 'Tien!', icon: '🔟',
     hint: 'Los 10 puzzels op',
     text: 'Tien puzzels opgelost! Als beloning: één keer per week mag jij kiezen wat we eten. Preitaart, ik weet het al 🥧',
+    unit: ['puzzel', 'puzzels'], progress: (s) => ({ current: s.totalSolved, target: 10 }),
     check: (s) => s.totalSolved >= 10 },
   { id: 'streak3', title: 'Drie op een rij', icon: '✨',
     hint: 'Puzzel 3 dagen achter elkaar',
     text: 'Drie dagen op rij! Je bent een gewoontedier, net als een hond die precies weet hoe laat het wandeltijd is 🐶',
+    unit: ['dag op rij', 'dagen op rij'], progress: (s) => ({ current: s.streak, target: 3 }),
     check: (s) => s.bestStreak >= 3 },
   { id: 'streak7', title: 'Een hele week', icon: '🌈',
     hint: 'Puzzel 7 dagen achter elkaar',
     text: 'Een hele week elke dag gepuzzeld! Weet je wat ik elke dag doe? Blij zijn dat ik jou heb. 💛',
+    unit: ['dag op rij', 'dagen op rij'], progress: (s) => ({ current: s.streak, target: 7 }),
     check: (s) => s.bestStreak >= 7 },
   { id: 'ruby', title: 'Ruby-modus verslagen', icon: '🔥',
     hint: 'Los een puzzel op in Ruby-modus',
@@ -146,23 +153,47 @@ export const MILESTONES = [
   { id: 'vijfentwintig', title: 'Kwart eeuw', icon: '🌻',
     hint: 'Los 25 puzzels op',
     text: '25 puzzels! Dat zijn meer dan 1000 ingevulde vakjes. En ik heb nog steeds niet genoeg van jou.',
+    unit: ['puzzel', 'puzzels'], progress: (s) => ({ current: s.totalSolved, target: 25 }),
     check: (s) => s.totalSolved >= 25 },
   { id: 'streak30', title: 'Een maand lang', icon: '🏆',
     hint: 'Puzzel 30 dagen achter elkaar',
     text: 'Dertig dagen op rij. Dertig! Volgens mij ben jij het meest volhardende mens dat ik ken. Ik ben trots op je.',
+    unit: ['dag op rij', 'dagen op rij'], progress: (s) => ({ current: s.streak, target: 30 }),
     check: (s) => s.bestStreak >= 30 },
   { id: 'vijftig', title: 'Vijftig', icon: '🌺',
     hint: 'Los 50 puzzels op',
     text: '50 puzzels. Tijd voor een echte beloning: een dagje uit, jij kiest. (Dit berichtje telt als officiële bon 🎟️)',
+    unit: ['puzzel', 'puzzels'], progress: (s) => ({ current: s.totalSolved, target: 50 }),
     check: (s) => s.totalSolved >= 50 },
   { id: 'honderd', title: 'Honderd!', icon: '💯',
     hint: 'Los 100 puzzels op',
     text: 'HONDERD PUZZELS. Je bent een legende. Ik hou van je, RubyxCube. Ook als je even vastzit 💛 Laat dit scherm zien voor één enorme knuffel. 🤗',
+    unit: ['puzzel', 'puzzels'], progress: (s) => ({ current: s.totalSolved, target: 100 }),
     check: (s) => s.totalSolved >= 100 },
 ];
 
 export function newMilestones(stats, unlocked) {
   return MILESTONES.filter((m) => !unlocked.includes(m.id) && m.check(stats));
+}
+
+// De dichtstbijzijnde nog geheime mijlpaal waarvan we de voortgang kunnen tellen,
+// of null als er niks meer te tellen valt.
+export function nextMilestone(stats, unlocked) {
+  let best = null;
+  for (const m of MILESTONES) {
+    if (unlocked.includes(m.id) || !m.progress) continue;
+    const { current, target } = m.progress(stats);
+    const remaining = Math.max(1, target - (current || 0));
+    if (!best || remaining < best.remaining) best = { milestone: m, current: Math.min(current || 0, target), target, remaining };
+  }
+  return best;
+}
+
+// "Nog 7 puzzels tot je volgende geheime berichtje 🔐"
+export function milestoneLine(next) {
+  if (!next) return '';
+  const [one, many] = next.milestone.unit;
+  return `Nog ${next.remaining} ${next.remaining === 1 ? one : many} tot je volgende geheime berichtje 🔐`;
 }
 
 // ---------- Kleine tekstjes ----------

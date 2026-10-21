@@ -41,9 +41,10 @@ const SOUNDS = {
   hint: () => { tone(880, { dur: 0.18, gain: 0.035 }); tone(1320, { at: 0.07, dur: 0.22, gain: 0.025 }); },
   done: () => [523, 659, 784].forEach((f, k) => tone(f, { at: k * 0.05, dur: 0.18, gain: 0.03 })),
   solved: () => [523, 659, 784, 1047, 1319].forEach((f, k) => tone(f, { at: k * 0.11, dur: 0.5, gain: 0.045 })),
+  hold: () => {}, // lang drukken: alleen een tikje, geen geluid (de notitie zelf piept al)
 };
 
-const PATTERNS = { place: 8, note: 4, erase: 6, wrong: [14, 60, 14], hint: 10, done: [8, 40, 8], solved: [20, 60, 20, 60, 40] };
+const PATTERNS = { place: 8, note: 4, erase: 6, wrong: [14, 60, 14], hint: 10, done: [8, 40, 8], solved: [20, 60, 20, 60, 40], hold: 12 };
 
 export const canVibrate = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
 

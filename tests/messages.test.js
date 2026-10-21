@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { greeting, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES } from '../js/messages.js';
+import { greeting, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
 test('begroeting past bij het dagdeel', () => {
@@ -52,4 +52,34 @@ test('speciale dag terugvinden op id (ook na middernacht)', () => {
   assert.equal(specialById('jubileum-2028').id, 'jubileum-2028');
   assert.equal(specialById('iets-anders'), null);
   assert.equal(specialById(null), null);
+});
+
+test('volgende mijlpaal: de dichtstbijzijnde die nog geheim is', () => {
+  const st = emptyStats();
+  assert.equal(nextMilestone(st, []).milestone.id, 'eerste');
+  st.totalSolved = 3; st.dailySolved = 1; st.noHintSolved = 1; st.streak = 1; st.bestStreak = 1;
+  const next = nextMilestone(st, ['eerste', 'dag1', 'zonderhint']);
+  assert.equal(next.milestone.id, 'streak3');
+  assert.equal(next.remaining, 2);
+  assert.equal(milestoneLine(next), 'Nog 2 dagen op rij tot je volgende geheime berichtje 🔐');
+
+  st.totalSolved = 9;
+  const tien = nextMilestone(st, ['eerste', 'dag1', 'zonderhint']);
+  assert.equal(tien.milestone.id, 'tien');
+  assert.deepEqual([tien.current, tien.target], [9, 10]);
+  assert.equal(milestoneLine(tien), 'Nog 1 puzzel tot je volgende geheime berichtje 🔐');
+
+  st.streak = 0;
+  st.totalSolved = 3;
+  assert.equal(milestoneLine(nextMilestone(st, ['eerste', 'dag1', 'zonderhint', 'streak3'])), 'Nog 7 puzzels tot je volgende geheime berichtje 🔐');
+});
+
+test('volgende mijlpaal: niks meer te tellen, dan geen regeltje', () => {
+  const st = emptyStats();
+  assert.equal(nextMilestone(st, MILESTONES.map((m) => m.id)), null);
+  // Alleen nog mijlpalen zonder voortgang over (Ruby-modus, zonder hints).
+  const rest = MILESTONES.filter((m) => m.progress).map((m) => m.id);
+  assert.equal(nextMilestone(st, rest), null);
+  assert.equal(milestoneLine(null), '');
+  assert.ok(!MILESTONES.find((m) => m.id === 'ruby').progress);
 });
