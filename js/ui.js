@@ -1231,6 +1231,28 @@ function registerServiceWorker() {
   }).catch(() => {});
 }
 
+// ---------- Scherm aan laten ----------
+
+// Zolang de app in beeld is, gaat het scherm niet uit (Screen Wake Lock).
+// Gaat de app naar de achtergrond, dan laat de browser hem zelf los; bij
+// terugkomen vragen we hem opnieuw. Safari wil soms eerst een tik zien,
+// daarom proberen we het ook bij elke aanraking zolang we er nog geen hebben.
+let wakeLock = null;
+let wakeLockPending = false;
+async function keepAwake() {
+  if (!('wakeLock' in navigator) || wakeLock || wakeLockPending || document.visibilityState !== 'visible') return;
+  wakeLockPending = true;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch {
+    wakeLock = null; // bijvoorbeeld in de energiebesparingsmodus: dan maar niet
+  }
+  wakeLockPending = false;
+}
+document.addEventListener('visibilitychange', keepAwake);
+document.addEventListener('pointerdown', keepAwake, { passive: true });
+
 // ---------- Opstarten ----------
 
 $('#daily-card').addEventListener('click', () => {
@@ -1262,3 +1284,4 @@ const idle = globalThis.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
 idle(() => fillStash());
 
 registerServiceWorker();
+keepAwake();
