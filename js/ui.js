@@ -242,7 +242,7 @@ function showMessage({ icon = '💛', title = '', text = '', ok = 'Oké' }) {
 function renderHome() {
   const now = today();
   $('#greeting').textContent = M.greeting(now);
-  $('#subtitle').textContent = M.SUBTITLES[Math.floor(Math.random() * M.SUBTITLES.length)];
+  $('#subtitle').textContent = M.subtitle(now);
   const days = M.daysTogether(now);
   $('#together').textContent = days > 0 ? `Al ${days} ${days === 1 ? 'dag' : 'dagen'} samen 💛` : '';
 

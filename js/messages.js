@@ -48,13 +48,95 @@ export function loveNote(recent = [], rng = Math.random) {
 // In de grote begroeting alleen bijnamen van minstens 3 tekens ("Goedemorgen R" leest raar).
 const GREETING_NICKNAMES = NICKNAMES.filter((n) => n.length >= 3);
 
-export function greeting(date = new Date(), rng = Math.random) {
+// Dagdelen: nacht tot 6 uur, ochtend tot 12, middag tot 18, daarna avond.
+export const partOfDay = (date = new Date()) => {
   const h = date.getHours();
+  return h < 6 ? 'nacht' : h < 12 ? 'ochtend' : h < 18 ? 'middag' : 'avond';
+};
+
+// Elke begroeting krijgt een bijnaam mee (n).
+export const GREETINGS = {
+  nacht: [
+    (n) => `Nog wakker, ${n}? 🌙`,
+    (n) => `Hé nachtuiltje ${n} 🦉`,
+    (n) => `Psst, ${n}… de maan kijkt mee 🌙`,
+    (n) => `Kun je niet slapen, ${n}? 💤`,
+    (n) => `Nachtpuzzeltje, ${n}? 🌌`,
+    (n) => `Stiekem nog wakker, ${n}? 🤫`,
+    (n) => `Hé ${n}, één puzzel en dan bed 😴`,
+    (n) => `Nachtsnack of sudoku, ${n}? 🍪`,
+    (n) => `Het is stil buiten, ${n} 🌙`,
+    (n) => `Ssst ${n}, de honden slapen al 🐶`,
+    (n) => `Hé ${n}, sterrenkijken? ✨`,
+    (n) => `Hé ${n}, ook een nachtmens? 🦉`,
+  ],
+  ochtend: [
+    (n) => `Goedemorgen ${n} ☀️`,
+    (n) => `Goeiemorgen ${n}, koffie al op? ☕`,
+    (n) => `Goeiemorgen, ${n}! 🌞`,
+    (n) => `Morgen ${n}, goed geslapen? 😴`,
+    (n) => `Hé ${n}, eerst koffie ☕`,
+    (n) => `Wakker worden, ${n} 🌅`,
+    (n) => `Daar is ze weer: ${n} 🌞`,
+    (n) => `Ochtendpuzzel, ${n}? 🧩`,
+    (n) => `Hoi ${n}, ontbijt al op? 🥐`,
+    (n) => `Morgen ${n}! Klaar voor de dag? 💪`,
+    (n) => `Morgen ${n}, wat een mooie dag 🌼`,
+    (n) => `Rise and shine, ${n} 🌅`,
+    (n) => `Hé ${n}, de zon is er voor jou ☀️`,
+    (n) => `Al een beetje wakker, ${n}? 🥱`,
+  ],
+  middag: [
+    (n) => `Goedemiddag ${n} 🌼`,
+    (n) => `Hoi ${n}, tijd voor een pauze? 🌼`,
+    (n) => `Hé ${n}, even pauze? ☕`,
+    (n) => `Middagdipje, ${n}? 🧩`,
+    (n) => `Hoi ${n}! Lekker bezig 🌻`,
+    (n) => `Theetje erbij, ${n}? 🍵`,
+    (n) => `Gezellig dat je er bent, ${n} 💛`,
+    (n) => `Puzzelpauze, ${n}? ⏸️`,
+    (n) => `Hé ${n}, snackje erbij? 🍪`,
+    (n) => `Daar ben je, ${n}! 🌼`,
+    (n) => `Hoi ${n}, al buiten geweest? ☀️`,
+    (n) => `Hé ${n}, even je hoofd leegmaken 🌿`,
+    (n) => `Je doet het goed, ${n} 🌟`,
+    (n) => `Hoi ${n}, de honden zwaaien 🐾`,
+  ],
+  avond: [
+    (n) => `Goedenavond ${n} 🌙`,
+    (n) => `Hé ${n}, lekker op de bank? 🛋️`,
+    (n) => `Goeienavond ${n} ✨`,
+    (n) => `Hé ${n}, dekentje erbij? 🧸`,
+    (n) => `Avondpuzzeltje, ${n}? 🌙`,
+    (n) => `Hoi ${n}, de dag zit erop 🌆`,
+    (n) => `Hé ${n}, preitaart gegeten? 🥧`,
+    (n) => `Thee en een puzzel, ${n}? 🍵`,
+    (n) => `Hé ${n}, pyjama al aan? 🌙`,
+    (n) => `Rustig aan, ${n} 🕯️`,
+    (n) => `Hoi ${n}, nog even puzzelen? 🧩`,
+    (n) => `Na de training, ${n}? 🏐`,
+    (n) => `Trots op je vandaag, ${n} 💛`,
+    (n) => `Sokken aan, ${n}? 🧦`,
+  ],
+};
+
+// Soms een begroeting die bij de dag van de week hoort (0 = zondag). Niet 's nachts.
+export const WEEKDAY_GREETINGS = {
+  0: [(n) => `Zondag, ${n}! Puzzeldag 🧩`, (n) => `Lui zondagje, ${n}? 🛋️`, (n) => `Fijne zondag, ${n} ☀️`],
+  1: [(n) => `Hup ${n}, het is maandag 💪`, (n) => `Maandag valt mee, ${n} ☕`],
+  2: [(n) => `Dinsdagje, ${n} 🌼`, (n) => `Hoi ${n}, fijne dinsdag 🌷`],
+  3: [(n) => `Woensdag: halverwege, ${n}! 🐪`],
+  4: [(n) => `Bijna weekend, ${n} 🎈`, (n) => `Bijna vrijdag, ${n} 🌙`],
+  5: [(n) => `Vrijdag, ${n}! 🎉`, (n) => `Het is vrijdag, ${n} 💃`],
+  6: [(n) => `Geen wekker, ${n} 😴`, (n) => `Fijne zaterdag, ${n} 🌻`],
+};
+
+export function greeting(date = new Date(), rng = Math.random) {
+  const part = partOfDay(date);
   const nick = pick(GREETING_NICKNAMES, rng);
-  if (h < 6) return pick([`Nog wakker, ${nick}? 🌙`, `Hé nachtuiltje ${nick} 🦉`], rng);
-  if (h < 12) return pick([`Goedemorgen ${nick} ☀️`, `Goeiemorgen ${nick}, koffie al op? ☕`], rng);
-  if (h < 18) return pick([`Goedemiddag ${nick} 🌼`, `Hoi ${nick}, tijd voor een pauze? 🌼`], rng);
-  return pick([`Goedenavond ${nick} 🌙`, `Hé ${nick}, lekker op de bank? 🛋️`], rng);
+  const day = WEEKDAY_GREETINGS[date.getDay()];
+  const list = part !== 'nacht' && day && rng() < 0.25 ? day : GREETINGS[part];
+  return pick(list, rng)(nick);
 }
 
 export const SUBTITLES = [
@@ -63,7 +145,97 @@ export const SUBTITLES = [
   'Gemaakt met heel veel liefde, speciaal voor jou.',
   'Rustig aan, er is geen haast.',
   'Eén vakje tegelijk.',
+  'Jij en negen cijfers. Wat een team.',
+  'Geen haast, geen stress, gewoon jij.',
+  'Neem een slokje koffie en kies een puzzel.',
+  'Vandaag is een goede dag voor een sudoku.',
+  'Elk vakje is een klein feestje.',
+  'Je brein verdient een knuffel.',
+  'Even ontsnappen naar je eigen hoekje.',
+  'Hier is het altijd rustig.',
+  'Fouten maken mag. Gummen ook.',
+  'Notities zijn je beste vriendjes.',
+  'Begin bij de makkelijke vakjes.',
+  'Vastgelopen? Even wegkijken helpt echt.',
+  'Een hint vragen is ook slim.',
+  'Klein beetje puzzelen, groot beetje trots.',
+  'Op de bank, in de trein of in bed: altijd goed.',
+  'De honden hebben deze puzzel aanbevolen.',
+  'Jouw hoofd, jouw tempo.',
+  'Ademhalen, en dan het eerste cijfer.',
+  'Iemand is heel trots op je.',
+  'Er wacht een puzzel op je. Hij heeft er zin in.',
+  'Vandaag ga je knallen.',
+  'Wie heeft er een hoofd van goud? Jij.',
+  'Stilte, koffie, cijfers. Heerlijk.',
+  'Elke puzzel is op te lossen. Echt waar.',
+  'Laat de wereld maar even wachten.',
+  'Vakje voor vakje kom je er wel.',
+  'Je hoeft niks. Je mag puzzelen.',
+  'Telefoon op stil, puzzel aan.',
+  'Eén, twee, drie… negen. Kinderspel voor jou.',
+  'Lekker bezig, ik zie het heus.',
+  'Puzzelen is ook een beetje mediteren.',
+  'Eerst de rijtjes, dan de wereld.',
+  'Even weg? Ik onthoud waar je was.',
+  'Vandaag een record? Of gewoon gezellig?',
+  'Het Gran Canaria-zonnetje schijnt ook hier.',
+  'Ook kampioenen beginnen met één vakje.',
+  'Smash die sudoku, net als op het veld.',
+  'Klaar voor een rondje hersengym?',
+  'De koffie is warm, de puzzel is vers.',
+  'De leukste puzzelaar die ik ken.',
+  'Even jij-tijd.',
+  'Geen reclame, geen gedoe. Alleen jij.',
+  'Je bent geweldig, ook zonder sudoku.',
+  'Een kleine uitdaging, een grote glimlach.',
+  'Zachtjes nadenken mag ook.',
+  'Vandaag een Zondagochtend, of toch Ruby-modus?',
+  'Jouw eigen app. Hoe cool is dat.',
+  'Gewoon even zitten en kijken waar de 5 moet.',
+  'Iedere 9 heeft een plekje. Jij ook, bij mij.',
+  'Een puzzel en een glimlach, meer is het niet.',
+  'Hier kan niks misgaan, alleen opnieuw beginnen.',
+  'Je wordt elke puzzel een beetje beter.',
+  'Beloning na afloop: een knuffel.',
+  'Kies maar, ik heb er allemaal zin in.',
 ];
+
+// Ondertitels die bij een dagdeel horen.
+export const PART_SUBTITLES = {
+  nacht: [
+    'Eentje dan, en daarna lekker slapen.',
+    'Puzzelen in het donker is extra gezellig.',
+    'De rest van de wereld slaapt. Jij bent de baas.',
+    'Niet te lang hoor, slapen is ook belangrijk.',
+    'Zacht licht, zachte cijfers.',
+  ],
+  ochtend: [
+    'Een puzzel bij het ontbijt.',
+    'Wakker worden met een paar cijfers.',
+    'Eerst koffie, dan cijfers.',
+    'Een frisse start van de dag.',
+    'Het ontbijt van kampioenen: koffie en een sudoku.',
+  ],
+  middag: [
+    'Even pauze, die heb je verdiend.',
+    'Een middagpuzzel tegen het dipje.',
+    'Halverwege de dag, tijd voor jou.',
+    'Een kwartiertje voor jezelf.',
+  ],
+  avond: [
+    'De dag zit erop, tijd voor iets fijns.',
+    'Lekker onderuit met een puzzeltje.',
+    'Een rustige afsluiter van de dag.',
+    'Kaarsje aan, puzzel erbij.',
+    'Morgen weer een dag. Nu even dit.',
+  ],
+};
+
+// Een ondertitel: meestal algemeen, soms passend bij het dagdeel.
+export function subtitle(date = new Date(), rng = Math.random) {
+  return pick(rng() < 0.35 ? PART_SUBTITLES[partOfDay(date)] : SUBTITLES, rng);
+}
 
 // ---------- Speciale dagen ----------
 
