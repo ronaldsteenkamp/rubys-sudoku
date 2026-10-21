@@ -199,6 +199,15 @@ export function milestoneLine(next) {
   return `Nog ${next.remaining} ${next.remaining === 1 ? one : many} tot je volgende geheime berichtje 🔐`;
 }
 
+// ---------- Nieuwe thema's (seizoenen) ----------
+
+export const THEME_UNLOCK_TEXT = {
+  lente: 'Alles gaat weer bloeien. Ik ook, elke keer als ik jou zie 🦋',
+  zomer: 'Voor lange avonden, ijsjes op het terras en jouw zonnige humeur 🍦',
+  herfst: 'Voor de gezelligste tijd van het jaar, met jou op de bank 🛋️',
+  winter: 'Voor koude dagen en warme knuffels. Kruip maar lekker onder de deken 🧣',
+};
+
 // ---------- Kleine tekstjes ----------
 
 export const LOADING_LINES = [

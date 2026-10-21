@@ -79,7 +79,9 @@ async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '
     const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme }));
     const done = dailyDone ? { dailyDone: [key], dailyTimes: { [key]: 372000 } } : {};
-    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, ...done, ...extraStats, lastSolvedDay: key }));
+    // Seizoensthema's staan vrij, anders zou het thema terugvallen op zonnig.
+    const seasons = { unlockedThemes: ['lente', 'zomer', 'herfst', 'winter'] };
+    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, ...done, ...seasons, ...extraStats, lastSolvedDay: key }));
     localStorage.setItem('rubys-sudoku:unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
     if (game) localStorage.setItem('rubys-sudoku:game', JSON.stringify(game));
   }, { theme, stats, game, dailyDone, extraStats });

@@ -6,7 +6,7 @@ import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, AUTO_CHOICES, themeById, resolveTheme } from './themes.js';
+import { FIXED_THEMES, SEASON_THEMES, AUTO_CHOICES, SEASON_AUTO, themeById, resolveTheme, recordSeasonSolve, checkThemeUnlocks } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -105,7 +105,7 @@ function themePreview(id) {
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme() {
-  const t = resolveTheme(settings.theme, darkQuery.matches);
+  const t = resolveTheme(settings.theme, today(), stats.unlockedThemes, darkQuery.matches);
   document.documentElement.dataset.theme = t;
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   document.querySelector('meta[name="theme-color"]').setAttribute('content', bg || '#fff8e7');
@@ -200,7 +200,9 @@ function closeDialog(id) {
   if (d.open) d.close();
 }
 
-function confirmDialog(title, text, yes = 'Ja', no = 'Nee') {
+function confirmDialog(title, text, yes = 'Ja', no = 'Nee', icon = '') {
+  $('#confirm-icon').hidden = !icon;
+  $('#confirm-icon').textContent = icon;
   $('#confirm-title').textContent = title;
   $('#confirm-text').textContent = text;
   $('#confirm-yes').textContent = yes;
@@ -814,7 +816,13 @@ function onSolved() {
   render();
   store.clearGame();
   const day = dateKey(today());
-  const { newBest } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
+  const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
+  // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
+  let freshThemes = [];
+  if (counted) {
+    recordSeasonSolve(stats, today());
+    freshThemes = checkThemeUnlocks(stats, today());
+  }
   store.saveStats(stats);
   requestPersist();
   const fresh = M.newMilestones(stats, unlocked);
@@ -866,10 +874,21 @@ function onSolved() {
       for (const m of fresh) {
         await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
       }
+      for (const id of freshThemes) await offerTheme(id);
       if (d.returnValue === 'again') startGame({ kind: 'level', levelId: $('#solved-again').dataset.level });
       else if (d.returnValue === 'home') goHome();
     }, { once: true });
   }, reduce ? 200 : g.shape === 'heart' ? 2050 : 1900);
+}
+
+// Een nieuw seizoensthema is vrij: vragen of ze het meteen wil proberen.
+async function offerTheme(id) {
+  const t = themeById(id);
+  const yes = await confirmDialog(`Nieuw thema: ${t.name} ${t.emoji}`, M.THEME_UNLOCK_TEXT[id], 'Probeer maar!', 'Later', t.icon);
+  if (!yes) return;
+  settings.theme = id;
+  store.saveSettings(settings);
+  applyTheme();
 }
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
@@ -941,7 +960,9 @@ for (const d of document.querySelectorAll('dialog')) {
 
 function renderSettings() {
   const opts = $('#theme-options');
-  const choices = [...AUTO_CHOICES, ...THEMES.map((t) => ({ ...t, previews: [t.id] }))];
+  const own = SEASON_THEMES.filter((t) => stats.unlockedThemes.includes(t.id));
+  const choices = [...AUTO_CHOICES, ...FIXED_THEMES.map((t) => ({ ...t, previews: [t.id] })),
+    ...(own.length ? [SEASON_AUTO] : []), ...own.map((t) => ({ ...t, previews: [t.id] }))];
   opts.innerHTML = choices.map((t) => `<label class="theme-opt">
       <input type="radio" name="theme" value="${t.id}" ${settings.theme === t.id ? 'checked' : ''}>
       <span><i class="theme-preview" aria-hidden="true">${t.previews.map(themePreview).join('')}</i>${t.name}</span></label>`).join('');

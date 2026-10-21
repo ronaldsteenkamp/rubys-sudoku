@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { THEMES, resolveTheme, themeById } from '../js/themes.js';
+import { THEMES, resolveTheme, themeById, seasonOf, checkThemeUnlocks, recordSeasonSolve, seasonProgress, SEASON_THEMES } from '../js/themes.js';
+import { emptyStats, migrateStats } from '../js/storage.js';
 
 // ---------- CSS-variabelen per thema uit style.css halen ----------
 
@@ -94,10 +95,78 @@ test('selectie, peers, gelijke cijfers, fout en hart zijn duidelijk van elkaar t
   assert.deepEqual(fails, []);
 });
 
+const d = (y, m, day) => new Date(y, m - 1, day, 12);
+
 test('auto kiest licht of donker; onbekend valt terug op zonnig', () => {
-  assert.equal(resolveTheme('auto', false), 'zonnig');
-  assert.equal(resolveTheme('auto', true), 'nacht');
-  assert.equal(resolveTheme('lelie'), 'lelie');
-  assert.equal(resolveTheme('bestaat-niet'), 'zonnig');
+  assert.equal(resolveTheme('auto', d(2026, 10, 21), [], false), 'zonnig');
+  assert.equal(resolveTheme('auto', d(2026, 10, 21), [], true), 'nacht');
+  assert.equal(resolveTheme('lelie', d(2026, 10, 21), []), 'lelie');
+  assert.equal(resolveTheme('bestaat-niet', d(2026, 10, 21), []), 'zonnig');
   assert.equal(themeById('nacht').scheme, 'dark');
+});
+
+test('seizoenen volgen de meteorologische indeling', () => {
+  assert.deepEqual(seasonOf(d(2027, 3, 1)), { season: 'lente', key: 'lente-2027' });
+  assert.deepEqual(seasonOf(d(2027, 5, 31)), { season: 'lente', key: 'lente-2027' });
+  assert.deepEqual(seasonOf(d(2027, 6, 1)), { season: 'zomer', key: 'zomer-2027' });
+  assert.deepEqual(seasonOf(d(2026, 9, 1)), { season: 'herfst', key: 'herfst-2026' });
+  assert.deepEqual(seasonOf(d(2026, 11, 30)), { season: 'herfst', key: 'herfst-2026' });
+});
+
+test('winter over de jaarwisseling: dec 2026 t/m feb 2027 is winter-2026', () => {
+  assert.equal(seasonOf(d(2026, 12, 1)).key, 'winter-2026');
+  assert.equal(seasonOf(d(2026, 12, 31)).key, 'winter-2026');
+  assert.equal(seasonOf(d(2027, 1, 1)).key, 'winter-2026');
+  assert.equal(seasonOf(d(2027, 2, 28)).key, 'winter-2026');
+  assert.equal(seasonOf(d(2028, 2, 29)).key, 'winter-2027');
+  assert.equal(seasonOf(d(2027, 12, 1)).key, 'winter-2027');
+});
+
+test('drie puzzels in de winter, ook over de jaarwisseling heen, ontgrendelen Winter', () => {
+  const st = emptyStats();
+  recordSeasonSolve(st, d(2026, 12, 30));
+  assert.deepEqual(checkThemeUnlocks(st, d(2026, 12, 30)), []);
+  recordSeasonSolve(st, d(2026, 12, 31));
+  assert.deepEqual(checkThemeUnlocks(st, d(2026, 12, 31)), []);
+  assert.deepEqual(seasonProgress(st, d(2027, 1, 1)).current, 2);
+  recordSeasonSolve(st, d(2027, 1, 1));
+  assert.deepEqual(checkThemeUnlocks(st, d(2027, 1, 1)), ['winter']);
+  assert.deepEqual(st.seasonSolves, { 'winter-2026': 3 });
+  assert.deepEqual(st.unlockedThemes, ['winter']);
+  // Eenmaal vrij blijft vrij, en komt niet nog eens als 'nieuw'.
+  recordSeasonSolve(st, d(2027, 1, 2));
+  assert.deepEqual(checkThemeUnlocks(st, d(2027, 1, 2)), []);
+  assert.deepEqual(checkThemeUnlocks(st, d(2027, 7, 1)), []);
+  assert.deepEqual(st.unlockedThemes, ['winter']);
+});
+
+test('puzzels uit een ander seizoen tellen niet mee', () => {
+  const st = emptyStats();
+  recordSeasonSolve(st, d(2026, 11, 29));
+  recordSeasonSolve(st, d(2026, 11, 30));
+  recordSeasonSolve(st, d(2026, 12, 1));
+  assert.deepEqual(checkThemeUnlocks(st, d(2026, 12, 1)), []);
+  assert.deepEqual(st.seasonSolves, { 'herfst-2026': 2, 'winter-2026': 1 });
+  recordSeasonSolve(st, d(2027, 12, 1)); // de winter erna is een nieuwe winter
+  assert.equal(seasonProgress(st, d(2027, 12, 1)).current, 1);
+});
+
+test('seizoensthema alleen als het vrij is; "seizoen" volgt de kalender', () => {
+  assert.equal(resolveTheme('herfst', d(2026, 10, 21), []), 'zonnig');
+  assert.equal(resolveTheme('herfst', d(2026, 10, 21), ['herfst']), 'herfst');
+  assert.equal(resolveTheme('herfst', d(2027, 4, 1), ['herfst']), 'herfst', 'een vrij thema mag ook buiten z’n seizoen');
+  assert.equal(resolveTheme('seizoen', d(2026, 10, 21), ['herfst']), 'herfst');
+  assert.equal(resolveTheme('seizoen', d(2027, 1, 10), ['herfst']), 'zonnig');
+  assert.equal(resolveTheme('seizoen', d(2027, 1, 10), ['herfst', 'winter']), 'winter');
+  assert.equal(SEASON_THEMES.length, 4);
+});
+
+test('oude statistieken krijgen lege seizoensgegevens, kapotte worden hersteld', () => {
+  const st = migrateStats({ totalSolved: 5 });
+  assert.deepEqual(st.seasonSolves, {});
+  assert.deepEqual(st.unlockedThemes, []);
+  const bad = migrateStats({ seasonSolves: [1], unlockedThemes: 'herfst' });
+  assert.deepEqual(bad.seasonSolves, {});
+  assert.deepEqual(bad.unlockedThemes, []);
+  assert.deepEqual(migrateStats({ unlockedThemes: ['herfst', 7, 'onzin'] }).unlockedThemes, ['herfst']);
 });
