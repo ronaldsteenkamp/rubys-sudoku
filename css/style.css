@@ -564,6 +564,20 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .pause-emoji, .solved-emoji, .message-icon { font-size: 3rem; line-height: 1; margin-bottom: 10px; }
 .love-note, .message-text { font-family: "Fraunces", Georgia, serif; font-size: 1.2rem; line-height: 1.4; margin: 16px 0 0; }
 
+/* Op het beginscherm zetten */
+.card.install { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; }
+.install-main { flex: 1; display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0; border: 0; background: none; text-align: left; }
+.install-main img { width: 44px; height: 44px; border-radius: 12px; flex: none; }
+.install-main span { display: flex; flex-direction: column; }
+.install-main .card-title { font-size: 1.1rem; }
+.install-later { flex: none; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--surface-2); font-size: 0.85rem; font-weight: 700; }
+.center-text { text-align: center; }
+.install-steps { margin: 18px 0 10px; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; }
+.share-icon { width: 22px; height: 22px; vertical-align: -5px; margin: 0 2px; color: #0a84ff; }
+.small { font-size: 0.85rem; }
+#install-setting { width: 100%; margin-top: 8px; }
+#install-setting[hidden] { display: none; }
+
 /* ---------- Toast & feestje ---------- */
 
 .toast {

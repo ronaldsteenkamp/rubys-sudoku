@@ -32,6 +32,7 @@
 
       <div id="special-slot"></div>
       <div id="continue-slot"></div>
+      <div id="install-slot"></div>
 
       <button id="daily-card" class="card daily" type="button">
         <span class="card-kicker">Dagpuzzel</span>
@@ -125,6 +126,7 @@
       <label class="toggle"><span>Zachte geluidjes</span><input type="checkbox" name="sound"></label>
       <label class="toggle" id="haptics-row"><span>Trillen</span><input type="checkbox" name="haptics"></label>
     </div>
+    <button type="button" class="menu-item" id="install-setting"><span aria-hidden="true">📲</span> Zet op je beginscherm</button>
     <button type="button" class="btn primary wide" data-close>Klaar</button>
   </dialog>
 
@@ -159,6 +161,21 @@
       <dt>Ctrl+Z / Ctrl+Y</dt><dd>Ongedaan maken / opnieuw</dd>
       <dt>P / Esc</dt><dd>Pauze</dd>
     </dl>
+    <button type="button" class="btn primary wide" data-close>Begrepen</button>
+  </dialog>
+
+  <dialog id="install-dialog" class="sheet">
+    <div class="message-icon center-text" aria-hidden="true">📲</div>
+    <h2 class="center-text">Zet me op je beginscherm</h2>
+    <p class="muted center-text">Dan open je me als een echte app, met mijn eigen icoontje, ook zonder internet.</p>
+    <ol class="install-steps">
+      <li>Tik in Safari op het deelicoontje
+        <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="deelicoontje"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M7 11H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1"/></svg>
+        <span class="muted">(onderin, of rechtsboven op een iPad).</span></li>
+      <li>Scroll een stukje omlaag en kies <b>Zet op beginscherm</b>.</li>
+      <li>Tik rechtsboven op <b>Voeg toe</b>. Klaar! 💛</li>
+    </ol>
+    <p class="muted small">Zie je geen deelicoontje? Open deze pagina dan eerst in Safari.</p>
     <button type="button" class="btn primary wide" data-close>Begrepen</button>
   </dialog>
 

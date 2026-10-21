@@ -263,6 +263,8 @@ function renderHome() {
     cont.append(btn);
   }
 
+  renderInstall();
+
   // Dagpuzzel
   const key = dateKey(now);
   const dl = levelById(dailyLevelFor(now));
@@ -860,6 +862,7 @@ function renderSettings() {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
   }
   $('#haptics-row').hidden = !hasHaptics;
+  $('#install-setting').hidden = isStandalone() || (!installPrompt && !isIOS);
 }
 
 $('#settings-dialog').addEventListener('change', (e) => {
@@ -908,6 +911,58 @@ function renderMilestones() {
       : `<li class="locked"><span class="n-icon" aria-hidden="true">🔒</span><div><div class="n-title">Nog geheim</div><p>${escapeHtml(m.hint)}</p></div></li>`;
   }).join('');
 }
+
+// ---------- Op het beginscherm zetten ----------
+
+// Chrome/Android geeft een eigen installatievenster; Safari op iPhone niet,
+// daar leggen we de stappen uit.
+let installPrompt = null;
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+function renderInstall() {
+  const slot = $('#install-slot');
+  slot.innerHTML = '';
+  if (isStandalone() || (!installPrompt && !isIOS) || store.loadInstallSnooze() > Date.now()) return;
+  const card = document.createElement('div');
+  card.className = 'card install';
+  card.innerHTML = `<button type="button" class="install-main">
+      <img src="icons/icon-192.png" alt="">
+      <span><span class="card-title">Zet me op je beginscherm</span>
+      <span class="card-meta">Dan ben ik altijd één tik weg 📲</span></span>
+    </button>
+    <button type="button" class="install-later">Later</button>`;
+  card.querySelector('.install-main').addEventListener('click', install);
+  card.querySelector('.install-later').addEventListener('click', () => {
+    store.saveInstallSnooze(Date.now() + 14 * 86400000);
+    renderInstall();
+  });
+  slot.append(card);
+}
+
+async function install() {
+  if (installPrompt) {
+    installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => null);
+    installPrompt = null;
+    renderInstall();
+  } else openDialog('install-dialog');
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  renderInstall();
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  renderInstall();
+  toast('Gelukt! Je vindt me nu op je beginscherm 💛');
+});
+$('#install-setting').addEventListener('click', () => {
+  closeDialog('settings-dialog');
+  install();
+});
 
 // ---------- Opstarten ----------
 

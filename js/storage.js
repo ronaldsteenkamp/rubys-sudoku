@@ -115,3 +115,8 @@ export const saveRecentNotes = (n) => write('recent-notes', n.slice(-8));
 
 export const loadStash = () => read('stash', {});
 export const saveStash = (s) => write('stash', s);
+
+// ---------- "Zet op beginscherm"-kaartje ----------
+
+export const loadInstallSnooze = () => read('install-snooze', 0);
+export const saveInstallSnooze = (until) => write('install-snooze', until);
