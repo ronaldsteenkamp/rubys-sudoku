@@ -146,6 +146,21 @@ for (const [theme, scheme] of THEMES) {
   await p.context().close();
 }
 
+// Dialogen: instellingen (met de thema-kiezer) en het menu.
+for (const [theme, scheme] of [['zonnig', 'light'], ['nacht', 'dark']]) {
+  let p = await page({ theme, scheme });
+  await p.click('[data-open="settings-dialog"]');
+  await p.waitForTimeout(400);
+  await shot(p, `instellingen-${theme}`, 'dialogen');
+  await p.context().close();
+  p = await page({ theme, scheme, game });
+  await openPlay(p, null);
+  await p.click('#menu-btn');
+  await p.waitForTimeout(400);
+  await shot(p, `menu-${theme}`, 'dialogen');
+  await p.context().close();
+}
+
 // Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.
 {
   let p = await page({ theme: 'zonnig', scheme: 'light', dailyDone: true });

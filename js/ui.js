@@ -51,7 +51,22 @@ const ICONS = {
   pencil: svg('<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>'),
   bulb: svg('<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 00-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0012 3z"/>'),
   close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+  stats: svg('<path d="M4 20h16"/><path d="M6.5 16v-5M12 16V5M17.5 16v-8"/>'),
+  mail: svg('<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 7.5l8 6 8-6"/>'),
+  settings: svg('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'),
+  check: svg('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.2 9.5"/>'),
+  fillNotes: svg('<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17"/>'),
+  reset: svg('<path d="M4.5 12a7.5 7.5 0 107.5-7.5A7.7 7.7 0 006.3 7.2L4.5 9"/><path d="M4.5 4.5V9H9"/>'),
+  help: svg('<circle cx="12" cy="12" r="9"/><path d="M9.6 9.5a2.5 2.5 0 014.9.7c0 1.7-2.5 2.1-2.5 3.8"/><path d="M12 17.3v.1"/>'),
+  install: svg('<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v6.5M9.5 11.5L12 14l2.5-2.5"/><path d="M10.5 18.5h3"/>'),
+  backupSave: svg('<path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19.5h14"/>'),
+  backupRestore: svg('<path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M5 19.5h14"/>'),
 };
+
+// Vult alle <span data-icon="..."> in de pagina met het bijbehorende lijnicoon.
+function fillIcons(root = document) {
+  for (const el of root.querySelectorAll('[data-icon]')) el.innerHTML = ICONS[el.dataset.icon] || '';
+}
 
 // ---------- Hulpjes ----------
 
@@ -82,12 +97,14 @@ function saveGame() {
 // ---------- Thema ----------
 
 const THEMES = [
-  { id: 'auto', name: 'Automatisch', swatch: 'linear-gradient(90deg,#f5c02e 50%,#16141d 50%)' },
-  { id: 'zonnig', name: 'Zonnig', swatch: 'linear-gradient(135deg,#fff8e7,#f5c02e)' },
-  { id: 'nacht', name: 'Nacht', swatch: 'linear-gradient(135deg,#221f2d,#f5c451)' },
-  { id: 'gran-canaria', name: 'Gran Canaria', swatch: 'linear-gradient(135deg,#f6e2c4 30%,#2e6f7c 70%,#f29b74)' },
-  { id: 'lelie', name: 'Lelie', swatch: 'linear-gradient(135deg,#ffffff,#eab3c4 60%,#6f8f70)' },
+  { id: 'auto', name: 'Automatisch' },
+  { id: 'zonnig', name: 'Zonnig' },
+  { id: 'nacht', name: 'Nacht' },
+  { id: 'gran-canaria', name: 'Gran Canaria' },
+  { id: 'lelie', name: 'Lelie' },
 ];
+// Een mini-voorproefje: de kleurvariabelen gelden ook binnen een element met data-theme.
+const themePreview = (id) => `<span class="tp" data-theme="${id}"><b>7</b><em></em></span>`;
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme() {
@@ -432,6 +449,7 @@ function buildBoard() {
   }
   addLongPress(pad);
 
+  fillIcons();
   $('#back-btn').innerHTML = ICONS.back;
   $('#pause-btn').innerHTML = ICONS.pause;
   $('#menu-btn').innerHTML = ICONS.menu;
@@ -935,7 +953,7 @@ function renderSettings() {
   const opts = $('#theme-options');
   opts.innerHTML = THEMES.map((t) => `<label class="theme-opt">
       <input type="radio" name="theme" value="${t.id}" ${settings.theme === t.id ? 'checked' : ''}>
-      <span><i style="background:${t.swatch}"></i>${t.name}</span></label>`).join('');
+      <span><i class="theme-preview" aria-hidden="true">${t.id === 'auto' ? themePreview('zonnig') + themePreview('nacht') : themePreview(t.id)}</i>${t.name}</span></label>`).join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
   for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'sound', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);

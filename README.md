@@ -103,6 +103,7 @@ De tests draaien bij elke push en pull request automatisch via GitHub Actions (`
 - **Berichtjes, bijnamen en datums:** `js/messages.js`.
 - **Kleuren van de thema's:** de variabelen bovenin `css/style.css`.
 - **Iconen:** pas `icons/icon.svg` of `icons/maskable.svg` aan en draai `node scripts/render-icons.mjs` (vereist Playwright).
+- **Ontwerp controleren:** `node scripts/screenshots.mjs` maakt screenshots van start- en speelscherm in alle thema's, de verjaardag en de hart-onthulling (met `--maten` ook iPhone SE, Pro Max en liggend). Ze komen in `screenshots/`, met per scherm een overzicht; die map staat niet in git. Vereist Playwright.
 
 ## Goed om te weten
 

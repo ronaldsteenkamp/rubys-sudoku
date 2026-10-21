@@ -83,3 +83,15 @@ test('volgende mijlpaal: niks meer te tellen, dan geen regeltje', () => {
   assert.equal(milestoneLine(null), '');
   assert.ok(!MILESTONES.find((m) => m.id === 'ruby').progress);
 });
+
+test('begroeting gebruikt geen bijnamen van 1–2 tekens', () => {
+  const short = NICKNAMES.filter((n) => n.length < 3);
+  assert.ok(short.length > 0, 'de lijst heeft korte bijnamen, zoals R');
+  for (let k = 0; k < 100; k++) {
+    const v = k / 100;
+    for (const h of [3, 9, 15, 21]) {
+      const g = greeting(new Date(2026, 9, 21, h), () => v);
+      assert.ok(short.every((n) => !new RegExp(`\\b${n}\\b`).test(g)), g);
+    }
+  }
+});
