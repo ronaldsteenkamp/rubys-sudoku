@@ -151,3 +151,14 @@ test('back-up: onbekende of verkeerde instellingen vallen terug op standaard', (
   assert.equal(res.data.settings.errors, 'direct');
   assert.equal('hack' in res.data.settings, false);
 });
+
+test('back-up: seizoensvoortgang en ontgrendelde thema\'s gaan mee', () => {
+  S.saveStats({ ...S.emptyStats(), totalSolved: 4, seasonSolves: { 'herfst-2026': 3, 'winter-2026': 1 }, unlockedThemes: ['herfst'] });
+  S.saveSettings({ ...S.DEFAULT_SETTINGS, theme: 'herfst' });
+  const backup = JSON.parse(JSON.stringify(S.exportBackup()));
+  globalThis.localStorage = new MemoryStorage();
+  assert.equal(S.importBackup(backup).ok, true);
+  assert.deepEqual(S.loadStats().seasonSolves, { 'herfst-2026': 3, 'winter-2026': 1 });
+  assert.deepEqual(S.loadStats().unlockedThemes, ['herfst']);
+  assert.equal(S.loadSettings().theme, 'herfst');
+});

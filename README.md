@@ -22,7 +22,7 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
 - **Slimme hints in drie stappen.** Eerst *waar* je moet kijken, dan *welke techniek* en waarom, en pas als laatste het cijfer. Een hint wijst ook foute cijfers aan, en notities waarin per ongeluk het goede cijfer is weggestreept.
 - **Spelen.** Notities (met automatisch wegstrepen), markeren van rij, kolom, blok en gelijke cijfers, ongedaan maken en opnieuw, gum, reset, alle notities in één keer invullen, een verbergbare timer en pauze. Foutcontrole kan direct, op verzoek of uit. Het cijferpad toont hoeveel er van elk cijfer nog over zijn. Je speelt met touch of met het toetsenbord.
 - **Persoonlijk.** Een begroeting per dagdeel met haar bijnamen en een teller van de dagen samen. Bij het oplossen dwarrelen er hartjes en pootjes en verschijnt een lief berichtje. Op het jubileum (29 september) en haar verjaardag (12 oktober) staat er een hartjespuzzel klaar. Mijlpalen ontgrendelen geheime berichtjes.
-- **Thema's.** Zonnig (geel), Nacht, Gran Canaria en Lelie, of automatisch licht/donker.
+- **Thema's.** Zonnig (geel), Nacht, Gran Canaria, Lelie, Liefde, Sterren en Volleybal, of automatisch licht/donker. Daarnaast vier seizoensthema's (Lente, Zomer, Herfst, Winter) die vrijkomen als Ruby 3 puzzels oplost binnen dat seizoen, plus de keuze *Seizoen*, die vanzelf meewisselt.
 - **PWA.** Een eigen icoon, werkt offline, met zachte geluidjes en trillen (beide uit te zetten).
 
 ## Projectstructuur
@@ -39,6 +39,7 @@ js/hints.js           slimme hints in drie stappen
 js/game.js            spelstatus: cijfers, notities, undo/redo
 js/storage.js         localStorage: instellingen, lopende puzzel, statistieken
 js/messages.js        bijnamen, berichtjes, mijlpalen, speciale dagen ← hier pas je teksten aan
+js/themes.js          de thema's als data, seizoenen en het ontgrendelen
 js/feedback.js        geluidjes en trillen
 js/worker.js          genereert puzzels in een Web Worker
 js/ui.js              de interface
@@ -60,6 +61,8 @@ npx serve .            # of: python3 -m http.server 8080
 Open daarna http://localhost:3000 (of :8080).
 
 **Speciale dagen testen:** voeg `?vandaag=2027-09-29` (jubileum) of `?vandaag=2027-10-12` (verjaardag) aan de URL toe.
+
+**Seizoensthema's testen:** `?vandaag=` bepaalt ook het seizoen. Los bijvoorbeeld op `?vandaag=2026-12-30` drie puzzels op (Zondagochtend gaat het snelst): na de derde verschijnt *Nieuw thema: Winter*. Dat kan ook verspreid over `?vandaag=2026-12-31` en `?vandaag=2027-01-02`, want december tot en met februari is één winter.
 
 ## Tests
 
@@ -101,7 +104,7 @@ De tests draaien bij elke push en pull request automatisch via GitHub Actions (`
 ## Aanpassen
 
 - **Berichtjes, bijnamen en datums:** `js/messages.js`.
-- **Kleuren van de thema's:** de variabelen bovenin `css/style.css`.
+- **Kleuren van de thema's:** de variabelen bovenin `css/style.css`; naam, feest-emoji en voorproefkleuren in `js/themes.js`. `npm test` controleert of elk thema alle variabelen heeft, of de voorproefkleuren kloppen en of cijfers op het bord minstens 4.5:1 contrast halen.
 - **Iconen:** pas `icons/icon.svg` of `icons/maskable.svg` aan en draai `node scripts/render-icons.mjs` (vereist Playwright).
 - **Ontwerp controleren:** `node scripts/screenshots.mjs` maakt screenshots van start- en speelscherm in alle thema's, de verjaardag en de hart-onthulling (met `--maten` ook iPhone SE, Pro Max en liggend). Ze komen in `screenshots/`, met per scherm een overzicht; die map staat niet in git. Vereist Playwright.
 

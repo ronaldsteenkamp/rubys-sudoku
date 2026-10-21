@@ -115,7 +115,10 @@
     <h2>Instellingen</h2>
     <fieldset class="setting">
       <legend>Thema</legend>
-      <div id="theme-options" class="theme-options"></div>
+      <h3 class="theme-group-title" id="theme-group-vast">Thema's</h3>
+      <div id="theme-options" class="theme-options" role="radiogroup" aria-labelledby="theme-group-vast"></div>
+      <h3 class="theme-group-title" id="theme-group-seizoen">Seizoenen</h3>
+      <div id="season-options" class="theme-options" role="radiogroup" aria-labelledby="theme-group-seizoen"></div>
     </fieldset>
     <fieldset class="setting">
       <legend>Foutcontrole</legend>
@@ -201,6 +204,7 @@
   </dialog>
 
   <dialog id="confirm-dialog" class="sheet center">
+    <div id="confirm-icon" class="message-icon" aria-hidden="true" hidden></div>
     <h2 id="confirm-title">Zeker weten?</h2>
     <p id="confirm-text" class="muted"></p>
     <div class="row">

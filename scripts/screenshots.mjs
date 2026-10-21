@@ -1,16 +1,19 @@
 // Maakt screenshots van het startscherm en het speelscherm in alle thema's,
 // plus de verjaardag en de hart-onthulling. Handig na een ontwerpwijziging.
-// Gebruik: node scripts/screenshots.mjs [--maten]   (vereist Playwright + Chromium)
+// Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren]   (vereist Playwright + Chromium)
+// Met --themas alleen die thema's (start, spel en hartjespuzzel) plus een overzicht per thema.
 // De plaatjes komen in screenshots/ (staat niet in git), met per scherm een overzicht.
 import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { chromium } from 'playwright';
-import { generate, generateHeart, HEART_MASK } from '../js/generator.js';
+import { generate, generateHeart } from '../js/generator.js';
+import { THEMES as ALL_THEMES } from '../js/themes.js';
 
 const root = new URL('..', import.meta.url).pathname;
 const out = join(root, 'screenshots');
 const allSizes = process.argv.includes('--maten');
+const only = process.argv.find((a) => a.startsWith('--themas='))?.slice(9).split(',');
 
 // ---------- Kleine webserver ----------
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
@@ -56,9 +59,8 @@ function heartGame(almost) {
 const stats = { totalSolved: 9, dailySolved: 3, noHintSolved: 4, streak: 3, bestStreak: 3, lastSolvedDay: null, dailyDone: [], levels: { zondag: { played: 5, solved: 5, best: 241000, totalTime: 1500000 }, koffie: { played: 4, solved: 4, best: 402000, totalTime: 1900000 } } };
 
 // ---------- Schermen ----------
-const THEMES = [
-  ['zonnig', 'light'], ['nacht', 'dark'], ['gran-canaria', 'light'], ['lelie', 'light'], ['auto', 'dark'],
-];
+const THEMES = [...ALL_THEMES.map((t) => [t.id, t.scheme]), ['auto', 'dark']]
+  .filter(([id]) => !only || only.includes(id));
 const IPHONE13 = { width: 390, height: 844 };
 // Met een iPhone-useragent verschijnt ook het 'zet op beginscherm'-bannertje.
 const IPHONE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
@@ -68,19 +70,21 @@ const browser = await chromium.launch();
 await mkdir(out, { recursive: true });
 const shots = [];
 
-async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference', dailyDone = false }) {
+async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference', dailyDone = false, extraStats = {} }) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: scheme, reducedMotion, isMobile: true, hasTouch: true, userAgent: IPHONE_UA });
-  await ctx.addInitScript(({ theme, stats, game, dailyDone }) => {
+  await ctx.addInitScript(({ theme, stats, game, dailyDone, extraStats }) => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
     const today = new Date();
     const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme }));
     const done = dailyDone ? { dailyDone: [key], dailyTimes: { [key]: 372000 } } : {};
-    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, ...done, lastSolvedDay: key }));
+    // Seizoensthema's staan vrij, anders zou het thema terugvallen op zonnig.
+    const seasons = { unlockedThemes: ['lente', 'zomer', 'herfst', 'winter'] };
+    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, ...done, ...seasons, ...extraStats, lastSolvedDay: key }));
     localStorage.setItem('rubys-sudoku:unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
     if (game) localStorage.setItem('rubys-sudoku:game', JSON.stringify(game));
-  }, { theme, stats, game, dailyDone });
+  }, { theme, stats, game, dailyDone, extraStats });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.error('paginafout:', e.message));
   await p.goto(base + query);
@@ -136,7 +140,7 @@ for (const [theme, scheme] of THEMES) {
 }
 
 // Minder beweging: het hart moet meteen gekleurd zijn.
-{
+if (!only) {
   const a = heartGame(true);
   const p = await page({ theme: 'nacht', scheme: 'dark', game: a.game, query: '?vandaag=2027-10-12', reducedMotion: 'reduce' });
   await openPlay(p, a.last);
@@ -146,8 +150,30 @@ for (const [theme, scheme] of THEMES) {
   await p.context().close();
 }
 
+// Thema-kiezer: Winter vrij, Herfst op 2 van 3 (vandaag is het herfst), de rest dicht.
+for (const [theme, scheme] of [['zonnig', 'light'], ['sterren', 'dark'], ['winter', 'light']]) {
+  const p = await page({ theme, scheme, query: '?vandaag=2026-10-21', extraStats: { unlockedThemes: ['winter'], seasonSolves: { 'herfst-2026': 2 } } });
+  await p.click('[data-open="settings-dialog"]');
+  await p.waitForTimeout(400);
+  await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, `kiezer-${theme}.png`) });
+  shots.push({ file: `kiezer-${theme}.png`, group: 'kiezer', name: `kiezer-${theme}` });
+  await p.evaluate(() => { for (const r of document.querySelectorAll('.theme-options')) r.scrollLeft = 9999; });
+  await p.waitForTimeout(200);
+  await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, `kiezer-${theme}-rechts.png`) });
+  shots.push({ file: `kiezer-${theme}-rechts.png`, group: 'kiezer', name: `kiezer-${theme} (doorgescrold)` });
+  await p.context().close();
+}
+{
+  const p = await page({ theme: 'zonnig', scheme: 'light', query: '?vandaag=2027-01-10', extraStats: { unlockedThemes: [], seasonSolves: {} } });
+  await p.click('[data-open="settings-dialog"]');
+  await p.waitForTimeout(400);
+  await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, 'kiezer-niets-vrij.png') });
+  shots.push({ file: 'kiezer-niets-vrij.png', group: 'kiezer', name: 'kiezer-niets-vrij (januari)' });
+  await p.context().close();
+}
+
 // Dialogen: instellingen (met de thema-kiezer) en het menu.
-for (const [theme, scheme] of [['zonnig', 'light'], ['nacht', 'dark']]) {
+for (const [theme, scheme] of only ? [] : [['zonnig', 'light'], ['nacht', 'dark']]) {
   let p = await page({ theme, scheme });
   await p.click('[data-open="settings-dialog"]');
   await p.waitForTimeout(400);
@@ -162,7 +188,7 @@ for (const [theme, scheme] of [['zonnig', 'light'], ['nacht', 'dark']]) {
 }
 
 // Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.
-{
+if (!only) {
   let p = await page({ theme: 'zonnig', scheme: 'light', dailyDone: true });
   await shot(p, 'staat-opgelost-zonnig', 'staten', true);
   await p.context().close();
@@ -203,6 +229,17 @@ for (const g of groups) {
   await sheet.setContent(html);
   await sheet.waitForTimeout(200);
   await sheet.screenshot({ path: join(out, `overzicht-${g}.png`), fullPage: true });
+}
+// Per thema één rij: startscherm, spel, hartjespuzzel en onthulling.
+if (only) {
+  const rows = THEMES.map(([t]) => ['start', 'spel', 'verjaardag-spel', 'hart-onthulling'].map((k) => shots.find((s) => s.name === `${k}-${t}`)));
+  const img = async (s) => `data:image/png;base64,${(await readFile(join(out, s.file))).toString('base64')}`;
+  const html = `<body style="margin:0;padding:12px;background:#777;font:15px sans-serif;width:${4 * 300 + 5 * 12}px">${(await Promise.all(rows.map(async (row) =>
+    `<div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-start">${(await Promise.all(row.map(async (s) =>
+      `<figure style="margin:0;width:300px"><img src="${await img(s)}" style="width:100%;max-height:650px;object-fit:cover;object-position:top;display:block;border-radius:8px"><figcaption style="color:#fff">${s.name}</figcaption></figure>`))).join('')}</div>`))).join('')}</body>`;
+  await sheet.setContent(html);
+  await sheet.waitForTimeout(200);
+  await sheet.screenshot({ path: join(out, 'overzicht-themas.png'), fullPage: true });
 }
 await writeFile(join(out, 'index.txt'), shots.map((s) => s.file).join('\n'));
 await browser.close();

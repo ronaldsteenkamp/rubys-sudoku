@@ -1,7 +1,10 @@
 // Alles in localStorage, altijd met try/catch: in een privévenster of met
 // geblokkeerde opslag werkt de app gewoon door, alleen zonder geheugen.
 
+import { SEASON_THEMES } from './themes.js';
+
 const PREFIX = 'rubys-sudoku:';
+const SEASON_IDS = SEASON_THEMES.map((t) => t.id);
 
 function read(key, fallback) {
   try {
@@ -60,6 +63,8 @@ export function emptyStats() {
     dailyDone: [], // datums van opgeloste dagpuzzels (laatste 60)
     dailyTimes: {}, // { 'JJJJ-MM-DD': ms } tijd per opgeloste dagpuzzel
     specialDone: [],
+    seasonSolves: {}, // { 'herfst-2026': 2 } opgeloste puzzels per seizoen
+    unlockedThemes: [], // ontgrendelde seizoensthema's, bijv. ['herfst']
   };
 }
 
@@ -68,7 +73,8 @@ export function emptyStats() {
 export function migrateStats(raw) {
   const s = { ...emptyStats(), ...(raw && typeof raw === 'object' ? raw : {}) };
   for (const k of ['dailyDone', 'specialDone']) if (!Array.isArray(s[k])) s[k] = [];
-  for (const k of ['levels', 'dailyTimes']) if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {};
+  for (const k of ['levels', 'dailyTimes', 'seasonSolves']) if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {};
+  s.unlockedThemes = Array.isArray(s.unlockedThemes) ? s.unlockedThemes.filter((t) => SEASON_IDS.includes(t)) : [];
   return s;
 }
 

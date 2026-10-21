@@ -6,6 +6,7 @@ import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
+import { FIXED_THEMES, SEASON_THEMES, AUTO_CHOICES, SEASON_AUTO, themeById, resolveTheme, recordSeasonSolve, checkThemeUnlocks, seasonOf, seasonProgress } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -96,19 +97,15 @@ function saveGame() {
 
 // ---------- Thema ----------
 
-const THEMES = [
-  { id: 'auto', name: 'Automatisch' },
-  { id: 'zonnig', name: 'Zonnig' },
-  { id: 'nacht', name: 'Nacht' },
-  { id: 'gran-canaria', name: 'Gran Canaria' },
-  { id: 'lelie', name: 'Lelie' },
-];
-// Een mini-voorproefje: de kleurvariabelen gelden ook binnen een element met data-theme.
-const themePreview = (id) => `<span class="tp" data-theme="${id}"><b>7</b><em></em></span>`;
+// Een mini-voorproefje in de kleuren van het thema (achtergrond, accent en een cijfer).
+function themePreview(id) {
+  const { bg, surface, accent, digit } = themeById(id).swatch;
+  return `<span class="tp" style="--tp-bg:${bg};--tp-surface:${surface};--tp-accent:${accent};--tp-digit:${digit}"><b>7</b><em></em></span>`;
+}
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme() {
-  const t = settings.theme === 'auto' ? (darkQuery.matches ? 'nacht' : 'zonnig') : settings.theme;
+  const t = resolveTheme(settings.theme, today(), stats.unlockedThemes, darkQuery.matches);
   document.documentElement.dataset.theme = t;
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   document.querySelector('meta[name="theme-color"]').setAttribute('content', bg || '#fff8e7');
@@ -203,7 +200,9 @@ function closeDialog(id) {
   if (d.open) d.close();
 }
 
-function confirmDialog(title, text, yes = 'Ja', no = 'Nee') {
+function confirmDialog(title, text, yes = 'Ja', no = 'Nee', icon = '') {
+  $('#confirm-icon').hidden = !icon;
+  $('#confirm-icon').textContent = icon;
   $('#confirm-title').textContent = title;
   $('#confirm-text').textContent = text;
   $('#confirm-yes').textContent = yes;
@@ -789,18 +788,11 @@ $('#hint-close').addEventListener('click', () => closeHint());
 
 // ---------- Opgelost! ----------
 
-const CELEBRATE = {
-  zonnig: ['💛', '🐾', '🌼', '☀️'],
-  nacht: ['💛', '✨', '🌙', '🐾'],
-  'gran-canaria': ['🌴', '🐚', '💛', '🌺'],
-  lelie: ['🌸', '💗', '🐾', '🌷'],
-};
-
 function celebrate(special) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box = $('#confetti');
   box.innerHTML = '';
-  const set = special ? ['❤️', '💛', '💗', '💕'] : CELEBRATE[document.documentElement.dataset.theme] || CELEBRATE.zonnig;
+  const set = special ? ['❤️', '💛', '💗', '💕'] : themeById(document.documentElement.dataset.theme).celebrate;
   for (let k = 0; k < 28; k++) {
     const s = document.createElement('span');
     s.textContent = set[k % set.length];
@@ -824,7 +816,13 @@ function onSolved() {
   render();
   store.clearGame();
   const day = dateKey(today());
-  const { newBest } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
+  const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
+  // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
+  let freshThemes = [];
+  if (counted) {
+    recordSeasonSolve(stats, today());
+    freshThemes = checkThemeUnlocks(stats, today());
+  }
   store.saveStats(stats);
   requestPersist();
   const fresh = M.newMilestones(stats, unlocked);
@@ -876,10 +874,21 @@ function onSolved() {
       for (const m of fresh) {
         await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
       }
+      for (const id of freshThemes) await offerTheme(id);
       if (d.returnValue === 'again') startGame({ kind: 'level', levelId: $('#solved-again').dataset.level });
       else if (d.returnValue === 'home') goHome();
     }, { once: true });
   }, reduce ? 200 : g.shape === 'heart' ? 2050 : 1900);
+}
+
+// Een nieuw seizoensthema is vrij: vragen of ze het meteen wil proberen.
+async function offerTheme(id) {
+  const t = themeById(id);
+  const yes = await confirmDialog(`Nieuw thema: ${t.name} ${t.emoji}`, M.THEME_UNLOCK_TEXT[id], 'Probeer maar!', 'Later', t.icon);
+  if (!yes) return;
+  settings.theme = id;
+  store.saveSettings(settings);
+  applyTheme();
 }
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
@@ -949,11 +958,36 @@ for (const d of document.querySelectorAll('dialog')) {
 
 // ---------- Instellingen ----------
 
+// Eén keuze in de thema-kiezer: een radioknop met voorproefje.
+function themeChoice({ id, name, previews, hint = '' }) {
+  return `<label class="theme-opt">
+      <input type="radio" name="theme" value="${id}" ${settings.theme === id ? 'checked' : ''}>
+      <span class="theme-card"><i class="theme-preview" aria-hidden="true">${previews.map(themePreview).join('')}</i>
+        <span class="theme-name">${escapeHtml(name)}</span>${hint ? `<small class="theme-hint">${escapeHtml(hint)}</small>` : ''}</span></label>`;
+}
+
+// Een nog vergrendeld seizoen: wel te zien en te focussen, niet te kiezen.
+function lockedSeason(t) {
+  const now = seasonOf(today()).season === t.season;
+  const { current, target } = seasonProgress(stats, today());
+  const left = Math.max(1, target - current);
+  const hint = now
+    ? `Nog ${left} ${left === 1 ? 'puzzel' : 'puzzels'} deze ${t.name.toLowerCase()}`
+    : `Los ${target} puzzels op ${t.when} ${t.emoji}`;
+  return `<button type="button" class="theme-opt locked" aria-disabled="true" aria-label="${escapeHtml(`${t.name}, nog op slot. ${hint}`)}">
+      <span class="theme-card"><i class="theme-preview" aria-hidden="true">${themePreview(t.id)}</i>
+        <span class="theme-name">${escapeHtml(t.name)}</span><small class="theme-hint" aria-hidden="true">${escapeHtml(hint)}</small></span></button>`;
+}
+
 function renderSettings() {
-  const opts = $('#theme-options');
-  opts.innerHTML = THEMES.map((t) => `<label class="theme-opt">
-      <input type="radio" name="theme" value="${t.id}" ${settings.theme === t.id ? 'checked' : ''}>
-      <span><i class="theme-preview" aria-hidden="true">${t.id === 'auto' ? themePreview('zonnig') + themePreview('nacht') : themePreview(t.id)}</i>${t.name}</span></label>`).join('');
+  $('#theme-options').innerHTML = [...AUTO_CHOICES, ...FIXED_THEMES.map((t) => ({ ...t, previews: [t.id] }))].map(themeChoice).join('');
+  const own = stats.unlockedThemes;
+  const seasonNow = resolveTheme('seizoen', today(), own);
+  $('#season-options').innerHTML = [
+    // 'Seizoen (automatisch)' pas zodra er minstens één seizoen vrij is.
+    own.length ? themeChoice({ ...SEASON_AUTO, previews: [seasonNow], hint: 'automatisch' }) : '',
+    ...SEASON_THEMES.map((t) => (own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedSeason(t))),
+  ].join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
   for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'sound', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
