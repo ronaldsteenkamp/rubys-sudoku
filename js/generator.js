@@ -144,3 +144,47 @@ export function generateDaily(date = new Date()) {
   const p = generate({ levelId: dailyLevelFor(date), seed: hashString('ruby-dagpuzzel-' + key), maxAttempts: 30 });
   return { ...p, daily: key };
 }
+
+// ---------- Hartjespuzzel (jubileum & verjaardag) ----------
+
+const HEART_ROWS = [
+  '.XX...XX.',
+  'XXXX.XXXX',
+  'XXXXXXXXX',
+  'XXXXXXXXX',
+  'XXXXXXXXX',
+  '.XXXXXXX.',
+  '..XXXXX..',
+  '...XXX...',
+  '....X....',
+];
+export const HEART_MASK = HEART_ROWS.join('').split('').map((ch) => ch === 'X');
+
+const inHeart = (r, c) => r >= 0 && r < 9 && c >= 0 && c < 9 && HEART_MASK[r * 9 + c];
+export const HEART_OUTLINE = HEART_MASK.map((m, i) => m &&
+  [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dr, dc]) => !inHeart(Math.floor(i / 9) + dr, (i % 9) + dc)));
+
+// Alle gegeven cijfers liggen binnen het hart; de omtrek blijft altijd staan,
+// binnenin halen we (gespiegeld) weg zolang het uniek en logisch oplosbaar blijft.
+export function generateHeart(seed, cap = 3) {
+  const rng = mulberry32(seed);
+  const interior = [...Array(81).keys()].filter((i) => HEART_MASK[i] && !HEART_OUTLINE[i] && i % 9 <= 4);
+  for (let n = 0; n < 500; n++) {
+    const solution = randomSolvedGrid(rng);
+    const g = solution.map((v, i) => (HEART_MASK[i] ? v : 0));
+    if (countSolutions(g, 2) !== 1 || !logicalSolve(g, cap).solved) continue;
+    for (const i of shuffle(interior, rng)) {
+      const j = Math.floor(i / 9) * 9 + 8 - (i % 9);
+      const a = g[i], b = g[j];
+      g[i] = 0; g[j] = 0;
+      if (countSolutions(g, 2) !== 1 || !logicalSolve(g, cap).solved) { g[i] = a; g[j] = b; }
+    }
+    const r = logicalSolve(g, cap);
+    return {
+      levelId: r.level >= 3 ? 'nadenken' : r.level === 2 ? 'koffie' : 'zondag',
+      seed, source: 'heart', givens: g, solution, clues: g.filter(Boolean).length,
+      rating: r.level, techniques: Object.keys(r.used), shape: 'heart',
+    };
+  }
+  throw new Error('Geen hartjespuzzel gevonden');
+}

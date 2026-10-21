@@ -84,3 +84,19 @@ test('generatie blijft snel (ruim onder 1 seconde, ook voor Ruby-modus)', () => 
     }
   }
 });
+
+test('hartjespuzzel: uniek, binnen het hart, met volledige omtrek', async () => {
+  const { generateHeart, HEART_MASK, HEART_OUTLINE } = await import('../js/generator.js');
+  for (const seed of [2026, 2027, 2028]) {
+    const t = performance.now();
+    const p = generateHeart(seed);
+    assert.ok(performance.now() - t < 500);
+    assert.equal(countSolutions(p.givens, 2), 1);
+    p.givens.forEach((v, i) => {
+      if (v) assert.ok(HEART_MASK[i], 'gegeven buiten het hart');
+      if (HEART_OUTLINE[i]) assert.ok(v, 'omtrek moet compleet zijn');
+    });
+    assert.ok(logicalSolve(p.givens, 3).solved);
+    assert.deepEqual(generateHeart(seed).givens, p.givens);
+  }
+});

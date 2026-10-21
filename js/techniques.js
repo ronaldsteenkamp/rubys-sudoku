@@ -236,6 +236,8 @@ function fish(n, technique) {
 
 // ---------- Wings ----------
 
+const boxesOf = (cells) => [...new Set(cells.map((i) => 18 + boxOf(i)))];
+
 function xyWing(grid, cands) {
   const bivalue = [];
   for (let i = 0; i < 81; i++) if (!grid[i] && popcount(cands[i]) === 2) bivalue.push(i);
@@ -254,7 +256,7 @@ function xyWing(grid, cands) {
           if (cands[i] & z && sees(i, w1) && sees(i, w2)) elims.push({ cell: i, digit: digitsOf(z)[0] });
         }
         if (elims.length) {
-          return step('xy-wing', { eliminations: elims, cells: [pivot, w1, w2], digits: digitsOf(pm | z) });
+          return step('xy-wing', { eliminations: elims, cells: [pivot, w1, w2], units: boxesOf([pivot, w1, w2]), digits: digitsOf(pm | z) });
         }
       }
     }
@@ -280,7 +282,7 @@ function xyzWing(grid, cands) {
             elims.push({ cell: i, digit: digitsOf(z)[0] });
           }
         }
-        if (elims.length) return step('xyz-wing', { eliminations: elims, cells: [pivot, w1, w2], digits: digitsOf(pm) });
+        if (elims.length) return step('xyz-wing', { eliminations: elims, cells: [pivot, w1, w2], units: boxesOf([pivot, w1, w2]), digits: digitsOf(pm) });
       }
     }
   }
