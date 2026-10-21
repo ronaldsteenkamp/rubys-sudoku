@@ -862,7 +862,7 @@ function renderSettings() {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
   }
   $('#haptics-row').hidden = !hasHaptics;
-  $('#install-setting').hidden = isStandalone() || (!installPrompt && !isIOS);
+  $('#install-setting').hidden = !canInstall();
 }
 
 $('#settings-dialog').addEventListener('change', (e) => {
@@ -918,12 +918,15 @@ function renderMilestones() {
 // daar leggen we de stappen uit.
 let installPrompt = null;
 const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/i.test(navigator.userAgent);
+// Niet elke Android-browser stuurt beforeinstallprompt (of pas na een tijdje), dus daar tonen we het kaartje altijd.
+const canInstall = () => !isStandalone() && Boolean(installPrompt || isIOS || isAndroid);
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
 function renderInstall() {
   const slot = $('#install-slot');
   slot.innerHTML = '';
-  if (isStandalone() || (!installPrompt && !isIOS) || store.loadInstallSnooze() > Date.now()) return;
+  if (!canInstall() || store.loadInstallSnooze() > Date.now()) return;
   const card = document.createElement('div');
   card.className = 'card install';
   card.innerHTML = `<button type="button" class="install-main">
@@ -946,7 +949,11 @@ async function install() {
     await installPrompt.userChoice.catch(() => null);
     installPrompt = null;
     renderInstall();
-  } else openDialog('install-dialog');
+  } else {
+    const platform = isIOS ? 'ios' : 'android';
+    for (const el of document.querySelectorAll('#install-dialog [data-platform]')) el.hidden = el.dataset.platform !== platform;
+    openDialog('install-dialog');
+  }
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {

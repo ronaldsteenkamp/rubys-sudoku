@@ -3,6 +3,7 @@
   "short_name": "Sudoku 💛",
   "description": "Een rustige sudoku, speciaal gemaakt voor Ruby.",
   "lang": "nl",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
