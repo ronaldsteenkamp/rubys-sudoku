@@ -44,6 +44,11 @@
   --wrong: #c03a2b;
   --wrong-bg: #fde3dc;
   --heart: #c2456b;
+  --heart-fill: #fde6ec;
+  --heart-edge: #fad3de;
+  --heart-ink: #9b2850;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
   --shadow: 0 1px 2px rgb(90 60 10 / 6%), 0 8px 24px rgb(90 60 10 / 8%);
   color-scheme: light;
 }
@@ -69,6 +74,11 @@
   --wrong: #ff8a7a;
   --wrong-bg: #4a2420;
   --heart: #ff8fb1;
+  --heart-fill: #43213a;
+  --heart-edge: #6a2b4d;
+  --heart-ink: #ffd0de;
+  --heart-solved: #c43450;
+  --heart-solved-ink: #ffffff;
   --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 35%);
   color-scheme: dark;
 }
@@ -85,7 +95,7 @@
   --accent: #f29b74;
   --accent-strong: #e2774c;
   --accent-ink: #2a1a10;
-  --user: #1b6b7c;
+  --user: #17606f;
   --given: #183c45;
   --peer: #e8f3f2;
   --same: #bfe1e2;
@@ -94,6 +104,11 @@
   --wrong: #b8322a;
   --wrong-bg: #fbe0d8;
   --heart: #d24e5f;
+  --heart-fill: #fce4e6;
+  --heart-edge: #f9d0d4;
+  --heart-ink: #962634;
+  --heart-solved: #c3354a;
+  --heart-solved-ink: #ffffff;
   --shadow: 0 1px 2px rgb(20 60 70 / 6%), 0 8px 24px rgb(20 60 70 / 9%);
   color-scheme: light;
 }
@@ -110,7 +125,7 @@
   --accent: #eab3c4;
   --accent-strong: #d98aa3;
   --accent-ink: #2f2228;
-  --user: #a3395f;
+  --user: #96305a;
   --given: #2f3a30;
   --peer: #f7edf0;
   --same: #f1cfda;
@@ -119,6 +134,11 @@
   --wrong: #b3261e;
   --wrong-bg: #fbe1df;
   --heart: #c2456b;
+  --heart-fill: #fbe3ea;
+  --heart-edge: #f7cdda;
+  --heart-ink: #962a50;
+  --heart-solved: #c2365a;
+  --heart-solved-ink: #ffffff;
   --shadow: 0 1px 2px rgb(60 30 40 / 6%), 0 8px 24px rgb(60 30 40 / 8%);
   color-scheme: light;
 }
@@ -350,13 +370,14 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 
 .cell.given { color: var(--given); font-family: "Fraunces", Georgia, serif; font-weight: 600; }
 .cell.user { color: var(--user); font-weight: 700; }
-.cell.in-heart { background-color: color-mix(in srgb, var(--heart) 6%, var(--surface)); }
+/* Hartjespuzzel: het hele hart licht roze, de rand iets steviger. */
+.cell.in-heart { background-color: var(--heart-fill); }
+.cell.heart-edge { background-color: var(--heart-edge); }
 .cell.peer { background: var(--peer); }
 .cell.same { background: var(--same); }
 .cell.selected { background: var(--selected); }
 .cell.selected.user { color: var(--accent-ink); }
-.cell.given.shape-heart { color: var(--heart); }
-.cell.given.shape-heart { background-image: radial-gradient(circle, color-mix(in srgb, var(--heart) 13%, transparent) 52%, transparent 55%); }
+.cell.given.shape-heart { color: var(--heart-ink); }
 
 /* Fout: kleur én een golvend streepje, zodat het niet alleen via kleur zichtbaar is. */
 .cell.wrong { color: var(--wrong); background: var(--wrong-bg); }
@@ -643,6 +664,22 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   100% { transform: translate(var(--x, 0), -110vh) rotate(var(--r, 30deg)); opacity: 0; }
 }
 .board.solved-glow { animation: board-glow 1.4s ease; }
+
+/* Onthulling: het hart loopt rij voor rij vol, van onder naar boven (--rd = rijen vanaf onder). */
+.board.reveal .cell.in-heart {
+  background-color: var(--heart-solved);
+  color: var(--heart-solved-ink);
+  animation: heart-in 0.35s ease calc(var(--rd, 0) * 105ms) both;
+}
+@keyframes heart-in {
+  from { background-color: var(--heart-edge); color: var(--heart-ink); }
+}
+.board.heartbeat { animation: heartbeat 0.7s ease; }
+@keyframes heartbeat {
+  0%, 100% { transform: none; }
+  30% { transform: scale(1.04); }
+  55% { transform: scale(0.99); }
+}
 @keyframes board-glow { 40% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 55%, transparent), var(--shadow); } }
 
 /* ---------- Minder beweging ---------- */
@@ -654,6 +691,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
     transition-duration: 0.01ms !important;
   }
   .confetti span { display: none; }
+  .board.reveal .cell.in-heart { animation: none; }
 }
 
 /* Liggend op een telefoon: bord en bediening naast elkaar. */

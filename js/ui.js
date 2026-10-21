@@ -1,7 +1,7 @@
 // De interface: startscherm, bord, bediening, dialogen en het feestje.
 
 import { Game } from './game.js';
-import { LEVELS, levelById, dateKey, dailyLevelFor, HEART_MASK } from './generator.js';
+import { LEVELS, levelById, dateKey, dailyLevelFor, HEART_MASK, HEART_OUTLINE } from './generator.js';
 import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
@@ -207,6 +207,8 @@ function confirmDialog(title, text, yes = 'Ja', no = 'Nee') {
 
 function showMessage({ icon = '💛', title = '', text = '', ok = 'Oké' }) {
   $('#message-icon').textContent = icon;
+  // Staat hetzelfde emoji al groot bovenaan, dan niet nog eens achter de titel.
+  if (icon && title.endsWith(icon)) title = title.slice(0, -icon.length).trimEnd();
   $('#message-title').textContent = title;
   $('#message-text').textContent = text;
   $('#message-ok').textContent = ok;
@@ -358,10 +360,11 @@ async function startGame({ kind, levelId, special }) {
 function enterPlay() {
   if (!game) return;
   const lvl = levelById(game.levelId);
-  $('#play-title').textContent = game.special ? 'Speciaal voor jou 💛' : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
+  $('#play-title').textContent = game.special ? 'Speciaal voor jou ❤️' : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
   notesMode = false;
   hint = null;
   paused = false;
+  $('#board').classList.remove('reveal', 'heartbeat');
   $('#play').classList.remove('paused');
   showScreen('play');
   render();
@@ -381,6 +384,7 @@ function buildBoard() {
     b.className = 'cell';
     b.dataset.i = i;
     b.tabIndex = -1;
+    b.style.setProperty('--rd', 8 - rowOf(i)); // voor de hart-onthulling
     board.append(b);
   }
   board.addEventListener('click', (e) => {
@@ -483,7 +487,7 @@ function render() {
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
     if (v) cls.push(given ? 'given' : 'user');
-    if (game.shape === 'heart' && HEART_MASK[i]) cls.push('in-heart', ...(given ? ['shape-heart'] : []));
+    if (game.shape === 'heart' && HEART_MASK[i]) cls.push('in-heart', ...(HEART_OUTLINE[i] ? ['heart-edge'] : []), ...(given ? ['shape-heart'] : []));
     if (peerSet?.has(i)) cls.push('peer');
     if (hlDigit && v === hlDigit) cls.push('same');
     if (i === selected && !stage) cls.push('selected');
@@ -798,8 +802,19 @@ function onSolved() {
   store.saveUnlocked(unlocked);
 
   feedback('solved');
-  $('#board').classList.add('solved-glow');
-  setTimeout(() => $('#board').classList.remove('solved-glow'), 1500);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const board = $('#board');
+  if (g.shape === 'heart') {
+    // Het hart loopt vol (~1,2 s), klopt één keer, en dan pas het opgelost-scherm.
+    board.classList.add('reveal');
+    if (!reduce) {
+      setTimeout(() => board.classList.add('heartbeat'), 1250);
+      setTimeout(() => board.classList.remove('heartbeat'), 2000);
+    }
+  } else {
+    board.classList.add('solved-glow');
+    setTimeout(() => board.classList.remove('solved-glow'), 1500);
+  }
   celebrate(Boolean(g.special));
 
   // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
@@ -834,7 +849,7 @@ function onSolved() {
       if (d.returnValue === 'again') startGame({ kind: 'level', levelId: $('#solved-again').dataset.level });
       else if (d.returnValue === 'home') goHome();
     }, { once: true });
-  }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 1900);
+  }, reduce ? 200 : g.shape === 'heart' ? 2050 : 1900);
 }
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
