@@ -1,8 +1,9 @@
 // Service worker: de app werkt volledig offline na het eerste bezoek.
 // Verhoog VERSION bij elke release, dan haalt iedereen de nieuwe bestanden op.
-const VERSION = 'v6';
+// Een nieuwe versie wacht netjes tot Ruby op "verversen" tikt (zie ui.js).
+const VERSION = 'v7';
 const CACHE = `rubys-sudoku-${VERSION}`;
-const FONT_CACHE = 'rubys-sudoku-fonts';
+const NETWORK_TIMEOUT = 3000;
 
 const SHELL = [
   './',
@@ -20,6 +21,8 @@ const SHELL = [
   'js/messages.js',
   'js/feedback.js',
   'js/worker.js',
+  'fonts/fraunces-latin.woff2',
+  'fonts/nunito-latin.woff2',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',
@@ -28,44 +31,75 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: 'reload' slaat de HTTP-cache over, zodat we echt de nieuwe bestanden krijgen.
+  event.waitUntil(
+    caches.open(CACHE)
+      .then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' }))))
+      // Eenmalig: versies t/m v6 kennen het "verversen"-kaartje nog niet, dus daar nemen we het meteen over.
+      .then(() => caches.keys())
+      .then((keys) => { if (keys.some((k) => /^rubys-sudoku-v[1-6]$/.test(k))) self.skipWaiting(); }),
+  );
+});
+
+// De pagina vraagt hierom als Ruby op "verversen" tikt.
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== FONT_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('rubys-sudoku') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
+
+const cacheable = (res) => res && res.ok && res.type === 'basic';
+
+// Pagina zelf: eerst het netwerk (zo zie je updates), maar na ~3 seconden
+// of zonder internet gewoon de bewaarde versie.
+function networkFirst(request) {
+  return new Promise((resolve) => {
+    let done = false;
+    const fallback = () => caches.match('index.html').then((hit) => hit || caches.match('./'));
+    const finish = (p) => { if (!done) { done = true; resolve(p); } };
+    const timer = setTimeout(() => fallback().then((hit) => { if (hit) finish(hit); }), NETWORK_TIMEOUT);
+    fetch(request)
+      .then((res) => {
+        clearTimeout(timer);
+        if (cacheable(res)) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put('index.html', copy));
+        }
+        finish(res);
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        fallback().then((hit) => finish(hit || Response.error()));
+      });
+  });
+}
+
+// Overige app-bestanden: meteen uit de cache, en op de achtergrond verversen.
+function staleWhileRevalidate(event) {
+  const { request } = event;
+  return caches.open(CACHE).then(async (cache) => {
+    const hit = await cache.match(request);
+    const fresh = fetch(request)
+      .then((res) => { if (cacheable(res)) cache.put(request, res.clone()); return res; })
+      .catch(() => hit || Response.error());
+    if (hit) { event.waitUntil(fresh.catch(() => {})); return hit; }
+    return fresh;
+  });
+}
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-
-  // Google Fonts: eerst uit de cache, op de achtergrond verversen.
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(
-      caches.open(FONT_CACHE).then(async (cache) => {
-        const hit = await cache.match(request);
-        const fresh = fetch(request).then((res) => { cache.put(request, res.clone()); return res; }).catch(() => hit);
-        return hit || fresh;
-      }),
-    );
-    return;
-  }
-
   if (url.origin !== location.origin) return;
 
-  // App-bestanden: cache eerst (snel en offline), anders netwerk.
-  event.respondWith(
-    caches.match(request, { ignoreSearch: request.mode === 'navigate' }).then((hit) => hit || fetch(request).then((res) => {
-      if (res.ok && res.type === 'basic') {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(request, copy));
-      }
-      return res;
-    }).catch(() => (request.mode === 'navigate' ? caches.match('index.html') : Response.error()))),
-  );
+  const scope = new URL(self.registration.scope);
+  const isPage = request.mode === 'navigate' || url.pathname === scope.pathname || url.pathname === `${scope.pathname}index.html`;
+  event.respondWith(isPage ? networkFirst(request) : staleWhileRevalidate(event));
 });

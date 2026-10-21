@@ -264,6 +264,7 @@ function renderHome() {
   }
 
   renderInstall();
+  renderUpdate();
 
   // Dagpuzzel
   const key = dateKey(now);
@@ -1057,6 +1058,58 @@ $('#install-setting').addEventListener('click', () => {
   install();
 });
 
+// ---------- Nieuwe versie ----------
+
+// Een nieuwe service worker wacht tot Ruby zelf op het kaartje tikt. Het kaartje
+// staat alleen op het startscherm, dus tijdens een puzzel verversen we nooit.
+let waitingWorker = null;
+let updateRequested = false;
+
+function renderUpdate() {
+  const slot = $('#update-slot');
+  slot.innerHTML = '';
+  if (!waitingWorker) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'card update';
+  btn.innerHTML = `<span class="card-kicker">Nieuwe versie</span>
+    <span class="card-title">Er is iets nieuws voor je 💛</span>
+    <span class="card-meta">Tik om te verversen</span>`;
+  btn.addEventListener('click', applyUpdate);
+  slot.append(btn);
+}
+
+function applyUpdate() {
+  saveGame();
+  updateRequested = true;
+  if (waitingWorker?.state === 'installed') waitingWorker.postMessage('skipWaiting');
+  else location.reload(); // al actief (bijvoorbeeld via een ander venster)
+}
+
+function setWaiting(w) {
+  if (!w || !navigator.serviceWorker.controller) return; // eerste installatie: niks te verversen
+  waitingWorker = w;
+  if (!$('#home').hidden) renderUpdate();
+}
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator) || !(location.protocol === 'https:' || location.hostname === 'localhost')) return;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (updateRequested) location.reload();
+  });
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    setWaiting(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      w?.addEventListener('statechange', () => { if (w.state === 'installed') setWaiting(reg.waiting || w); });
+    });
+    // Een app op het beginscherm wordt zelden echt opnieuw geladen; kijk dus ook bij terugkomen.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+    });
+  }).catch(() => {});
+}
+
 // ---------- Opstarten ----------
 
 $('#daily-card').addEventListener('click', () => {
@@ -1087,6 +1140,4 @@ if (stats.totalSolved > 0) requestPersist();
 const idle = globalThis.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
 idle(() => fillStash());
 
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
+registerServiceWorker();

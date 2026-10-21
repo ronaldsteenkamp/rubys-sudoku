@@ -30,6 +30,7 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
 ```
 index.html            de pagina
 css/style.css         alle opmaak en thema's
+fonts/                Fraunces en Nunito (zelf gehost, met hun OFL-licentie)
 js/solver.js          backtracking-solver met bitmaskers, uniciteitscheck
 js/techniques.js      logische technieken (voor moeilijkheid én hints)
 js/generator.js       generator, niveaus, dagpuzzel, hartjespuzzel
@@ -93,7 +94,9 @@ node scripts/build-bank.mjs 120
 
 **Op Ruby's iPhone:** open die link in **Safari**, tik op het deelicoontje en kies **Zet op beginscherm**. Daarna start hij als een echte app, ook zonder internet.
 
-**Een update uitbrengen:** verhoog `VERSION` bovenin `sw.js` (bijvoorbeeld `v2`) en push. Bij de volgende keer openen haalt de app de nieuwe versie op.
+**Een update uitbrengen:** verhoog `VERSION` bovenin `sw.js` (bijvoorbeeld `v8`) en push. De app haalt de nieuwe versie op de achtergrond op en toont op het startscherm het kaartje *Er is iets nieuws voor je 💛*. Pas als Ruby daarop tikt, wordt er ververst; midden in een puzzel gebeurt dat dus nooit. Nieuwe bestanden zet je ook in de `SHELL`-lijst in `sw.js`.
+
+De tests draaien bij elke push en pull request automatisch via GitHub Actions (`.github/workflows/test.yml`).
 
 ## Aanpassen
 
