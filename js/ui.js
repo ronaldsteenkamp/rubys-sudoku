@@ -240,7 +240,7 @@ function renderHome() {
       <span class="card-title">${escapeHtml(special.title)}</span>
       <span class="card-meta">${done ? 'Opgelost 💛 Tik om je berichtje nog eens te lezen' : 'Een puzzel met een verrassing'}</span>`;
     btn.addEventListener('click', async () => {
-      if (done) { showMessage({ icon: '💌', title: special.title, text: special.solvedText }); return; }
+      if (done) { showMessage({ icon: '💌', title: special.title, text: M.specialById(special.id)?.solvedText || special.solvedText }); return; }
       await showMessage({ icon: special.kind === 'verjaardag' ? '🎂' : '💛', title: special.title, text: special.text, ok: 'Laat maar zien!' });
       startGame({ kind: 'heart', special });
     });
@@ -269,11 +269,11 @@ function renderHome() {
   const key = dateKey(now);
   const dl = levelById(dailyLevelFor(now));
   const doneToday = stats.dailyDone.includes(key);
+  const doneTime = stats.dailyTimes[key];
   const streak = store.currentStreak(stats, key);
   $('#daily-title').textContent = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
   $('#daily-meta').textContent = [
-    `${dl.emoji} ${dl.name}`,
-    doneToday ? 'opgelost ✓' : null,
+    doneToday ? `Opgelost ✓${doneTime != null ? ` in ${formatTime(doneTime)}` : ''}` : `${dl.emoji} ${dl.name}`,
     streak ? `🔥 ${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij` : null,
   ].filter(Boolean).join(' · ');
 
@@ -303,6 +303,7 @@ function showScreen(name) {
 
 function goHome() {
   closeHint();
+  stopTimer();
   saveGame();
   renderHome();
   showScreen('home');
@@ -599,6 +600,11 @@ function startTimer() {
   timerId = setInterval(tick, 1000);
 }
 
+function stopTimer() {
+  clearInterval(timerId);
+  timerId = null;
+}
+
 function tick() {
   const now = performance.now();
   if (game && !paused && !game.solved && !$('#play').hidden && document.visibilityState === 'visible') {
@@ -752,9 +758,10 @@ function onSolved() {
   setTimeout(() => $('#board').classList.remove('solved-glow'), 1500);
   celebrate(Boolean(g.special));
 
-  const special = g.special ? M.specialDay(today()) : null;
+  // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
+  const special = g.special ? M.specialById(g.special) : null;
   let note;
-  if (special && special.id === g.special) note = special.solvedText;
+  if (special) note = special.solvedText;
   else {
     const recent = store.loadRecentNotes();
     note = M.loveNote(recent);
@@ -976,6 +983,17 @@ $('#install-setting').addEventListener('click', () => {
 $('#daily-card').addEventListener('click', () => {
   const key = dateKey(today());
   if (game && !game.solved && game.daily === key) { enterPlay(); return; }
+  if (stats.dailyDone.includes(key)) {
+    // Al opgelost: niet opnieuw starten, anders telt hij dubbel mee.
+    const t = stats.dailyTimes[key];
+    showMessage({
+      icon: '✅',
+      title: 'Dagpuzzel opgelost',
+      text: `${t != null ? `Vandaag deed je er ${formatTime(t)} over. ` : 'Deze heb je vandaag al opgelost. '}Morgen staat er weer een nieuwe voor je klaar${M.maybeNick(Math.random, 0.7)} 💛`,
+      ok: 'Fijn!',
+    });
+    return;
+  }
   startGame({ kind: 'daily' });
 });
 

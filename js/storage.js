@@ -58,11 +58,21 @@ export function emptyStats() {
     bestStreak: 0,
     lastSolvedDay: null,
     dailyDone: [], // datums van opgeloste dagpuzzels (laatste 60)
+    dailyTimes: {}, // { 'JJJJ-MM-DD': ms } tijd per opgeloste dagpuzzel
     specialDone: [],
   };
 }
 
-export const loadStats = () => ({ ...emptyStats(), ...read('stats', {}) });
+// Maakt oude (of half kapotte) statistieken weer compleet. Oude dagpuzzels
+// hebben nog geen tijd; die blijven gewoon in dailyDone staan.
+export function migrateStats(raw) {
+  const s = { ...emptyStats(), ...(raw && typeof raw === 'object' ? raw : {}) };
+  for (const k of ['dailyDone', 'specialDone']) if (!Array.isArray(s[k])) s[k] = [];
+  for (const k of ['levels', 'dailyTimes']) if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {};
+  return s;
+}
+
+export const loadStats = () => migrateStats(read('stats', {}));
 export const saveStats = (s) => write('stats', s);
 
 const dayDiff = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 86400000);
@@ -74,7 +84,9 @@ export function recordStart(stats, levelId) {
 }
 
 // Werkt de statistieken bij na een opgeloste puzzel. `today` = 'JJJJ-MM-DD'.
+// Een dagpuzzel die al eens is opgelost telt niet nog een keer mee.
 export function recordSolve(stats, { levelId, elapsed, hints, daily, special }, today) {
+  if (daily && stats.dailyDone.includes(daily)) return { stats, newBest: false, counted: false };
   const l = stats.levels[levelId] || (stats.levels[levelId] = { played: 1, solved: 0, best: null, totalTime: 0 });
   l.solved++;
   l.totalTime += elapsed;
@@ -82,9 +94,11 @@ export function recordSolve(stats, { levelId, elapsed, hints, daily, special }, 
   if (newBest) l.best = elapsed;
   stats.totalSolved++;
   if (!hints) stats.noHintSolved++;
-  if (daily && !stats.dailyDone.includes(daily)) {
+  if (daily) {
     stats.dailySolved++;
     stats.dailyDone = [...stats.dailyDone, daily].slice(-60);
+    stats.dailyTimes = { ...stats.dailyTimes, [daily]: elapsed };
+    for (const k of Object.keys(stats.dailyTimes)) if (!stats.dailyDone.includes(k)) delete stats.dailyTimes[k];
   }
   if (special && !stats.specialDone.includes(special)) stats.specialDone = [...stats.specialDone, special];
 
@@ -95,7 +109,7 @@ export function recordSolve(stats, { levelId, elapsed, hints, daily, special }, 
     stats.lastSolvedDay = today;
   }
   stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
-  return { stats, newBest };
+  return { stats, newBest, counted: true };
 }
 
 // Streak zoals die vandaag telt (0 als ze gisteren niet gespeeld heeft).

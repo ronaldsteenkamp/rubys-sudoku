@@ -103,6 +103,15 @@ export function specialDay(date = new Date()) {
   return null;
 }
 
+// Zoekt een speciale dag terug aan de hand van z'n id (bijv. 'verjaardag-2027'),
+// zodat een hartjespuzzel die na middernacht af is toch het goede berichtje krijgt.
+export function specialById(id) {
+  const m = /^(jubileum|verjaardag)-(\d{4})$/.exec(id || '');
+  if (!m) return null;
+  const { month, day } = m[1] === 'jubileum' ? ANNIVERSARY : BIRTHDAY;
+  return specialDay(new Date(Number(m[2]), month - 1, day, 12));
+}
+
 // ---------- Mijlpalen met geheime berichtjes ----------
 
 export const MILESTONES = [

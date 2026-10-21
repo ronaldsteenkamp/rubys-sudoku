@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { greeting, specialDay, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES } from '../js/messages.js';
+import { greeting, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
 test('begroeting past bij het dagdeel', () => {
@@ -44,4 +44,12 @@ test('"Ik hou van je" is bewaard voor de 100e puzzel', () => {
   assert.ok(LOVE_NOTES.every((m) => !/hou van je/i.test(m)));
   assert.match(MILESTONES.find((m) => m.id === 'honderd').text, /Ik hou van je/);
   assert.ok(MILESTONES.filter((m) => m.id !== 'honderd').every((m) => !/hou van je/i.test(m.text)));
+});
+
+test('speciale dag terugvinden op id (ook na middernacht)', () => {
+  assert.equal(specialById('verjaardag-2027').solvedText, specialDay(new Date(2027, 9, 12)).solvedText);
+  assert.equal(specialById('jubileum-2028').solvedText, specialDay(new Date(2028, 8, 29)).solvedText);
+  assert.equal(specialById('jubileum-2028').id, 'jubileum-2028');
+  assert.equal(specialById('iets-anders'), null);
+  assert.equal(specialById(null), null);
 });
