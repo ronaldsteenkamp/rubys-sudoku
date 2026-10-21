@@ -166,25 +166,30 @@ export const HEART_OUTLINE = HEART_MASK.map((m, i) => m &&
 
 // Alle gegeven cijfers liggen binnen het hart; de omtrek blijft altijd staan,
 // binnenin halen we (gespiegeld) weg zolang het uniek en logisch oplosbaar blijft.
-export function generateHeart(seed, cap = 3) {
+export function generateHeart(seed, cap = 3, tries = 12) {
   const rng = mulberry32(seed);
   const interior = [...Array(81).keys()].filter((i) => HEART_MASK[i] && !HEART_OUTLINE[i] && i % 9 <= 4);
-  for (let n = 0; n < 500; n++) {
+  let best = null;
+  // Een paar kandidaten proberen en de rustigste (minste cijfers binnenin) houden.
+  for (let n = 0, found = 0; n < 500 && found < tries; n++) {
     const solution = randomSolvedGrid(rng);
     const g = solution.map((v, i) => (HEART_MASK[i] ? v : 0));
     if (countSolutions(g, 2) !== 1 || !logicalSolve(g, cap).solved) continue;
+    found++;
     for (const i of shuffle(interior, rng)) {
       const j = Math.floor(i / 9) * 9 + 8 - (i % 9);
       const a = g[i], b = g[j];
       g[i] = 0; g[j] = 0;
       if (countSolutions(g, 2) !== 1 || !logicalSolve(g, cap).solved) { g[i] = a; g[j] = b; }
     }
-    const r = logicalSolve(g, cap);
-    return {
-      levelId: r.level >= 3 ? 'nadenken' : r.level === 2 ? 'koffie' : 'zondag',
-      seed, source: 'heart', givens: g, solution, clues: g.filter(Boolean).length,
-      rating: r.level, techniques: Object.keys(r.used), shape: 'heart',
-    };
+    const clues = g.filter(Boolean).length;
+    if (!best || clues < best.clues) best = { g, solution, clues };
   }
-  throw new Error('Geen hartjespuzzel gevonden');
+  if (!best) throw new Error('Geen hartjespuzzel gevonden');
+  const r = logicalSolve(best.g, cap);
+  return {
+    levelId: r.level >= 3 ? 'nadenken' : r.level === 2 ? 'koffie' : 'zondag',
+    seed, source: 'heart', givens: best.g, solution: best.solution, clues: best.clues,
+    rating: r.level, techniques: Object.keys(r.used), shape: 'heart',
+  };
 }

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="nl" data-theme="zonnig">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Ruby's Sudoku</title>
+  <meta name="description" content="Een rustige sudoku, speciaal gemaakt voor Ruby.">
+  <meta name="theme-color" content="#FFF8E7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Ruby's Sudoku">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/ui.js"></script>
+</head>
+<body>
+  <main id="app">
+    <!-- Startscherm -->
+    <section id="home" class="screen" aria-labelledby="greeting">
+      <header class="home-head">
+        <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Ruby's Sudoku</div>
+        <h1 id="greeting">Hoi Ruby</h1>
+        <p id="subtitle" class="muted"></p>
+        <p id="together" class="together"></p>
+      </header>
+
+      <div id="special-slot"></div>
+      <div id="continue-slot"></div>
+
+      <button id="daily-card" class="card daily" type="button">
+        <span class="card-kicker">Dagpuzzel</span>
+        <span id="daily-title" class="card-title">Vandaag</span>
+        <span id="daily-meta" class="card-meta"></span>
+      </button>
+
+      <h2 class="section-title">Nieuwe puzzel</h2>
+      <div id="levels" class="levels"></div>
+
+      <nav class="home-nav" aria-label="Meer">
+        <button type="button" class="pill" data-open="stats-dialog"><span aria-hidden="true">📊</span> Statistieken</button>
+        <button type="button" class="pill" data-open="notes-dialog"><span aria-hidden="true">💌</span> Berichtjes</button>
+        <button type="button" class="pill" data-open="settings-dialog"><span aria-hidden="true">⚙️</span> Instellingen</button>
+      </nav>
+    </section>
+
+    <!-- Spelscherm -->
+    <section id="play" class="screen" hidden aria-label="Puzzel">
+      <header class="topbar">
+        <button type="button" class="icon-btn" id="back-btn" aria-label="Terug naar het startscherm"></button>
+        <div class="topbar-mid">
+          <div id="play-title" class="play-title">Puzzel</div>
+          <button type="button" id="timer" class="timer" aria-label="Tijd verbergen">0:00</button>
+        </div>
+        <button type="button" class="icon-btn" id="pause-btn" aria-label="Pauze"></button>
+        <button type="button" class="icon-btn" id="menu-btn" aria-label="Menu"></button>
+      </header>
+
+      <div class="board-wrap">
+        <div id="board" class="board" role="grid" aria-label="Sudoku" tabindex="0"></div>
+      </div>
+
+      <div class="controls">
+        <div id="tools" class="tools"></div>
+        <div id="numpad" class="numpad" aria-label="Cijfers"></div>
+        <div id="hint-card" class="hint-card" hidden role="region" aria-label="Hint">
+          <div class="hint-head"><span class="hint-badge" id="hint-tech">Hint</span><span id="hint-step" class="hint-step"></span></div>
+          <p id="hint-text" class="hint-text" aria-live="polite"></p>
+          <div class="hint-actions">
+            <button type="button" class="btn ghost" id="hint-close">Sluiten</button>
+            <button type="button" class="btn primary" id="hint-next">Meer uitleg</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="sr-status" class="sr-only" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+  <!-- Dialogen -->
+  <dialog id="pause-dialog" class="sheet center">
+    <div class="pause-emoji" aria-hidden="true">☕</div>
+    <h2 id="pause-line">Even pauze</h2>
+    <p class="muted" id="pause-time"></p>
+    <button type="button" class="btn primary wide" data-close>Verder spelen</button>
+  </dialog>
+
+  <dialog id="menu-dialog" class="sheet">
+    <h2>Menu</h2>
+    <div class="menu-list">
+      <button type="button" class="menu-item" id="check-btn"><span aria-hidden="true">✅</span> Controleer mijn puzzel</button>
+      <button type="button" class="menu-item" id="fill-notes-btn"><span aria-hidden="true">✏️</span> Alle notities invullen</button>
+      <button type="button" class="menu-item" id="reset-btn"><span aria-hidden="true">↺</span> Opnieuw beginnen</button>
+      <button type="button" class="menu-item" data-open="settings-dialog"><span aria-hidden="true">⚙️</span> Instellingen</button>
+      <button type="button" class="menu-item" data-open="help-dialog"><span aria-hidden="true">⌨️</span> Uitleg &amp; sneltoetsen</button>
+    </div>
+    <button type="button" class="btn ghost wide" data-close>Sluiten</button>
+  </dialog>
+
+  <dialog id="settings-dialog" class="sheet">
+    <h2>Instellingen</h2>
+    <fieldset class="setting">
+      <legend>Thema</legend>
+      <div id="theme-options" class="theme-options"></div>
+    </fieldset>
+    <fieldset class="setting">
+      <legend>Foutcontrole</legend>
+      <div class="segmented" id="errors-options">
+        <label><input type="radio" name="errors" value="direct"><span>Direct</span></label>
+        <label><input type="radio" name="errors" value="verzoek"><span>Op verzoek</span></label>
+        <label><input type="radio" name="errors" value="uit"><span>Uit</span></label>
+      </div>
+    </fieldset>
+    <div class="setting toggles">
+      <label class="toggle"><span>Notities automatisch wegstrepen</span><input type="checkbox" name="autoNotes"></label>
+      <label class="toggle"><span>Gelijke cijfers markeren</span><input type="checkbox" name="highlightSame"></label>
+      <label class="toggle"><span>Timer tonen</span><input type="checkbox" name="showTimer"></label>
+      <label class="toggle"><span>Zachte geluidjes</span><input type="checkbox" name="sound"></label>
+      <label class="toggle" id="haptics-row"><span>Trillen</span><input type="checkbox" name="haptics"></label>
+    </div>
+    <button type="button" class="btn primary wide" data-close>Klaar</button>
+  </dialog>
+
+  <dialog id="stats-dialog" class="sheet">
+    <h2>Statistieken</h2>
+    <div id="stats-body"></div>
+    <button type="button" class="btn primary wide" data-close>Sluiten</button>
+  </dialog>
+
+  <dialog id="notes-dialog" class="sheet">
+    <h2>Geheime berichtjes</h2>
+    <p class="muted">Elke mijlpaal ontgrendelt een berichtje. 🔐</p>
+    <ul id="notes-list" class="notes-list"></ul>
+    <button type="button" class="btn primary wide" data-close>Sluiten</button>
+  </dialog>
+
+  <dialog id="help-dialog" class="sheet">
+    <h2>Uitleg</h2>
+    <ul class="help-list">
+      <li>Tik op een vakje en daarna op een cijfer. Nog eens hetzelfde cijfer haalt het weer weg.</li>
+      <li>Met <b>Notities</b> zet je kleine potloodcijfertjes.</li>
+      <li><b>Hint</b> wijst eerst een plek aan, legt dan de techniek uit en vult pas daarna in.</li>
+    </ul>
+    <h3>Sneltoetsen</h3>
+    <dl class="keys">
+      <dt>1–9</dt><dd>Cijfer zetten</dd>
+      <dt>Shift + 1–9</dt><dd>Notitie</dd>
+      <dt>Pijltjes</dt><dd>Vakje kiezen</dd>
+      <dt>Backspace</dt><dd>Gummen</dd>
+      <dt>N</dt><dd>Notities aan/uit</dd>
+      <dt>H</dt><dd>Hint</dd>
+      <dt>Ctrl+Z / Ctrl+Y</dt><dd>Ongedaan maken / opnieuw</dd>
+      <dt>P / Esc</dt><dd>Pauze</dd>
+    </dl>
+    <button type="button" class="btn primary wide" data-close>Begrepen</button>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="sheet center">
+    <h2 id="confirm-title">Zeker weten?</h2>
+    <p id="confirm-text" class="muted"></p>
+    <div class="row">
+      <button type="button" class="btn ghost" value="nee" id="confirm-no">Nee</button>
+      <button type="button" class="btn primary" value="ja" id="confirm-yes">Ja</button>
+    </div>
+  </dialog>
+
+  <dialog id="message-dialog" class="sheet center">
+    <div id="message-icon" class="message-icon" aria-hidden="true">💛</div>
+    <h2 id="message-title"></h2>
+    <p id="message-text" class="message-text"></p>
+    <button type="button" class="btn primary wide" id="message-ok">Oké</button>
+  </dialog>
+
+  <dialog id="solved-dialog" class="sheet center">
+    <div class="solved-emoji" aria-hidden="true">🎉</div>
+    <h2 id="solved-title">Opgelost!</h2>
+    <p id="solved-stats" class="muted"></p>
+    <p id="solved-note" class="love-note"></p>
+    <div class="row">
+      <button type="button" class="btn ghost" id="solved-home">Naar start</button>
+      <button type="button" class="btn primary" id="solved-again">Nog eentje</button>
+    </div>
+  </dialog>
+</body>
+</html>

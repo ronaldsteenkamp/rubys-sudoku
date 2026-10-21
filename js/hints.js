@@ -161,6 +161,7 @@ export function getHint(game, rng = Math.random) {
           text: `${TECHNIQUES[main.technique].name}! ${explain(main)}${extra}`,
           units: main.units,
           cells: main.cells,
+          digit: main.digits.length === 1 ? main.digits[0] : null,
           strike: main.eliminations,
         },
         { text: placementOutro(placing.place, true, rng), units: [], cells: [placing.place.cell] },
