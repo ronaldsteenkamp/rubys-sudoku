@@ -94,3 +94,60 @@ test('oude statistieken zonder dagtijden worden netjes aangevuld', () => {
   assert.deepEqual(S.migrateStats({ dailyTimes: null, dailyDone: 'kapot' }).dailyDone, []);
   assert.deepEqual(S.migrateStats(null), S.emptyStats());
 });
+
+test('back-up: heen en terug levert dezelfde gegevens op', () => {
+  S.saveSettings({ ...S.DEFAULT_SETTINGS, theme: 'lelie', sound: false });
+  const st = S.emptyStats();
+  S.recordSolve(st, { levelId: 'koffie', elapsed: 1234, hints: 0, daily: '2026-10-21' }, '2026-10-21');
+  S.saveStats(st);
+  S.saveUnlocked(['eerste', 'dag1']);
+  S.saveRecentNotes(['lief']);
+  const game = { v: 1, givens: new Array(81).fill(0), solution: new Array(81).fill(1), levelId: 'zondag', elapsed: 42 };
+  S.saveGame(game);
+
+  const backup = JSON.parse(JSON.stringify(S.exportBackup(new Date(2026, 9, 21))));
+  assert.equal(backup.app, 'rubys-sudoku');
+  assert.equal(backup.version, 1);
+
+  globalThis.localStorage = new MemoryStorage();
+  assert.equal(S.importBackup(backup).ok, true);
+  assert.equal(S.loadSettings().theme, 'lelie');
+  assert.equal(S.loadSettings().sound, false);
+  assert.deepEqual(S.loadStats(), st);
+  assert.deepEqual(S.loadUnlocked(), ['eerste', 'dag1']);
+  assert.deepEqual(S.loadRecentNotes(), ['lief']);
+  assert.deepEqual(S.loadGame(), game);
+});
+
+test('back-up: ongeldige bestanden worden geweigerd en overschrijven niets', () => {
+  S.saveSettings({ ...S.DEFAULT_SETTINGS, theme: 'nacht' });
+  S.saveStats({ ...S.emptyStats(), totalSolved: 7 });
+  S.saveUnlocked(['eerste']);
+  const good = S.exportBackup();
+  const bad = [
+    null, 'tekst', [], {},
+    { ...good, app: 'iets-anders' },
+    { ...good, version: 99 },
+    { ...good, data: null },
+    { ...good, data: { ...good.data, stats: { totalSolved: 'veel' } } },
+    { ...good, data: { ...good.data, unlocked: [1, 2] } },
+    { ...good, data: { ...good.data, game: { v: 1, givens: [1, 2, 3] } } },
+  ];
+  for (const b of bad) {
+    const res = S.importBackup(b);
+    assert.equal(res.ok, false, JSON.stringify(b)?.slice(0, 60));
+    assert.equal(typeof res.reason, 'string');
+  }
+  assert.equal(S.loadSettings().theme, 'nacht');
+  assert.equal(S.loadStats().totalSolved, 7);
+  assert.deepEqual(S.loadUnlocked(), ['eerste']);
+});
+
+test('back-up: onbekende of verkeerde instellingen vallen terug op standaard', () => {
+  const b = S.makeBackup({ settings: { theme: 'zonnig', errors: 5, hack: true }, stats: S.emptyStats(), unlocked: [], recentNotes: [], game: null });
+  const res = S.validateBackup(b);
+  assert.equal(res.ok, true);
+  assert.equal(res.data.settings.theme, 'zonnig');
+  assert.equal(res.data.settings.errors, 'direct');
+  assert.equal('hack' in res.data.settings, false);
+});

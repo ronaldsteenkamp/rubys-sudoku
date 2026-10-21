@@ -105,6 +105,6 @@ node scripts/build-bank.mjs 120
 
 - iPhones ondersteunen `navigator.vibrate` niet. Op iOS 18 en nieuwer geeft de app daarom een zachte haptische tik via een systeemschakelaar. Op oudere iOS-versies is er alleen geluid. Geluid volgt de stilteschakelaar van de iPhone.
 - Op een gewone iPhone (390 px breed) zijn de vakjes ongeveer 42 px. Dat is net iets kleiner dan de richtlijn van 44 px, omdat 9 vakjes anders niet op het scherm passen. Het bord gebruikt daarom de volle breedte.
-- Alles wordt alleen in de browser van het toestel bewaard. Wis je de websitedata, dan zijn de statistieken ook weg.
+- Alles wordt alleen in de browser van het toestel bewaard. Wis je de websitedata, dan zijn de statistieken ook weg. Daarom staat er bij **Instellingen → Je voortgang** een knop voor een back-up (een JSON-bestand; op de iPhone via het deelmenu, bijvoorbeeld naar Bestanden) en een knop om die terug te zetten. De app vraagt de browser ook om de opslag niet zomaar op te ruimen.
 
 Gemaakt met heel veel liefde. 💛

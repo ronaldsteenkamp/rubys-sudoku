@@ -127,6 +127,15 @@
       <label class="toggle" id="haptics-row"><span>Trillen</span><input type="checkbox" name="haptics"></label>
     </div>
     <button type="button" class="menu-item" id="install-setting"><span aria-hidden="true">📲</span> Zet op je beginscherm</button>
+    <fieldset class="setting backup">
+      <legend>Je voortgang</legend>
+      <p class="muted small">Alles staat alleen op dit toestel. Bewaar af en toe een back-up, bijvoorbeeld in Bestanden of iCloud Drive.</p>
+      <div class="menu-list">
+        <button type="button" class="menu-item" id="backup-save"><span aria-hidden="true">💾</span> Bewaar een back-up</button>
+        <button type="button" class="menu-item" id="backup-restore"><span aria-hidden="true">📂</span> Zet een back-up terug</button>
+      </div>
+      <input type="file" id="backup-file" accept="application/json,.json" hidden>
+    </fieldset>
     <button type="button" class="btn primary wide" data-close>Klaar</button>
   </dialog>
 

@@ -134,3 +134,60 @@ export const saveStash = (s) => write('stash', s);
 
 export const loadInstallSnooze = () => read('install-snooze', 0);
 export const saveInstallSnooze = (until) => write('install-snooze', until);
+
+// ---------- Back-up maken en terugzetten ----------
+
+export const BACKUP_APP = 'rubys-sudoku';
+export const BACKUP_VERSION = 1;
+
+// Bouwt een back-up-object uit de losse onderdelen (puur, makkelijk te testen).
+export function makeBackup({ settings, stats, unlocked, recentNotes, game }, date = new Date()) {
+  return {
+    app: BACKUP_APP,
+    version: BACKUP_VERSION,
+    created: date.toISOString(),
+    data: { settings, stats, unlocked, recentNotes, game: game ?? null },
+  };
+}
+
+// Alles wat nu in de opslag staat, als back-up.
+export const exportBackup = (date) => makeBackup({
+  settings: loadSettings(), stats: loadStats(), unlocked: loadUnlocked(), recentNotes: loadRecentNotes(), game: loadGame(),
+}, date);
+
+const isObj = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
+const isStrings = (v) => Array.isArray(v) && v.every((x) => typeof x === 'string');
+
+// Controleert een ingelezen back-up. Geeft { ok: true, data } met nette,
+// aangevulde gegevens terug, of { ok: false, reason } zonder iets aan te raken.
+export function validateBackup(obj) {
+  if (!isObj(obj) || obj.app !== BACKUP_APP) return { ok: false, reason: 'geen back-up van Ruby\'s Sudoku' };
+  if (obj.version !== BACKUP_VERSION) return { ok: false, reason: 'onbekende versie' };
+  const d = obj.data;
+  if (!isObj(d) || !isObj(d.settings) || !isObj(d.stats)) return { ok: false, reason: 'onvolledig' };
+  if (typeof d.stats.totalSolved !== 'number' || !isObj(d.stats.levels)) return { ok: false, reason: 'statistieken kloppen niet' };
+  if (!isStrings(d.unlocked ?? []) || !isStrings(d.recentNotes ?? [])) return { ok: false, reason: 'berichtjes kloppen niet' };
+  const g = d.game ?? null;
+  if (g !== null && (!isObj(g) || g.v !== 1 || !Array.isArray(g.givens) || g.givens.length !== 81)) return { ok: false, reason: 'puzzel klopt niet' };
+
+  // Alleen bekende instellingen, met het juiste type.
+  const settings = { ...DEFAULT_SETTINGS };
+  for (const [k, def] of Object.entries(DEFAULT_SETTINGS)) if (typeof d.settings[k] === typeof def) settings[k] = d.settings[k];
+  return {
+    ok: true,
+    data: { settings, stats: migrateStats(d.stats), unlocked: d.unlocked ?? [], recentNotes: d.recentNotes ?? [], game: g },
+  };
+}
+
+// Zet een gecontroleerde back-up terug. Ongeldige invoer laat alles ongemoeid.
+export function importBackup(obj) {
+  const res = validateBackup(obj);
+  if (!res.ok) return res;
+  const { settings, stats, unlocked, recentNotes, game } = res.data;
+  saveSettings(settings);
+  saveStats(stats);
+  saveUnlocked(unlocked);
+  saveRecentNotes(recentNotes);
+  if (game) saveGame(game); else clearGame();
+  return res;
+}

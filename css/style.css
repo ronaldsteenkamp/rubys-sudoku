@@ -479,6 +479,8 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 
 .setting { margin: 0 0 18px; padding: 0; border: 0; }
 .setting legend { font-weight: 800; margin-bottom: 10px; }
+.setting.backup { margin-top: 18px; }
+.setting.backup .muted { margin-bottom: 8px; }
 
 .theme-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
 .theme-opt { position: relative; }

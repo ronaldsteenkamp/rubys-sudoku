@@ -749,6 +749,7 @@ function onSolved() {
   const day = dateKey(today());
   const { newBest } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
   store.saveStats(stats);
+  requestPersist();
   const fresh = M.newMilestones(stats, unlocked);
   unlocked = [...unlocked, ...fresh.map((m) => m.id)];
   store.saveUnlocked(unlocked);
@@ -885,6 +886,84 @@ $('#settings-dialog').addEventListener('change', (e) => {
   render();
 });
 
+// ---------- Voortgang beschermen ----------
+
+// Vraag de browser om onze opslag niet zomaar op te ruimen. De uitkomst maakt niet uit.
+function requestPersist() {
+  try { navigator.storage?.persist?.()?.catch?.(() => {}); } catch { /* niet ondersteund */ }
+}
+
+// Alles opnieuw inlezen, bijvoorbeeld na het terugzetten van een back-up.
+function reloadState() {
+  closeHint(false);
+  settings = store.loadSettings();
+  stats = store.loadStats();
+  unlocked = store.loadUnlocked();
+  game = Game.fromJSON(store.loadGame());
+  selected = null;
+  focusDigit = null;
+  checkMarks = new Set();
+  applyTheme();
+  configureFeedback(settings);
+  goHome();
+}
+
+async function saveBackup() {
+  saveGame();
+  const name = `rubys-sudoku-backup-${dateKey(new Date())}.json`;
+  const file = new File([JSON.stringify(store.exportBackup(), null, 2)], name, { type: 'application/json' });
+  // iPhone: via het deelmenu (bewaar in Bestanden, AirDrop, mail…). Elders: gewoon downloaden.
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: "Back-up van Ruby's Sudoku" });
+      closeDialog('settings-dialog');
+      toast('Back-up bewaard 💛');
+      return;
+    } catch (err) {
+      if (err?.name === 'AbortError') return; // zelf geannuleerd
+    }
+  }
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  closeDialog('settings-dialog');
+  toast('Back-up gedownload 💛');
+}
+
+async function restoreBackup(file) {
+  closeDialog('settings-dialog');
+  let parsed = null;
+  try { parsed = JSON.parse(await file.text()); } catch { /* geen JSON */ }
+  const res = store.validateBackup(parsed);
+  if (!res.ok) {
+    toast('Hmm, dat lijkt geen goede back-up. Er is niks veranderd 💛', 4000);
+    return;
+  }
+  const created = new Date(parsed.created);
+  const when = Number.isNaN(created.getTime()) ? '' : ` van ${created.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  const n = res.data.stats.totalSolved;
+  const ok = await confirmDialog('Back-up terugzetten?',
+    `Deze back-up${when} heeft ${n} ${n === 1 ? 'opgeloste puzzel' : 'opgeloste puzzels'}. Wat er nu op dit toestel staat, wordt daardoor vervangen.`,
+    'Ja, terugzetten', 'Nee');
+  if (!ok) return;
+  if (!store.importBackup(parsed).ok) { toast('Dat lukte niet. Er is niks veranderd 💛', 4000); return; }
+  reloadState();
+  requestPersist();
+  toast('Je voortgang is terug 💛');
+}
+
+$('#backup-save').addEventListener('click', () => { saveBackup().catch(() => toast('Dat lukte even niet. Probeer je het nog eens?')); });
+$('#backup-restore').addEventListener('click', () => { $('#backup-file').value = ''; $('#backup-file').click(); });
+$('#backup-file').addEventListener('change', (e) => {
+  const file = e.target.files?.[0];
+  if (file) restoreBackup(file);
+});
+
 // ---------- Statistieken & berichtjes ----------
 
 function renderStats() {
@@ -1003,6 +1082,7 @@ try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } cat
 buildBoard();
 renderHome();
 showScreen('home');
+if (stats.totalSolved > 0) requestPersist();
 
 const idle = globalThis.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
 idle(() => fillStash());
