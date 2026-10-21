@@ -1,6 +1,6 @@
 // Service worker: de app werkt volledig offline na het eerste bezoek.
 // Verhoog VERSION bij elke release, dan haalt iedereen de nieuwe bestanden op.
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CACHE = `rubys-sudoku-${VERSION}`;
 const FONT_CACHE = 'rubys-sudoku-fonts';
 

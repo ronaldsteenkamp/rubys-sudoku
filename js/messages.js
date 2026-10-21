@@ -33,7 +33,7 @@ export const LOVE_NOTES = [
   'Dikke kus van de maker van deze app 😘',
   'Alles klopte. Net als wij samen.',
   'Jij bent mijn allerliefste puzzel, RubyxCube 💛',
-  'Volgende stop: zon, zee en Gran Canaria 🏝️',
+  'Weer een puzzel opgelost. Jij laat mijn hart altijd een beetje sneller kloppen 💓',
   'Je brein is goud waard. Je hart nog meer.',
 ];
 
