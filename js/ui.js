@@ -534,8 +534,14 @@ function render() {
     const left = 9 - counts[d];
     b.disabled = left <= 0 || paused || game.solved;
     b.classList.toggle('active', hlDigit === d && !stage);
-    b.querySelector('small').textContent = left > 0 ? left : '✓';
-    b.setAttribute('aria-label', `${d}${notesMode ? ' als notitie' : ''}, nog ${left > 0 ? left : 0} over`);
+    const small = b.querySelector('small');
+    const full = left <= 0;
+    if (b.classList.contains('full') !== full || !small.firstChild) {
+      small.innerHTML = full ? '✓' : '<i></i>'.repeat(9);
+      b.classList.toggle('full', full);
+    }
+    if (!full) [...small.children].forEach((dot, k) => dot.classList.toggle('on', k < counts[d]));
+    b.setAttribute('aria-label', left > 0 ? `${d}${notesMode ? ' als notitie' : ''}, nog ${left} over` : `${d}, staat er al 9 keer`);
   }
   $('#numpad').classList.toggle('notes-mode', notesMode);
   $('#tool-undo').disabled = !game.history.length || game.solved;
