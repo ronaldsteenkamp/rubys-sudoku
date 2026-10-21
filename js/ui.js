@@ -6,7 +6,7 @@ import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { FIXED_THEMES, SEASON_THEMES, AUTO_CHOICES, SEASON_AUTO, themeById, resolveTheme, recordSeasonSolve, checkThemeUnlocks } from './themes.js';
+import { FIXED_THEMES, SEASON_THEMES, AUTO_CHOICES, SEASON_AUTO, themeById, resolveTheme, recordSeasonSolve, checkThemeUnlocks, seasonOf, seasonProgress } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -958,14 +958,36 @@ for (const d of document.querySelectorAll('dialog')) {
 
 // ---------- Instellingen ----------
 
+// Eén keuze in de thema-kiezer: een radioknop met voorproefje.
+function themeChoice({ id, name, previews, hint = '' }) {
+  return `<label class="theme-opt">
+      <input type="radio" name="theme" value="${id}" ${settings.theme === id ? 'checked' : ''}>
+      <span class="theme-card"><i class="theme-preview" aria-hidden="true">${previews.map(themePreview).join('')}</i>
+        <span class="theme-name">${escapeHtml(name)}</span>${hint ? `<small class="theme-hint">${escapeHtml(hint)}</small>` : ''}</span></label>`;
+}
+
+// Een nog vergrendeld seizoen: wel te zien en te focussen, niet te kiezen.
+function lockedSeason(t) {
+  const now = seasonOf(today()).season === t.season;
+  const { current, target } = seasonProgress(stats, today());
+  const left = Math.max(1, target - current);
+  const hint = now
+    ? `Nog ${left} ${left === 1 ? 'puzzel' : 'puzzels'} deze ${t.name.toLowerCase()}`
+    : `Los ${target} puzzels op ${t.when} ${t.emoji}`;
+  return `<button type="button" class="theme-opt locked" aria-disabled="true" aria-label="${escapeHtml(`${t.name}, nog op slot. ${hint}`)}">
+      <span class="theme-card"><i class="theme-preview" aria-hidden="true">${themePreview(t.id)}</i>
+        <span class="theme-name">${escapeHtml(t.name)}</span><small class="theme-hint" aria-hidden="true">${escapeHtml(hint)}</small></span></button>`;
+}
+
 function renderSettings() {
-  const opts = $('#theme-options');
-  const own = SEASON_THEMES.filter((t) => stats.unlockedThemes.includes(t.id));
-  const choices = [...AUTO_CHOICES, ...FIXED_THEMES.map((t) => ({ ...t, previews: [t.id] })),
-    ...(own.length ? [SEASON_AUTO] : []), ...own.map((t) => ({ ...t, previews: [t.id] }))];
-  opts.innerHTML = choices.map((t) => `<label class="theme-opt">
-      <input type="radio" name="theme" value="${t.id}" ${settings.theme === t.id ? 'checked' : ''}>
-      <span><i class="theme-preview" aria-hidden="true">${t.previews.map(themePreview).join('')}</i>${t.name}</span></label>`).join('');
+  $('#theme-options').innerHTML = [...AUTO_CHOICES, ...FIXED_THEMES.map((t) => ({ ...t, previews: [t.id] }))].map(themeChoice).join('');
+  const own = stats.unlockedThemes;
+  const seasonNow = resolveTheme('seizoen', today(), own);
+  $('#season-options').innerHTML = [
+    // 'Seizoen (automatisch)' pas zodra er minstens één seizoen vrij is.
+    own.length ? themeChoice({ ...SEASON_AUTO, previews: [seasonNow], hint: 'automatisch' }) : '',
+    ...SEASON_THEMES.map((t) => (own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedSeason(t))),
+  ].join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
   for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'sound', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);

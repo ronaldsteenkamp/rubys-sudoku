@@ -926,9 +926,12 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   scrollbar-width: none;
 }
 .theme-options::-webkit-scrollbar { display: none; }
-.theme-opt { position: relative; flex: none; scroll-snap-align: start; }
+.theme-opt { position: relative; flex: none; display: flex; scroll-snap-align: start; }
 .theme-opt input { position: absolute; opacity: 0; }
-.theme-opt span {
+.theme-group-title { margin: 4px 0 6px; font: 800 0.78rem/1.2 "Nunito", sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.theme-group-title + .theme-options { margin-bottom: 8px; }
+.theme-card {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -942,6 +945,29 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   text-align: center;
   white-space: nowrap;
 }
+.theme-name { line-height: 1.2; }
+.theme-hint { display: block; max-width: 100%; font-size: 0.7rem; font-weight: 600; line-height: 1.25; color: var(--ink-soft); white-space: normal; }
+/* Vergrendeld seizoen: gedimd voorproefje met een slotje. */
+.theme-opt.locked { margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: center; cursor: default; }
+.theme-opt.locked .theme-card { border-style: dashed; }
+.theme-opt.locked .theme-card { position: relative; }
+.theme-opt.locked .theme-preview { opacity: 0.5; filter: saturate(0.6); }
+.theme-opt.locked .theme-card::after {
+  content: "🔒";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 0.8rem;
+}
+.theme-opt.locked:focus-visible { outline: none; }
+.theme-opt.locked:focus-visible .theme-card { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
 .theme-preview { display: flex; width: 100%; height: 62px; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%); }
 .tp {
   flex: 1;
@@ -964,8 +990,8 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .tp em { position: absolute; right: 8px; bottom: 8px; width: 12px; height: 12px; border-radius: 50%; background: var(--tp-accent); }
 .tp + .tp b, .tp:has(+ .tp) em { display: none; }
 .tp + .tp em { right: auto; left: 50%; bottom: auto; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; }
-.theme-opt input:checked + span { border-color: var(--accent-strong); background: var(--surface-2); }
-.theme-opt input:focus-visible + span { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
+.theme-opt input:checked + .theme-card { border-color: var(--accent-strong); background: var(--surface-2); }
+.theme-opt input:focus-visible + .theme-card { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
 
 .segmented { display: flex; padding: 4px; border-radius: 999px; background: var(--surface-2); }
 .segmented label { flex: 1; }

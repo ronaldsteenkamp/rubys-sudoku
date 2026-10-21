@@ -150,6 +150,28 @@ if (!only) {
   await p.context().close();
 }
 
+// Thema-kiezer: Winter vrij, Herfst op 2 van 3 (vandaag is het herfst), de rest dicht.
+for (const [theme, scheme] of [['zonnig', 'light'], ['sterren', 'dark'], ['winter', 'light']]) {
+  const p = await page({ theme, scheme, query: '?vandaag=2026-10-21', extraStats: { unlockedThemes: ['winter'], seasonSolves: { 'herfst-2026': 2 } } });
+  await p.click('[data-open="settings-dialog"]');
+  await p.waitForTimeout(400);
+  await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, `kiezer-${theme}.png`) });
+  shots.push({ file: `kiezer-${theme}.png`, group: 'kiezer', name: `kiezer-${theme}` });
+  await p.evaluate(() => { for (const r of document.querySelectorAll('.theme-options')) r.scrollLeft = 9999; });
+  await p.waitForTimeout(200);
+  await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, `kiezer-${theme}-rechts.png`) });
+  shots.push({ file: `kiezer-${theme}-rechts.png`, group: 'kiezer', name: `kiezer-${theme} (doorgescrold)` });
+  await p.context().close();
+}
+{
+  const p = await page({ theme: 'zonnig', scheme: 'light', query: '?vandaag=2027-01-10', extraStats: { unlockedThemes: [], seasonSolves: {} } });
+  await p.click('[data-open="settings-dialog"]');
+  await p.waitForTimeout(400);
+  await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, 'kiezer-niets-vrij.png') });
+  shots.push({ file: 'kiezer-niets-vrij.png', group: 'kiezer', name: 'kiezer-niets-vrij (januari)' });
+  await p.context().close();
+}
+
 // Dialogen: instellingen (met de thema-kiezer) en het menu.
 for (const [theme, scheme] of only ? [] : [['zonnig', 'light'], ['nacht', 'dark']]) {
   let p = await page({ theme, scheme });
