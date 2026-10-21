@@ -60,24 +60,27 @@ const THEMES = [
   ['zonnig', 'light'], ['nacht', 'dark'], ['gran-canaria', 'light'], ['lelie', 'light'], ['auto', 'dark'],
 ];
 const IPHONE13 = { width: 390, height: 844 };
+// Met een iPhone-useragent verschijnt ook het 'zet op beginscherm'-bannertje.
+const IPHONE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const SIZES = { se: { width: 375, height: 667 }, iphone13: IPHONE13, promax: { width: 430, height: 932 }, liggend: { width: 844, height: 390 } };
 
 const browser = await chromium.launch();
 await mkdir(out, { recursive: true });
 const shots = [];
 
-async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference' }) {
-  const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: scheme, reducedMotion, isMobile: true, hasTouch: true });
-  await ctx.addInitScript(({ theme, stats, game }) => {
+async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference', dailyDone = false }) {
+  const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: scheme, reducedMotion, isMobile: true, hasTouch: true, userAgent: IPHONE_UA });
+  await ctx.addInitScript(({ theme, stats, game, dailyDone }) => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
     const today = new Date();
     const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme }));
-    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, lastSolvedDay: key }));
+    const done = dailyDone ? { dailyDone: [key], dailyTimes: { [key]: 372000 } } : {};
+    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, ...done, lastSolvedDay: key }));
     localStorage.setItem('rubys-sudoku:unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
     if (game) localStorage.setItem('rubys-sudoku:game', JSON.stringify(game));
-  }, { theme, stats, game });
+  }, { theme, stats, game, dailyDone });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.error('paginafout:', e.message));
   await p.goto(base + query);
@@ -86,9 +89,9 @@ async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '
   return p;
 }
 
-async function shot(p, name, group) {
+async function shot(p, name, group, fullPage = false) {
   const file = `${name}.png`;
-  await p.screenshot({ path: join(out, file) });
+  await p.screenshot({ path: join(out, file), fullPage });
   shots.push({ file, group, name });
 }
 
@@ -104,7 +107,7 @@ const selectCell = game.values.findIndex((v, i) => v && !game.givens[i] && v ===
 
 for (const [theme, scheme] of THEMES) {
   let p = await page({ theme, scheme });
-  await shot(p, `start-${theme}`, 'start');
+  await shot(p, `start-${theme}`, 'start', true);
   await p.context().close();
 
   p = await page({ theme, scheme, game });
@@ -140,6 +143,23 @@ for (const [theme, scheme] of THEMES) {
   await p.click(`.num[data-d="${heart.solution[a.last]}"]`);
   await p.waitForTimeout(120);
   await shot(p, 'hart-minder-beweging-nacht', 'onthulling');
+  await p.context().close();
+}
+
+// Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.
+{
+  let p = await page({ theme: 'zonnig', scheme: 'light', dailyDone: true });
+  await shot(p, 'staat-opgelost-zonnig', 'staten', true);
+  await p.context().close();
+  const daily = { ...game, daily: new Date().toISOString().slice(0, 10) };
+  p = await page({ theme: 'nacht', scheme: 'dark', game: daily });
+  await shot(p, 'staat-bezig-nacht', 'staten', true);
+  await p.context().close();
+  p = await page({ theme: 'lelie', scheme: 'light', viewport: { width: 340, height: 700 } });
+  await shot(p, 'staat-smal-340-lelie', 'staten', true);
+  await p.context().close();
+  p = await page({ theme: 'gran-canaria', scheme: 'light', viewport: { width: 520, height: 900 } });
+  await shot(p, 'staat-breed-520-gran-canaria', 'staten', true);
   await p.context().close();
 }
 

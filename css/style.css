@@ -35,6 +35,7 @@
   --accent: #f5c02e;
   --accent-strong: #e0a400;
   --accent-ink: #3a2e1f;
+  --accent-soft: #fde8a6;
   --user: #8a5300;
   --given: #3a2e1f;
   --peer: #fdf1cf;
@@ -65,6 +66,7 @@
   --accent: #f5c451;
   --accent-strong: #ffd772;
   --accent-ink: #1d1a12;
+  --accent-soft: #45371a;
   --user: #ffd36b;
   --given: #f4ecdd;
   --peer: #2b2738;
@@ -95,6 +97,7 @@
   --accent: #f29b74;
   --accent-strong: #e2774c;
   --accent-ink: #2a1a10;
+  --accent-soft: #fde3d4;
   --user: #17606f;
   --given: #183c45;
   --peer: #e8f3f2;
@@ -125,6 +128,7 @@
   --accent: #eab3c4;
   --accent-strong: #d98aa3;
   --accent-ink: #2f2228;
+  --accent-soft: #f9dfe7;
   --user: #96305a;
   --given: #2f3a30;
   --peer: #f7edf0;
@@ -265,15 +269,60 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 .card-kicker { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 .card-title { font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; font-weight: 600; }
 .card-meta { color: var(--ink-soft); font-size: 0.95rem; }
-.card.daily { background: linear-gradient(135deg, var(--surface) 40%, var(--surface-2)); }
+
+/* Dagpuzzel: het hoofdpunt van het startscherm. */
+.card.daily {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 22px 20px 20px 22px;
+  border-color: color-mix(in srgb, var(--accent-strong) 30%, var(--line));
+  border-radius: 28px;
+  background: linear-gradient(150deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 55%, var(--surface)));
+}
+.daily-text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.card.daily .card-title { font-size: 1.6rem; line-height: 1.15; }
+.card.daily .card-meta { color: var(--ink); opacity: 0.8; }
+.daily-streak { margin-top: 8px; font-family: "Fraunces", Georgia, serif; font-size: 1.25rem; font-weight: 600; }
+.daily-streak[hidden] { display: none; }
+.daily-action {
+  margin-top: 14px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 800;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.daily-action.done { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.mini-board {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 6px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-strong) 25%, transparent);
+  transform: rotate(-6deg);
+}
+.mini-board i {
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--surface);
+  font: normal 600 0.95rem/1 "Fraunces", Georgia, serif;
+  color: var(--ink);
+}
+.mini-board i:nth-child(odd) { background: transparent; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent-strong) 50%, transparent); }
+.mini-board i:nth-child(5) { background: var(--accent); }
 .card.special { background: linear-gradient(135deg, color-mix(in srgb, var(--heart) 14%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--heart) 35%, var(--line)); }
 .card.special .card-kicker { color: var(--heart); }
 .card.continue { border-style: dashed; }
-.milestone-progress { margin: 12px 4px 0; }
-.milestone-progress[hidden] { display: none; }
-.milestone-progress p { margin: 0 0 6px; color: var(--ink-soft); font-size: 0.88rem; font-weight: 600; }
-.milestone-bar { height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
-.milestone-bar span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.4s ease; }
 .card.update { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 
 .section-title { font-size: 1.1rem; margin: 26px 4px 10px; }
@@ -300,7 +349,49 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 .level-best { margin-top: auto; padding-top: 6px; font-size: 0.8rem; color: var(--ink-soft); }
 .level[data-level="ruby"] { background: linear-gradient(160deg, var(--surface) 30%, color-mix(in srgb, var(--accent) 22%, var(--surface))); }
 
-.home-nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 28px 0 8px; }
+.home-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 22px 0 8px; }
+.nav-btn {
+  position: relative;
+  min-width: 0;
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 0.88rem;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+.nav-btn:active { transform: scale(0.97); background: var(--surface-2); }
+.nav-label { white-space: nowrap; }
+.nav-icon { width: 30px; height: 30px; display: grid; place-items: center; font-size: 1.15rem; line-height: 1; }
+.nav-icon svg { width: 24px; height: 24px; }
+/* Ringetje om het berichtjes-icoon: hoe ver het volgende geheime berichtje is. */
+.nav-icon.ring { border-radius: 50%; background: conic-gradient(var(--accent-strong) calc(var(--p, 0) * 1turn), var(--line) 0); }
+.nav-icon.ring > span { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); }
+.nav-icon.ring > span svg { width: 16px; height: 16px; }
+.nav-badge {
+  position: absolute;
+  top: -8px;
+  right: -2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+.nav-badge[hidden] { display: none; }
+@media (min-width: 480px) {
+  .nav-btn { flex-direction: row; min-height: 56px; gap: 8px; }
+}
 
 /* ---------- Spelscherm ---------- */
 
@@ -617,13 +708,22 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .pause-emoji, .solved-emoji, .message-icon { font-size: 3rem; line-height: 1; margin-bottom: 10px; }
 .love-note, .message-text { font-family: "Fraunces", Georgia, serif; font-size: 1.2rem; line-height: 1.4; margin: 16px 0 0; }
 
-/* Op het beginscherm zetten */
-.card.install { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; }
-.install-main { flex: 1; display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0; border: 0; background: none; text-align: left; }
-.install-main img { width: 44px; height: 44px; border-radius: 12px; flex: none; }
-.install-main span { display: flex; flex-direction: column; }
-.install-main .card-title { font-size: 1.1rem; }
-.install-later { flex: none; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--surface-2); font-size: 0.85rem; font-weight: 700; }
+/* Op het beginscherm zetten: een compact bannertje */
+.install-banner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 18px;
+  padding: 4px 4px 4px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.install-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; border: 0; background: none; text-align: left; font-weight: 700; font-size: 0.95rem; }
+.install-main img { width: 28px; height: 28px; border-radius: 8px; flex: none; }
+.install-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.install-later { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ink-soft); }
+.install-later svg { width: 20px; height: 20px; }
 .center-text { text-align: center; }
 .install-steps { margin: 18px 0 10px; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; }
 .share-icon { width: 22px; height: 22px; vertical-align: -5px; margin: 0 2px; color: #0a84ff; }

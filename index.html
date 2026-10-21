@@ -32,25 +32,27 @@
       <div id="update-slot"></div>
       <div id="special-slot"></div>
       <div id="continue-slot"></div>
-      <div id="install-slot"></div>
 
       <button id="daily-card" class="card daily" type="button">
-        <span class="card-kicker">Dagpuzzel</span>
-        <span id="daily-title" class="card-title">Vandaag</span>
-        <span id="daily-meta" class="card-meta"></span>
+        <span class="daily-text">
+          <span class="card-kicker">Dagpuzzel</span>
+          <span id="daily-title" class="card-title">Vandaag</span>
+          <span id="daily-meta" class="card-meta"></span>
+          <span id="daily-streak" class="daily-streak" hidden></span>
+          <span id="daily-action" class="daily-action">Speel</span>
+        </span>
+        <span class="mini-board" aria-hidden="true"><i></i><i>4</i><i></i><i>7</i><i></i><i>2</i><i></i><i>9</i><i></i></span>
       </button>
-      <div id="milestone-progress" class="milestone-progress" hidden>
-        <p id="milestone-line"></p>
-        <div class="milestone-bar" aria-hidden="true"><span id="milestone-fill"></span></div>
-      </div>
 
       <h2 class="section-title">Nieuwe puzzel</h2>
       <div id="levels" class="levels"></div>
 
+      <div id="install-slot"></div>
+
       <nav class="home-nav" aria-label="Meer">
-        <button type="button" class="pill" data-open="stats-dialog"><span aria-hidden="true">📊</span> Statistieken</button>
-        <button type="button" class="pill" data-open="notes-dialog"><span aria-hidden="true">💌</span> Berichtjes</button>
-        <button type="button" class="pill" data-open="settings-dialog"><span aria-hidden="true">⚙️</span> Instellingen</button>
+        <button type="button" class="nav-btn" data-open="stats-dialog"><span class="nav-icon" aria-hidden="true">📊</span><span class="nav-label">Statistieken</span></button>
+        <button type="button" class="nav-btn" id="notes-nav" data-open="notes-dialog"><span class="nav-icon ring" aria-hidden="true"><span>💌</span></span><span class="nav-label">Berichtjes</span><span id="notes-badge" class="nav-badge" aria-hidden="true" hidden></span></button>
+        <button type="button" class="nav-btn" data-open="settings-dialog"><span class="nav-icon" aria-hidden="true">⚙️</span><span class="nav-label">Instellingen</span></button>
       </nav>
     </section>
 

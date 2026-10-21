@@ -50,6 +50,7 @@ const ICONS = {
   erase: svg('<path d="M8 20h12"/><path d="M5.6 13.6l7.5-7.5a2 2 0 012.8 0l2.9 2.9a2 2 0 010 2.8L12 18.6H8.6l-3-3a1.4 1.4 0 010-2z"/>'),
   pencil: svg('<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>'),
   bulb: svg('<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 00-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0012 3z"/>'),
+  close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
 };
 
 // ---------- Hulpjes ----------
@@ -252,7 +253,8 @@ function renderHome() {
   // Verder spelen
   const cont = $('#continue-slot');
   cont.innerHTML = '';
-  if (game && !game.solved) {
+  // De dagpuzzel zelf heeft al een "Verder"-knop in z'n eigen kaart.
+  if (game && !game.solved && game.daily !== dateKey(now)) {
     const lvl = levelById(game.levelId);
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -273,20 +275,24 @@ function renderHome() {
   const dl = levelById(dailyLevelFor(now));
   const doneToday = stats.dailyDone.includes(key);
   const doneTime = stats.dailyTimes[key];
+  const busy = game && !game.solved && game.daily === key;
   const streak = store.currentStreak(stats, key);
   $('#daily-title').textContent = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
-  $('#daily-meta').textContent = [
-    doneToday ? `Opgelost ✓${doneTime != null ? ` in ${formatTime(doneTime)}` : ''}` : `${dl.emoji} ${dl.name}`,
-    streak ? `🔥 ${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij` : null,
-  ].filter(Boolean).join(' · ');
+  $('#daily-meta').textContent = `${dl.emoji} ${dl.name}`;
+  const streakEl = $('#daily-streak');
+  streakEl.hidden = !streak;
+  streakEl.textContent = streak ? `🔥 ${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij` : '';
+  const action = $('#daily-action');
+  action.textContent = doneToday ? `Opgelost ✓${doneTime != null ? ` ${formatTime(doneTime)}` : ''}` : busy ? 'Verder' : 'Speel';
+  action.classList.toggle('done', doneToday);
 
-  // Hoe ver is het volgende geheime berichtje?
+  // Hoe ver is het volgende geheime berichtje? (ringetje + badge op de knop Berichtjes)
   const next = M.nextMilestone({ ...stats, streak }, unlocked);
-  $('#milestone-progress').hidden = !next;
-  if (next) {
-    $('#milestone-line').textContent = M.milestoneLine(next);
-    $('#milestone-fill').style.width = `${Math.round((next.current / next.target) * 100)}%`;
-  }
+  const badge = $('#notes-badge');
+  badge.hidden = !next;
+  badge.textContent = next ? `nog ${next.remaining} 🔐` : '';
+  $('#notes-nav .ring').style.setProperty('--p', next ? next.current / next.target : 1);
+  $('#notes-nav').setAttribute('aria-label', next ? `Berichtjes. ${M.milestoneLine(next).replace(' 🔐', '')}` : 'Berichtjes');
 
   // Niveaus
   const levels = $('#levels');
@@ -1073,13 +1079,12 @@ function renderInstall() {
   slot.innerHTML = '';
   if (!canInstall() || store.loadInstallSnooze() > Date.now()) return;
   const card = document.createElement('div');
-  card.className = 'card install';
+  card.className = 'install-banner';
   card.innerHTML = `<button type="button" class="install-main">
       <img src="icons/icon-192.png" alt="">
-      <span><span class="card-title">Zet me op je beginscherm</span>
-      <span class="card-meta">Dan ben ik altijd één tik weg 📲</span></span>
+      <span>Zet me op je beginscherm 📲</span>
     </button>
-    <button type="button" class="install-later">Later</button>`;
+    <button type="button" class="install-later" aria-label="Later">${ICONS.close}</button>`;
   card.querySelector('.install-main').addEventListener('click', install);
   card.querySelector('.install-later').addEventListener('click', () => {
     store.saveInstallSnooze(Date.now() + 14 * 86400000);
