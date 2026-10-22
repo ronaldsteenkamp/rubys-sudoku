@@ -264,6 +264,8 @@
   --heart-solved-ink: #ffffff;
   --shadow: 0 1px 2px rgb(16 38 92 / 6%), 0 8px 24px rgb(16 38 92 / 9%);
   --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='240'%3E%3Cdefs%3E%3Cpattern id='n' width='18' height='18' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Cpath d='M0 0H18M0 0V18' stroke='%231d4fa3' stroke-width='1' fill='none'/%3E%3C/pattern%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%25' height='240' fill='url(%23f)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='240' fill='url(%23n)' fill-opacity='0.07' mask='url(%23m)'/%3E%3Crect width='100%25' height='5' y='0' fill='%231d4fa3' fill-opacity='0.08'/%3E%3C/svg%3E") 0 0 / 100% 240px no-repeat;
+  /* Rugnummer 33, schuin in de hoek rechtsonder (vaste laag, zie body::before hieronder). */
+  --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='220' viewBox='0 0 300 220'%3E%3Cg transform='translate(52 78) rotate(-12) scale(1.25)' fill='%23ffcc00' stroke='%231d4fa3' stroke-width='4' paint-order='stroke'%3E%3Cpath d='M0 0H54L64 10V42L58 50L64 58V90L54 100H0V80H44V60H14V40H44V20H0Z'/%3E%3Cpath transform='translate(76 0)' d='M0 0H54L64 10V42L58 50L64 58V90L54 100H0V80H44V60H14V40H44V20H0Z'/%3E%3C/g%3E%3C/svg%3E") right -34px bottom -26px / 250px auto no-repeat;
   color-scheme: light;
 }
 
@@ -1168,6 +1170,19 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 
 /* Volleybal (in de geel-blauwe clubkleuren van Donitas): bloklijnen als strakke veldlijnen. */
 [data-theme="volleybal"] .board { border-width: 3px; border-radius: 10px; }
+/* Het rugnummer: op het startscherm iets duidelijker dan tijdens het spelen. Speelscherm zonder
+   ruimte onder de cijfertoetsen (zoals een iPhone SE): dan geen nummer, want het mag nooit achter
+   het bord of de bediening. */
+[data-theme="volleybal"] body::before { opacity: 0.4; }
+/* Onder op het startscherm wat lucht, zodat het nummer daar helemaal te zien is (net als op een shirt). */
+[data-theme="volleybal"] #home { padding-bottom: 150px; }
+[data-theme="volleybal"] body:has(#play:not([hidden]))::before { opacity: 0.25; }
+@media (orientation: portrait) and (max-height: 779px) {
+  [data-theme="volleybal"] body:has(#play:not([hidden]))::before { opacity: 0; }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  [data-theme="volleybal"] body::before { background-size: 190px auto; }
+}
 
 /* Briefje: wat Ruby zelf invult, in zijn handschrift. Het SVG-bestand is een masker,
    dus de kleur komt gewoon van het vakje (balpen, selectie, fout, pauze). */
