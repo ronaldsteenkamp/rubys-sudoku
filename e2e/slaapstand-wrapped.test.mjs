@@ -19,7 +19,7 @@ function seededStats() {
 test('oudjaarsavond 23:30: slaapstand, slaapberichtje, scherm mag uit; daarna Wrapped tot het einde', async () => {
   const page = await open(base, { query: '?vandaag=2026-12-31T23:30', prefix: TEST_PREFIX, storage: { game: savedGame(), stats: seededStats() } });
   assert.notEqual(await page.getAttribute('html', 'data-sleep'), null, 'slaapstand staat aan');
-  assert.match(await page.evaluate(() => getComputedStyle(document.documentElement).filter), /sepia/);
+  assert.match(await page.evaluate(() => getComputedStyle(document.documentElement).filter), /grayscale/, 'zwart-witfilter (aan het invloeien)');
 
   // Nep-wake lock, zodat we zien dat hij losgelaten wordt.
   await page.evaluate(() => {

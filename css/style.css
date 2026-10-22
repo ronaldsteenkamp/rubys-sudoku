@@ -459,10 +459,10 @@
    tegen de rand ligt. Daarom: de themakleur expliciet op html, en geen lege
    schermvullende vaste lagen (zie body::before en .confetti). */
 html { -webkit-text-size-adjust: 100%; background-color: var(--bg); transition: background-color 0.4s ease, filter 2s ease; }
-/* Slaapstand (zie sleep.js): een warm, gedimd filter over het hele thema. Het
-   thema blijft herkenbaar; de overgang duurt 2 seconden, zonder melding. Een
+/* Slaapstand (zie sleep.js): alles zwart-wit. De overgang duurt 2 seconden,
+   zonder melding. Een
    filter op html maakt geen nieuw blok voor vaste elementen (toast, feestje). */
-html[data-sleep] { filter: sepia(0.4) brightness(0.88) contrast(1.15); }
+html[data-sleep] { filter: grayscale(1); }
 
 body {
   margin: 0;

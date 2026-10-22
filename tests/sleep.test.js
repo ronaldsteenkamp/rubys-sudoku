@@ -50,11 +50,12 @@ test('een onbekende slaapstand-instelling valt terug op automatisch', () => {
   delete globalThis.localStorage;
 });
 
-test('het slaapfilter maakt warmer en donkerder', () => {
-  const rgb = (h) => [1, 3, 5].map((k) => parseInt(h.slice(k, k + 2), 16));
-  const [r, g, b] = rgb(sleepColor('#ffffff'));
-  assert.ok(r < 255 && b <= g && g <= r, 'wit wordt warm en gedimd');
-  const [, , b2] = rgb(sleepColor('#4a86e8'));
-  assert.ok(b2 < 0xe8, 'minder blauw');
-  assert.ok(SLEEP_FILTER.brightness < 1 && SLEEP_FILTER.sepia > 0);
+test('het slaapfilter maakt alles zwart-wit', () => {
+  for (const hex of ['#ffffff', '#4a86e8', '#e2557a', '#f5c02e']) {
+    const out = sleepColor(hex);
+    assert.equal(out.slice(1, 3), out.slice(3, 5), hex);
+    assert.equal(out.slice(3, 5), out.slice(5, 7), hex);
+  }
+  assert.equal(sleepColor('#ffffff'), '#ffffff');
+  assert.deepEqual(SLEEP_FILTER, { grayscale: 1 });
 });
