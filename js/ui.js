@@ -360,7 +360,7 @@ function renderHome() {
   const next = M.nextMilestone({ ...stats, streak }, unlocked);
   const badge = $('#notes-badge');
   badge.hidden = !next;
-  badge.textContent = next ? `nog ${next.remaining} 🔐` : '';
+  badge.textContent = M.milestoneBadge(next);
   $('#notes-nav .ring').style.setProperty('--p', next ? next.current / next.target : 1);
   $('#notes-nav').setAttribute('aria-label', next ? `Berichtjes. ${M.milestoneLine(next).replace(' 🔐', '')}` : 'Berichtjes');
 
