@@ -162,3 +162,26 @@ test('back-up: seizoensvoortgang en ontgrendelde thema\'s gaan mee', () => {
   assert.deepEqual(S.loadStats().unlockedThemes, ['herfst']);
   assert.equal(S.loadSettings().theme, 'herfst');
 });
+
+test('krabbeltje in Briefje: één keer per dag, en het gaat mee in de back-up', () => {
+  globalThis.localStorage = new MemoryStorage();
+  assert.equal(S.loadScribbleDay(), null);
+  assert.equal(S.scribbleDue(S.loadScribbleDay(), '2026-10-22'), true);
+  S.saveScribbleDay('2026-10-22');
+  assert.equal(S.scribbleDue(S.loadScribbleDay(), '2026-10-22'), false);
+  assert.equal(S.scribbleDue(S.loadScribbleDay(), '2026-10-23'), true);
+
+  const backup = JSON.parse(JSON.stringify(S.exportBackup()));
+  assert.equal(backup.data.scribbleDay, '2026-10-22');
+  globalThis.localStorage = new MemoryStorage();
+  assert.equal(S.importBackup(backup).ok, true);
+  assert.equal(S.loadScribbleDay(), '2026-10-22');
+
+  // Een oudere back-up zonder krabbeltje (of met onzin) zet het terug op 'nog niet geweest'.
+  const old = { ...backup, data: { ...backup.data } };
+  delete old.data.scribbleDay;
+  assert.equal(S.importBackup(old).ok, true);
+  assert.equal(S.loadScribbleDay(), null);
+  assert.equal(S.importBackup({ ...backup, data: { ...backup.data, scribbleDay: 42 } }).ok, true);
+  assert.equal(S.loadScribbleDay(), null);
+});

@@ -1202,6 +1202,28 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   mask: var(--wave) 0 50% / auto 100% repeat-x;
 }
 
+/* Briefje: zijn handschrift als plaatje (logo, hartjes, opgelost-scherm, feestje).
+   Net als de cijfers een masker, zodat het de kleur van het thema aanneemt. */
+.hand-art {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
+}
+.hand-art.logo { width: 190px; aspect-ratio: 757 / 188; color: var(--user); -webkit-mask-image: url("../hand/logo.svg"); mask-image: url("../hand/logo.svg"); }
+.hand-art.hart-1 { aspect-ratio: 147 / 144; -webkit-mask-image: url("../hand/hart-1.svg"); mask-image: url("../hand/hart-1.svg"); }
+.hand-art.hart-2 { aspect-ratio: 118 / 115; -webkit-mask-image: url("../hand/hart-2.svg"); mask-image: url("../hand/hart-2.svg"); }
+.hand-art.goed-zo { width: 210px; aspect-ratio: 373 / 106; color: var(--user); -webkit-mask-image: url("../hand/goed-zo.svg"); mask-image: url("../hand/goed-zo.svg"); }
+.hand-art.scribble-art { width: 230px; aspect-ratio: 1029 / 131; color: var(--user); -webkit-mask-image: url("../hand/ik-vind-je-heel-leuk.svg"); mask-image: url("../hand/ik-vind-je-heel-leuk.svg"); }
+.brand-heart { width: 26px; color: var(--heart); }
+.together-heart { width: 1.25em; vertical-align: -0.25em; margin-left: 2px; }
+.solved-heart { width: 64px; color: var(--heart); }
+#solved-title .goed-zo { display: block; margin: 0 auto; }
+.scribble { margin: 14px 0 0; }
+.scribble[hidden] { display: none; }
+.scribble .hand-art { transform: rotate(-3deg); }
+.confetti span.hand-art { width: var(--s, 24px); }
+
 /* ---------- Minder beweging ---------- */
 
 @media (prefers-reduced-motion: reduce) {
