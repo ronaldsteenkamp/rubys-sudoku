@@ -1,14 +1,61 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { greeting, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine } from '../js/messages.js';
+import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
-test('begroeting past bij het dagdeel', () => {
-  assert.match(greeting(new Date(2026, 9, 21, 8)), /morgen/);
-  assert.match(greeting(new Date(2026, 9, 21, 14)), /middag|pauze/);
-  assert.match(greeting(new Date(2026, 9, 21, 21)), /avond|bank/);
-  assert.match(greeting(new Date(2026, 9, 21, 2)), /wakker|nachtuil/);
+// Voorspelbare 'random' zodat de tests altijd hetzelfde doen.
+const seeded = (seed) => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+const longNicks = NICKNAMES.filter((n) => n.length >= 3);
+const allTexts = [
+  ...Object.values(GREETINGS).flat(), ...Object.values(WEEKDAY_GREETINGS).flat(),
+].flatMap((f) => longNicks.map((n) => f(n))).concat(SUBTITLES, Object.values(PART_SUBTITLES).flat());
+
+test('begroeting past bij het dagdeel (of de dag van de week)', () => {
+  assert.equal(partOfDay(new Date(2026, 9, 21, 2)), 'nacht');
+  assert.equal(partOfDay(new Date(2026, 9, 21, 8)), 'ochtend');
+  assert.equal(partOfDay(new Date(2026, 9, 21, 14)), 'middag');
+  assert.equal(partOfDay(new Date(2026, 9, 21, 21)), 'avond');
+  const rng = seeded(42);
+  for (const h of [2, 8, 14, 21]) {
+    for (let day = 18; day <= 24; day++) {
+      const date = new Date(2026, 9, day, h);
+      const lists = [GREETINGS[partOfDay(date)], ...(h >= 6 ? [WEEKDAY_GREETINGS[date.getDay()] || []] : [])].flat();
+      const allowed = new Set(lists.flatMap((f) => longNicks.map((n) => f(n))));
+      for (let k = 0; k < 40; k++) {
+        const g = greeting(date, rng);
+        assert.ok(allowed.has(g), `${h}u op ${date.toDateString()}: ${g}`);
+      }
+    }
+  }
   assert.ok(NICKNAMES.some((n) => greeting(new Date(), () => 0).includes(n)));
+});
+
+test('heel veel begroetingen en ondertitels, allemaal verschillend', () => {
+  for (const [part, list] of Object.entries(GREETINGS)) assert.ok(list.length >= 12, part);
+  assert.ok(SUBTITLES.length >= 50);
+  for (const list of Object.values(PART_SUBTITLES)) assert.ok(list.length >= 4);
+  const greetings = [...Object.values(GREETINGS).flat(), ...Object.values(WEEKDAY_GREETINGS).flat()].map((f) => f('X'));
+  assert.equal(new Set(greetings).size, greetings.length, 'geen dubbele begroetingen');
+  const subs = [...SUBTITLES, ...Object.values(PART_SUBTITLES).flat()];
+  assert.equal(new Set(subs).size, subs.length, 'geen dubbele ondertitels');
+  // Elke begroeting gebruikt de bijnaam, en blijft kort genoeg voor de grote kop.
+  for (const f of [...Object.values(GREETINGS).flat(), ...Object.values(WEEKDAY_GREETINGS).flat()]) {
+    assert.ok(f('BIJNAAM').includes('BIJNAAM'), f('X'));
+    assert.ok(f('Gehaktballetje').length <= 46, f('Gehaktballetje'));
+  }
+});
+
+test('ondertitel komt uit de algemene lijst of uit die van het dagdeel', () => {
+  const rng = seeded(7);
+  for (const h of [3, 9, 15, 20]) {
+    const date = new Date(2026, 9, 21, h);
+    const allowed = new Set([...SUBTITLES, ...PART_SUBTITLES[partOfDay(date)]]);
+    for (let k = 0; k < 60; k++) assert.ok(allowed.has(subtitle(date, rng)));
+  }
+});
+
+test('"Ik hou van je" staat ook niet in begroetingen en ondertitels', () => {
+  assert.deepEqual(allTexts.filter((t) => /hou van je/i.test(t)), []);
 });
 
 test('jubileum telt elk jaar door', () => {
