@@ -104,6 +104,9 @@ function themePreview(id) {
 }
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 
+// Briefje: wat Ruby zelf invult staat er in zijn handschrift (hand/*.svg, zie style.css).
+const handwritten = () => document.documentElement.dataset.theme === 'briefje';
+
 function applyTheme() {
   const t = resolveTheme(settings.theme, today(), stats.unlockedThemes, darkQuery.matches);
   document.documentElement.dataset.theme = t;
@@ -502,6 +505,7 @@ function render() {
   const strike = new Map();
   if (stage?.strike) for (const { cell, digit } of stage.strike) strike.set(cell, (strike.get(cell) || 0) | bit(digit));
   const showWrong = settings.errors === 'direct';
+  const hand = handwritten();
 
   const cells = $('#board').children;
   for (let i = 0; i < 81; i++) {
@@ -509,7 +513,7 @@ function render() {
     const given = game.isGiven(i);
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
-    if (v) cls.push(given ? 'given' : 'user');
+    if (v) cls.push(given ? 'given' : 'user', ...(hand && !given ? ['hand'] : []));
     if (game.shape === 'heart' && HEART_MASK[i]) cls.push('in-heart', ...(HEART_OUTLINE[i] ? ['heart-edge'] : []), ...(given ? ['shape-heart'] : []));
     if (peerSet?.has(i)) cls.push('peer');
     if (hlDigit && v === hlDigit) cls.push('same');
@@ -520,7 +524,7 @@ function render() {
     if (i === popCell) cls.push('pop');
 
     let html = '';
-    if (v) html = `<span class="v">${v}</span>`;
+    if (v) html = hand && !given ? `<span class="v hand d${v}"></span>` : `<span class="v">${v}</span>`;
     else if (game.notes[i]) {
       html = '<span class="notes">';
       for (let d = 1; d <= 9; d++) {
