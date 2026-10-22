@@ -97,6 +97,28 @@ test('selectie, peers, gelijke cijfers, fout en hart zijn duidelijk van elkaar t
   assert.deepEqual(fails, []);
 });
 
+// De kalender in Statistieken en de recordregel op het opgelost-scherm.
+// Tekst minstens 4.5:1; het hartje en het randje om vandaag (geen tekst) minstens 3:1.
+const CALENDAR_TEXT = [
+  ['ink', 'surface'], ['ink-soft', 'surface'], ['ink', 'accent-soft'], ['heart-ink', 'heart-fill'], ['sel-ink', 'sel'],
+  ['ink', 'surface-2'], ['ink-soft', 'surface-2'],
+];
+const CALENDAR_SHAPES = [['heart', 'surface'], ['heart', 'accent-soft'], ['heart-ink', 'heart-fill'], ['ink-soft', 'surface']];
+
+test('kalender en recordregel: genoeg contrast in elk thema', () => {
+  const fails = [];
+  for (const t of THEMES) {
+    const v = vars[t.id];
+    for (const [pairs, min] of [[CALENDAR_TEXT, 4.5], [CALENDAR_SHAPES, 3]]) {
+      for (const [fg, bg] of pairs) {
+        const c = contrast(v[fg], v[bg]);
+        if (!(c >= min)) fails.push(`${t.id}: --${fg} op --${bg} = ${c.toFixed(2)} (nodig ${min})`);
+      }
+    }
+  }
+  assert.deepEqual(fails, []);
+});
+
 const d = (y, m, day) => new Date(y, m - 1, day, 12);
 
 test("het oude 'auto' wordt het thema dat ze toen zag; onbekend valt terug op zonnig", () => {

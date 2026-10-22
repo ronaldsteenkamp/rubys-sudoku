@@ -178,6 +178,22 @@ for (const [theme, scheme] of only ? [] : [['zonnig', 'light'], ['nacht', 'dark'
   await p.context().close();
 }
 
+// Kalender in Statistieken: een maand met gewone dagen, dagpuzzels, records en speciale dagen.
+const CAL_LOG = [
+  ['2026-09-29', 'zondag', 260, 0, 0, 'jubileum-2026'], ['2026-10-01', null, 402, null, 1], ['2026-10-03', 'koffie', 402, 1, 1],
+  ['2026-10-03', 'zondag', 241, 0, 2], ['2026-10-12', 'nadenken', 912, 2, 0, 'verjaardag-2026'], ['2026-10-18', 'zondag', 280, 0, 1],
+  ['2026-10-20', 'ruby', 1500, 3, 0], ['2026-10-21', 'koffie', 330, 0, 3], ['2026-10-22', 'koffie', 312, 0, 1], ['2026-10-22', 'nadenken', 845, 1, 2],
+];
+const CAL_THEMES = only ? THEMES : [['zonnig', 'light'], ['nacht', 'dark'], ['briefje', 'light'], ['sterren', 'dark'], ['volleybal', 'light']];
+for (const [theme, scheme] of CAL_THEMES) {
+  const p = await page({ theme, scheme, query: '?vandaag=2026-10-22', extraStats: { log: CAL_LOG } });
+  await p.click('[data-open="stats-dialog"]');
+  await p.click('.stats-tabs label:has(input[value="kalender"])');
+  await p.waitForTimeout(400);
+  await shot(p, `kalender-${theme}`, 'kalender');
+  await p.context().close();
+}
+
 // Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.
 if (!only) {
   let p = await page({ theme: 'zonnig', scheme: 'light', dailyDone: true });

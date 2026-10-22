@@ -328,3 +328,95 @@ test('met een testdatum gaat alles naar een aparte opslag', () => {
     S.useTestStorage(false);
   }
 });
+
+// ---------- Logboek (kalender) en records ----------
+
+test('logboek: elke meegetelde puzzel komt erin, met niveau, tijd, hints, dagpuzzel en speciaal', () => {
+  const st = S.emptyStats();
+  S.recordSolve(st, { levelId: 'koffie', elapsed: 402400, hints: 1, daily: '2026-10-21' }, '2026-10-21');
+  S.recordSolve(st, { levelId: 'zondag', elapsed: 241000, hints: 0 }, '2026-10-22');
+  S.recordSolve(st, { levelId: 'nadenken', elapsed: 900000, hints: 2, special: 'verjaardag-2026' }, '2026-10-22');
+  // Een dagpuzzel die al is opgelost, telt niet en komt er dus ook niet in.
+  S.recordSolve(st, { levelId: 'koffie', elapsed: 1000, hints: 0, daily: '2026-10-21' }, '2026-10-22');
+  assert.deepEqual(S.logEntries(st), [
+    { day: '2026-10-21', level: 'koffie', ms: 402000, hints: 1, daily: true, record: false, special: null },
+    { day: '2026-10-22', level: 'zondag', ms: 241000, hints: 0, daily: false, record: false, special: null },
+    { day: '2026-10-22', level: 'nadenken', ms: 900000, hints: 2, daily: false, record: false, special: 'verjaardag-2026' },
+  ]);
+  // Compact opgeslagen.
+  assert.deepEqual(st.log[0], ['2026-10-21', 'koffie', 402, 1, 1]);
+});
+
+test('logboek: een dagpuzzel van gisteravond die na middernacht af is, staat op de dag van de puzzel', () => {
+  const st = S.emptyStats();
+  S.recordSolve(st, { levelId: 'koffie', elapsed: 1000, hints: 0, daily: '2026-10-22', started: '2026-10-22' }, '2026-10-23');
+  assert.equal(S.logEntries(st)[0].day, '2026-10-22');
+});
+
+test('logboek: begrensd op ruim twee jaar en hooguit LOG_MAX puzzels, de oudste eruit', () => {
+  const st = S.emptyStats();
+  st.log = [['2023-01-01', 'zondag', 100, 0, 0]];
+  for (let i = 0; i < S.LOG_MAX + 20; i++) st.log.push(['2026-10-01', 'zondag', i, 0, 0]);
+  S.recordSolve(st, { levelId: 'zondag', elapsed: 5000, hints: 0 }, '2026-10-22');
+  assert.equal(st.log.length, S.LOG_MAX);
+  assert.ok(st.log.every((r) => r[0] >= '2024-08-13'), 'niets ouder dan LOG_DAYS dagen');
+  assert.deepEqual(st.log.at(-1), ['2026-10-22', 'zondag', 5, 0, 0], 'de nieuwste blijft');
+  assert.equal(st.log[0][2], 21, 'de oudste gingen eruit');
+  // Klein genoeg voor localStorage: een vol logboek blijft onder de 80 KB.
+  assert.ok(JSON.stringify(st.log).length < 80000);
+});
+
+test('logboek: oude statistieken zonder logboek krijgen er een uit de bekende dagpuzzels', () => {
+  const s = S.migrateStats({ totalSolved: 3, levels: {}, dailyDone: ['2026-10-01', '2026-10-03'], dailyTimes: { '2026-10-03': 402000 } });
+  assert.deepEqual(S.logEntries(s), [
+    { day: '2026-10-01', level: null, ms: null, hints: null, daily: true, record: false, special: null },
+    { day: '2026-10-03', level: null, ms: 402000, hints: null, daily: true, record: false, special: null },
+  ]);
+  assert.deepEqual(S.migrateStats({}).log, []);
+  // Bestaat het logboek al, dan komen de dagpuzzels er niet nog eens bij.
+  const again = S.migrateStats(JSON.parse(JSON.stringify(s)));
+  assert.equal(again.log.length, 2);
+});
+
+test('logboek: kapotte regels gaan eruit, de rest blijft (gesorteerd)', () => {
+  const s = S.migrateStats({
+    levels: {},
+    log: [
+      ['2026-10-05', 'koffie', 300, 0, 1], 'kapot', ['morgen', 'koffie', 1, 0, 0], ['2026-10-01', '<img>', 1, 0, 0],
+      ['2026-10-02', 'zondag', -5, 0, 0], ['2026-10-02', 'zondag', 10, 1.5, 0], ['2026-10-02', 'zondag', 10, 0, 9],
+      ['2026-10-02', 'zondag', 10, 0, 0, 'nep'], ['2026-10-03', null, null, null, 1], ['2026-10-04', 'zondag', 60, 0, 2, 'jubileum-2026'],
+    ],
+  });
+  assert.deepEqual(s.log, [['2026-10-03', null, null, null, 1], ['2026-10-04', 'zondag', 60, 0, 2, 'jubileum-2026'], ['2026-10-05', 'koffie', 300, 0, 1]]);
+});
+
+test('logboek: gaat mee in de back-up en komt terug; oude back-ups zonder logboek blijven werken', () => {
+  const st = S.emptyStats();
+  S.recordSolve(st, { levelId: 'koffie', elapsed: 402000, hints: 0, daily: '2026-10-21' }, '2026-10-21');
+  S.saveStats(st);
+  const backup = JSON.parse(JSON.stringify(S.exportBackup()));
+  globalThis.localStorage = new MemoryStorage();
+  assert.equal(S.importBackup(backup).ok, true);
+  assert.deepEqual(S.loadStats().log, st.log);
+
+  const old = JSON.parse(JSON.stringify(backup));
+  delete old.data.stats.log;
+  const res = S.validateBackup(old);
+  assert.equal(res.ok, true);
+  assert.equal(res.data.stats.log.length, 1, 'uit de dagpuzzels van de oude back-up');
+});
+
+test('records: previousBest en firstOnLevel, en het record staat in het logboek', () => {
+  const st = S.emptyStats();
+  const first = S.recordSolve(st, { levelId: 'koffie', elapsed: 400000, hints: 0 }, '2026-10-20');
+  assert.equal(first.previousBest, null);
+  assert.equal(first.firstOnLevel, true);
+  const slower = S.recordSolve(st, { levelId: 'koffie', elapsed: 500000, hints: 0 }, '2026-10-21');
+  assert.deepEqual([slower.newBest, slower.previousBest, slower.firstOnLevel], [false, 400000, false]);
+  const faster = S.recordSolve(st, { levelId: 'koffie', elapsed: 280000, hints: 0 }, '2026-10-22');
+  assert.deepEqual([faster.newBest, faster.previousBest, faster.firstOnLevel], [true, 400000, false]);
+  assert.deepEqual(S.logEntries(st).map((e) => e.record), [false, false, true], 'de allereerste is nog geen record');
+  // Oude stats met wel een aantal maar geen beste tijd: niet "de allereerste".
+  const old = S.migrateStats({ levels: { ruby: { played: 3, solved: 2, best: null, totalTime: 0 } } });
+  assert.equal(S.recordSolve(old, { levelId: 'ruby', elapsed: 1, hints: 0 }, '2026-10-22').firstOnLevel, false);
+});

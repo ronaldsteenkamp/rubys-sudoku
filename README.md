@@ -21,6 +21,7 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
 - **Dagpuzzel.** Op elke datum dezelfde puzzel (seeded random); op zondag natuurlijk Zondagochtend. Per opgeloste dag loopt de 🔥-reeks op.
 - **Slimme hints in drie stappen.** Eerst *waar* je moet kijken, dan *welke techniek* en waarom, en pas als laatste het cijfer. Een hint wijst ook foute cijfers aan, en notities waarin per ongeluk het goede cijfer is weggestreept.
 - **Spelen.** Notities (met automatisch wegstrepen), markeren van rij, kolom, blok en gelijke cijfers, ongedaan maken en opnieuw, gum, reset, alle notities in één keer invullen, een verbergbare timer en pauze. Foutcontrole kan direct, op verzoek of uit. Het cijferpad toont hoeveel er van elk cijfer nog over zijn. Je speelt met touch of met het toetsenbord.
+- **Kalender en records.** In *Statistieken* staat naast het overzicht een maandkalender: op elke dag waarop Ruby een puzzel oploste staat een hartje (in Briefje het getekende hartje uit `hand/`), een dagpuzzel krijgt een zacht vlakje en een speciale dag een roze. Tik op een dag en je ziet wat ze toen deed: niveau, tijd, hints en of het de dagpuzzel was. Een nieuw persoonlijk record krijgt op het opgelost-scherm een eigen, warme regel (*"Nieuw record op Koffie erbij! 2 min sneller dan je vorige beste ☕"*); langzamer zegt de app nooit. Alles komt uit een compact logboek in de statistieken: ruim twee jaar, hooguit 1500 puzzels, en het gaat mee in de back-up.
 - **Persoonlijk.** Een begroeting per dagdeel met haar bijnamen en een teller van de dagen samen. Bij het oplossen dwarrelen er hartjes en pootjes en verschijnt een lief berichtje. Op het jubileum (29 september) en haar verjaardag (12 oktober) staat er een hartjespuzzel klaar. Mijlpalen ontgrendelen geheime berichtjes.
 - **Thema's.** Zonnig (geel), Nacht, Gran Canaria, Lelie, Liefde, Sterren, Volleybal en Briefje. Briefje is een blaadje ruitjespapier: wat Ruby zelf invult staat er in het echte handschrift van de maker (de SVG's in `hand/`), net als het logo, de hartjes en het opgelost-scherm. Daarnaast vier seizoensthema's (Lente, Zomer, Herfst, Winter) die vrijkomen als Ruby 3 puzzels oplost binnen dat seizoen, plus de keuze *Seizoen*, die vanzelf meewisselt.
 - **PWA.** Een eigen icoon, werkt offline, met zachte geluidjes en trillen (beide uit te zetten).
@@ -73,9 +74,9 @@ Vereist Node 20 of nieuwer, zonder dependencies:
 npm test
 ```
 
-De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
+De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, het logboek en de recordteksten, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
 
-Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub en een update die pas na een tik binnenkomt.
+Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub, een update die pas na een tik binnenkomt, en de kalender na twee dagen puzzelen.
 
 ```bash
 npm run test:e2e
