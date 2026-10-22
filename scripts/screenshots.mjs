@@ -90,7 +90,8 @@ async function shot(p, name, group, fullPage = false) {
 }
 
 async function openPlay(p, select) {
-  await p.click('.card.continue');
+  // Het hart van vandaag ga je verder via de speciale kaart zelf, de rest via "Verder puzzelen".
+  await p.click((await p.locator('.card.continue').count()) ? '.card.continue' : '.card.special');
   await p.waitForSelector('#play:not([hidden])');
   if (select != null) await p.click(`.cell[data-i="${select}"]`);
   await p.waitForTimeout(400);

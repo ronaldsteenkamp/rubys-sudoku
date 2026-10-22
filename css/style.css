@@ -1282,5 +1282,6 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   color: var(--bg);
   font-size: 0.75rem;
   font-weight: 700;
+  white-space: nowrap;
   pointer-events: none;
 }
