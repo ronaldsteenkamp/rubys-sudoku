@@ -119,6 +119,32 @@ test('kalender en recordregel: genoeg contrast in elk thema', () => {
   assert.deepEqual(fails, []);
 });
 
+// Figuurpuzzels: elke kleurfamilie (oranje, groen, …) heeft een lichte variant
+// (:root) en een donkere ([data-scheme="dark"]). In elk thema moeten de cijfers
+// in de figuur (gegeven en ingevuld) en de onthulde figuur 4.5:1 halen.
+const famBlock = (re) => Object.fromEntries([...css.match(re)[1].matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/g)].map(([, k, v]) => [k, v]));
+const FAMILY_LIGHT = famBlock(/:root \{\s*(--orange-fill[^}]*)\}/);
+const FAMILY_DARK = famBlock(/\[data-scheme="dark"\] \{\s*([^}]*)\}/);
+const FAMILIES = ['orange', 'green', 'gold', 'brown', 'blue', 'lilac'];
+
+test('figuurpuzzels: elke kleurfamilie haalt 4.5:1 in elk thema', async () => {
+  const { SHAPES } = await import('../js/generator.js');
+  for (const s of Object.values(SHAPES)) assert.ok(s.color === 'heart' || FAMILIES.includes(s.color), s.color);
+  const fails = [];
+  for (const t of THEMES) {
+    const v = vars[t.id], fam = t.scheme === 'dark' ? FAMILY_DARK : FAMILY_LIGHT;
+    for (const f of FAMILIES) {
+      const c = (k) => fam[`${f}-${k}`];
+      assert.ok(c('fill') && c('edge') && c('ink') && c('solved'), `${f} compleet`);
+      for (const [name, fg, bg] of [['ink', c('ink'), c('fill')], ['ink', c('ink'), c('edge')], ['user', v.user, c('fill')], ['user', v.user, c('edge')], ['wit', '#ffffff', c('solved')]]) {
+        const k = contrast(fg, bg);
+        if (!(k >= 4.5)) fails.push(`${t.id} ${f}: ${name} = ${k.toFixed(2)}`);
+      }
+    }
+  }
+  assert.deepEqual(fails, []);
+});
+
 const d = (y, m, day) => new Date(y, m - 1, day, 12);
 
 test("het oude 'auto' wordt het thema dat ze toen zag; onbekend valt terug op zonnig", () => {

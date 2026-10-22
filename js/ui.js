@@ -1,7 +1,7 @@
 // De interface: startscherm, bord, bediening, dialogen en het feestje.
 
 import { Game } from './game.js';
-import { LEVELS, levelById, dateKey, dailyLevelFor, HEART_MASK, HEART_OUTLINE } from './generator.js';
+import { LEVELS, levelById, dateKey, dailyLevelFor, SHAPES, SHAPE_CELLS, shapeColor } from './generator.js';
 import { currentMatch } from './matches.js';
 import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
@@ -137,6 +137,8 @@ const handwritten = () => document.documentElement.dataset.theme === 'briefje';
 function applyTheme() {
   const t = resolveTheme(settings.theme, today(), stats.unlockedThemes);
   document.documentElement.dataset.theme = t;
+  // Licht of donker: de kleuren van de figuurpuzzels (zie .board[data-color]) volgen dat.
+  document.documentElement.dataset.scheme = themeById(t).scheme;
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   document.querySelector('meta[name="theme-color"]').setAttribute('content', bg || '#fff8e7');
 }
@@ -176,7 +178,7 @@ function getWorker(lane) {
 async function generateHere(kind, args) {
   const g = await import('./generator.js');
   if (kind === 'daily') return g.generateDaily(new Date(args.date));
-  if (kind === 'heart') return g.generateHeart(args.seed);
+  if (kind === 'shape') return g.generateShape(args.name, args.seed);
   if (kind === 'match') return g.generateMatchPuzzle(args.date, args.kind);
   return g.generate(args);
 }
@@ -300,10 +302,17 @@ function renderHome() {
   $('#together').innerHTML = days > 0 ? `Al ${days} ${days === 1 ? 'dag' : 'dagen'} samen ${heart}` : '';
 
   // Speciale dag
-  const special = M.specialDay(now);
+  const special = M.specialDay(now, stats);
   const specialSlot = $('#special-slot');
   specialSlot.innerHTML = '';
-  if (special) {
+  if (special && !special.shape) {
+    // Zonder puzzel (de maandversary): alleen een klein, lief kaartje.
+    const card = document.createElement('div');
+    card.className = 'card special small';
+    card.setAttribute('aria-label', special.title);
+    card.innerHTML = `<span class="card-kicker">Maandversary 💛</span><span class="card-meta">${escapeHtml(special.text)}</span>`;
+    specialSlot.append(card);
+  } else if (special) {
     const done = stats.specialDone.includes(special.id);
     // Al aan begonnen? Dan gaat ze gewoon verder, zonder dat het hart vervangen wordt.
     const busy = !done && game && !game.solved && game.special === special.id;
@@ -315,9 +324,9 @@ function renderHome() {
       <span class="card-meta">${done ? 'Opgelost 💛 Tik om je berichtje nog eens te lezen' : busy ? 'Verder 💛' : 'Een puzzel met een verrassing'}</span>`;
     btn.addEventListener('click', async () => {
       if (game && !game.solved && game.special === special.id) { enterPlay(); return; }
-      if (done) { showMessage({ icon: '💌', title: special.title, text: M.specialById(special.id)?.solvedText || special.solvedText }); return; }
-      await showMessage({ icon: special.kind === 'verjaardag' ? '🎂' : '💛', title: special.title, text: special.text, ok: 'Laat maar zien!' });
-      startGame({ kind: 'heart', special });
+      if (done) { showMessage({ icon: '💌', title: special.title, text: special.solvedText }); return; }
+      await showMessage({ icon: special.icon, title: special.title, text: special.text, ok: 'Laat maar zien!' });
+      startGame({ kind: 'shape', special });
     });
     specialSlot.append(btn);
   }
@@ -341,7 +350,7 @@ function renderHome() {
     cont.append(btn);
   }
 
-  renderMatch(matchNow);
+  renderMatch(matchNow, special);
   renderInstall();
   renderUpdate();
 
@@ -391,7 +400,7 @@ function renderHome() {
 
 // Het kaartje op het startscherm. Zonder wedstrijd blijft het leeg en ziet
 // het startscherm er precies zo uit als altijd.
-function renderMatch(now) {
+function renderMatch(now, special = null) {
   const slot = $('#match-slot');
   slot.innerHTML = '';
   if (!now) return;
@@ -425,7 +434,9 @@ function renderMatch(now) {
       saved(store.saveStats(stats));
     }
     text = M.peptalkText(stats.matches[match.date].pep, match);
-    if (info.warmup) text += `\n${M.WARMUP_DONE}`;
+    // Op de laatste thuiswedstrijd is de speciale puzzel (de volleybal) de warming-up.
+    if (special?.replacesWarmup) text += `\n${M.WARMUP_BY_SPECIAL}`;
+    else if (info.warmup) text += `\n${M.WARMUP_DONE}`;
     else actions.append(button(busy('warmup') ? 'Verder met de warming-up' : 'Warming-up 🧠', 'primary', play('warmup')));
   } else if (phase === 'tijdens') {
     text = M.duringLine(match);
@@ -482,7 +493,7 @@ async function startGame({ kind, levelId, special, match }) {
   try {
     let p;
     if (kind === 'daily') p = await requestPuzzle('daily', { date: today().getTime() });
-    else if (kind === 'heart') p = await requestPuzzle('heart', { seed: special.seed });
+    else if (kind === 'shape') p = await requestPuzzle('shape', { name: special.shape, seed: special.seed });
     else if (kind === 'match') p = await requestPuzzle('match', match);
     else p = await takePuzzle(levelId);
     game = new Game({
@@ -510,7 +521,7 @@ async function startGame({ kind, levelId, special, match }) {
 function enterPlay() {
   if (!game) return;
   const lvl = levelById(game.levelId);
-  $('#play-title').textContent = game.special ? 'Speciaal voor jou ❤️' : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
+  $('#play-title').textContent = game.special ? `Speciaal voor jou ${M.specialById(game.special)?.icon || '❤️'}` : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
   // Herstelpuzzel: rustig aan. Timer standaard verborgen, en alleen zachte geluiden.
   recovery = game.matchKind === 'herstel';
   timerShownInRecovery = false;
@@ -518,7 +529,8 @@ function enterPlay() {
   notesMode = false;
   hint = null;
   paused = false;
-  $('#board').classList.remove('reveal', 'heartbeat');
+  $('#board').classList.remove('reveal', 'heartbeat', 'pulse');
+  $('#board').dataset.color = game.shape && SHAPE_CELLS[game.shape] ? shapeColor(game.shape) : '';
   $('#play').classList.remove('paused');
   showScreen('play');
   render();
@@ -635,6 +647,7 @@ function render() {
   if (stage?.strike) for (const { cell, digit } of stage.strike) strike.set(cell, (strike.get(cell) || 0) | bit(digit));
   const showWrong = settings.errors === 'direct';
   const hand = handwritten();
+  const shape = game.shape ? SHAPE_CELLS[game.shape] : null;
 
   const cells = $('#board').children;
   for (let i = 0; i < 81; i++) {
@@ -643,7 +656,11 @@ function render() {
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
     if (v) cls.push(given ? 'given' : 'user', ...(hand && !given ? ['hand'] : []));
-    if (game.shape === 'heart' && HEART_MASK[i]) cls.push('in-heart', ...(HEART_OUTLINE[i] ? ['heart-edge'] : []), ...(given ? ['shape-heart'] : []));
+    // Een figuur met accenten (pijl, lint, naden…) tekent die in de donkerdere tint; anders de omtrek.
+    if (shape?.mask[i]) {
+      cls.push('in-shape', ...(given ? ['shape-given'] : []));
+      if (shape.hasAccent ? shape.accent[i] : shape.outline[i]) cls.push(shape.hasAccent ? 'shape-accent' : 'shape-edge');
+    }
     if (peerSet?.has(i)) cls.push('peer');
     if (hlDigit && v === hlDigit) cls.push('same');
     if (i === selected && !stage) cls.push('selected');
@@ -949,13 +966,15 @@ $('#hint-close').addEventListener('click', () => closeHint());
 
 // ---------- Opgelost! ----------
 
+// `special`: de feest-emoji's van een speciale dag (of null).
 // `jersey`: de 33e puzzel in Volleybal, dan dwarrelen er ballen en haar rugnummer.
-function celebrate(special, jersey = false) {
+// `handHearts`: in Briefje zijn getekende hartjes (niet bij een speciale dag zonder hart).
+function celebrate(special, jersey = false, handHearts = true) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box = $('#confetti');
   box.innerHTML = '';
-  const set = special ? ['❤️', '💛', '💗', '💕'] : jersey ? ['🏐', '33'] : themeById(document.documentElement.dataset.theme).celebrate;
-  const hand = handwritten();
+  const set = special || (jersey ? ['🏐', '33'] : themeById(document.documentElement.dataset.theme).celebrate);
+  const hand = handwritten() && handHearts;
   for (let k = 0; k < 28; k++) {
     const s = document.createElement('span');
     // Briefje: zijn twee getekende hartjes, om en om in rood en balpenblauw.
@@ -1005,12 +1024,14 @@ function onSolved() {
   feedback('solved');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const board = $('#board');
-  if (g.shape === 'heart') {
-    // Het hart loopt vol (~1,2 s), klopt één keer, en dan pas het opgelost-scherm.
+  if (g.shape && SHAPE_CELLS[g.shape]) {
+    // De figuur loopt vol (~1,2 s), een hart klopt één keer (andere figuren
+    // pulseren zacht), en dan pas het opgelost-scherm.
+    const beat = SHAPES[g.shape].color === 'heart' ? 'heartbeat' : 'pulse';
     board.classList.add('reveal');
     if (!reduce) {
-      setTimeout(() => board.classList.add('heartbeat'), 1250);
-      setTimeout(() => board.classList.remove('heartbeat'), 2000);
+      setTimeout(() => board.classList.add(beat), 1250);
+      setTimeout(() => board.classList.remove(beat), 2000);
     }
   } else {
     board.classList.add('solved-glow');
@@ -1020,10 +1041,10 @@ function onSolved() {
   // Ook een wedstrijdpuzzel krijgt in Volleybal ballen en een 33 (zonder de mijlpaal zelf).
   const volleybal = document.documentElement.dataset.theme === 'volleybal';
   const jersey = !g.special && volleybal && (fresh.some((m) => m.id === 'rugnummer33') || Boolean(g.matchKind));
-  celebrate(Boolean(g.special), jersey);
-
   // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
-  const special = g.special ? M.specialById(g.special) : null;
+  const special = g.special ? M.specialById(g.special, stats) : null;
+  celebrate(special?.celebrate || null, jersey, !special || shapeColor(special.shape) === 'heart');
+
   let note;
   if (special) note = special.solvedText;
   else if (g.matchKind === 'warmup') note = M.warmupNote();
@@ -1039,7 +1060,7 @@ function onSolved() {
   if (hand && !g.special) $('#solved-title').innerHTML = '<span class="hand-art goed-zo" role="img" aria-label="Goed zo!"></span>';
   else $('#solved-title').textContent = g.special ? 'Het is je gelukt!' : 'Opgelost!';
   if (hand) document.querySelector('.solved-emoji').innerHTML = '<span class="hand-art hart-2 solved-heart"></span>';
-  else document.querySelector('.solved-emoji').textContent = g.special ? '💛' : jersey ? '🏐' : '🎉';
+  else document.querySelector('.solved-emoji').textContent = special ? special.icon : jersey ? '🏐' : '🎉';
   const scribble = hand && store.scribbleDue(store.loadScribbleDay(), day);
   if (scribble) store.saveScribbleDay(day);
   $('#solved-scribble').hidden = !scribble;
@@ -1070,7 +1091,7 @@ function onSolved() {
       if (d.returnValue === 'again') startGame({ kind: 'level', levelId: $('#solved-again').dataset.level });
       else if (d.returnValue === 'home') goHome();
     }, { once: true });
-  }, reduce ? 200 : g.shape === 'heart' ? 2050 : 1900);
+  }, reduce ? 200 : g.shape ? 2050 : 1900);
 }
 
 // Een nieuw seizoensthema is vrij: vragen of ze het meteen wil proberen.
@@ -1440,7 +1461,9 @@ function renderCalendarDay(byDay, todayKey) {
   const list = byDay.get(calSelected) || [];
   const items = list.map((e) => {
     const lvl = e.level ? levelById(e.level) : null;
-    const [emoji, what] = e.special ? ['💛', 'Hartjespuzzel'] : lvl ? [lvl.emoji, lvl.name] : ['📅', 'Dagpuzzel'];
+    const sp = e.special ? M.specialById(e.special) : null;
+    const figure = sp?.shape ? SHAPES[sp.shape].name : 'speciale puzzel';
+    const [emoji, what] = e.special ? [sp?.icon || '💛', `${figure.charAt(0).toUpperCase()}${figure.slice(1)}`] : lvl ? [lvl.emoji, lvl.name] : ['📅', 'Dagpuzzel'];
     const meta = [
       e.special ? M.specialLabel(e.special) : '',
       e.ms != null ? formatTime(e.ms) : '',

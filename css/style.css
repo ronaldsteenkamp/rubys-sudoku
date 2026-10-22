@@ -643,6 +643,10 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 .mini-board i:nth-child(5) { background: var(--accent); }
 .card.special { background: linear-gradient(135deg, color-mix(in srgb, var(--heart) 14%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--heart) 35%, var(--line)); }
 .card.special .card-kicker { color: var(--heart); }
+/* De maandversary: geen puzzel, alleen een klein kaartje. */
+.card.special.small { gap: 4px; padding: 14px 18px; }
+.card.special.small:active { transform: none; }
+.card.special.small .card-meta { color: var(--ink); }
 .card.continue { border-style: dashed; }
 /* Wedstrijddag: een kaartje met knoppen erin (dus zelf geen knop). */
 .card.match { gap: 6px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
@@ -796,17 +800,51 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 .cell:nth-child(n + 46):nth-child(-n + 54) { border-bottom: 2px solid var(--line-strong); }
 .cell:nth-child(n + 73) { border-bottom: 0; }
 
+/* Kleuren van de figuurpuzzels. Harten gebruiken de hartkleuren van het
+   thema; de andere figuren een eigen familie (data-color op het bord, zie
+   SHAPES in generator.js), in een lichte en een donkere variant. */
+.board {
+  --shape-fill: var(--heart-fill); --shape-edge: var(--heart-edge); --shape-ink: var(--heart-ink);
+  --shape-solved: var(--heart-solved); --shape-solved-ink: var(--heart-solved-ink);
+}
+.board[data-color="orange"] { --shape-fill: var(--orange-fill); --shape-edge: var(--orange-edge); --shape-ink: var(--orange-ink); --shape-solved: var(--orange-solved); --shape-solved-ink: #ffffff; }
+.board[data-color="green"] { --shape-fill: var(--green-fill); --shape-edge: var(--green-edge); --shape-ink: var(--green-ink); --shape-solved: var(--green-solved); --shape-solved-ink: #ffffff; }
+.board[data-color="gold"] { --shape-fill: var(--gold-fill); --shape-edge: var(--gold-edge); --shape-ink: var(--gold-ink); --shape-solved: var(--gold-solved); --shape-solved-ink: #ffffff; }
+.board[data-color="brown"] { --shape-fill: var(--brown-fill); --shape-edge: var(--brown-edge); --shape-ink: var(--brown-ink); --shape-solved: var(--brown-solved); --shape-solved-ink: #ffffff; }
+.board[data-color="blue"] { --shape-fill: var(--blue-fill); --shape-edge: var(--blue-edge); --shape-ink: var(--blue-ink); --shape-solved: var(--blue-solved); --shape-solved-ink: #ffffff; }
+.board[data-color="lilac"] { --shape-fill: var(--lilac-fill); --shape-edge: var(--lilac-edge); --shape-ink: var(--lilac-ink); --shape-solved: var(--lilac-solved); --shape-solved-ink: #ffffff; }
+:root {
+  --orange-fill: #ffdfc3; --orange-edge: #ffd4ac; --orange-ink: #8a3a00; --orange-solved: #a84800;
+  --green-fill: #cfedd2; --green-edge: #bee6c1; --green-ink: #1d5c28; --green-solved: #2b7536;
+  --gold-fill: #ffe48a; --gold-edge: #ffd959; --gold-ink: #6b4700; --gold-solved: #8a5c00;
+  --brown-fill: #f1e3d9; --brown-edge: #ecd9cb; --brown-ink: #5a2d12; --brown-solved: #6b3a1e;
+  --blue-fill: #d9e6fa; --blue-edge: #ccddf9; --blue-ink: #1c3d78; --blue-solved: #2a58a6;
+  --lilac-fill: #eae1f8; --lilac-edge: #e4d8f7; --lilac-ink: #4d2a85; --lilac-solved: #6a3db0;
+}
+[data-scheme="dark"] {
+  --orange-fill: #3f2716; --orange-edge: #5e391a; --orange-ink: #ffd1a1; --orange-solved: #a84800;
+  --green-fill: #1d3322; --green-edge: #2a4a30; --green-ink: #b9e8bf; --green-solved: #2b7536;
+  --gold-fill: #3a3014; --gold-edge: #5a481a; --gold-ink: #ffe08a; --gold-solved: #8a5c00;
+  --brown-fill: #36261c; --brown-edge: #523726; --brown-ink: #f2cfb4; --brown-solved: #7a4526;
+  --blue-fill: #1c2a46; --blue-edge: #2a3d63; --blue-ink: #c4d7ff; --blue-solved: #2a58a6;
+  --lilac-fill: #2c2142; --lilac-edge: #43305f; --lilac-ink: #ddccff; --lilac-solved: #6a3db0;
+}
+
 .cell.given { color: var(--given); font-family: "Fraunces", Georgia, serif; font-weight: 600; }
 .cell.user { color: var(--user); font-weight: 700; }
-/* Hartjespuzzel: het hele hart licht roze, de rand iets steviger. */
-.cell.in-heart { background-color: var(--heart-fill); }
-.cell.heart-edge { background-color: var(--heart-edge); }
+/* Figuurpuzzel (speciale dagen): de hele figuur licht gekleurd, de rand iets steviger. */
+.cell.in-shape { background-color: var(--shape-fill); }
+.cell.shape-edge { background-color: var(--shape-edge); }
+/* Accenten in een figuur (de pijl, het lint, de naden, het gezicht): een stevige
+   rand aan de binnenkant. Aaneengesloten vormen ze een lijn, en het cijfer in
+   het midden blijft net zo goed leesbaar. */
+.cell.shape-accent { background-color: var(--shape-edge); box-shadow: inset 0 0 0 3px var(--shape-solved); }
 .cell.peer { background: var(--peer); }
 .cell.same { background: var(--same); box-shadow: inset 0 0 0 2px var(--same-ring); }
 .cell.selected { background: var(--sel); }
 .cell.selected.given, .cell.selected.user:not(.wrong) { color: var(--sel-ink); }
 .cell.selected .notes { color: var(--sel-ink); }
-.cell.given.shape-heart { color: var(--heart-ink); }
+.cell.given.shape-given { color: var(--shape-ink); }
 
 /* Fout: kleur én een golvend streepje, zodat het niet alleen via kleur zichtbaar is. */
 .cell.wrong { color: var(--wrong); background: var(--wrong-bg); }
@@ -1239,15 +1277,18 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 }
 .board.solved-glow { animation: board-glow 1.4s ease; }
 
-/* Onthulling: het hart loopt rij voor rij vol, van onder naar boven (--rd = rijen vanaf onder). */
-.board.reveal .cell.in-heart {
-  background-color: var(--heart-solved);
-  color: var(--heart-solved-ink);
-  animation: heart-in 0.35s ease calc(var(--rd, 0) * 105ms) both;
+/* Onthulling: de figuur loopt rij voor rij vol, van onder naar boven (--rd = rijen vanaf onder). */
+.board.reveal .cell.in-shape {
+  background-color: var(--shape-solved);
+  color: var(--shape-solved-ink);
+  animation: shape-in 0.35s ease calc(var(--rd, 0) * 105ms) both;
 }
-@keyframes heart-in {
-  from { background-color: var(--heart-edge); color: var(--heart-ink); }
+@keyframes shape-in {
+  from { background-color: var(--shape-edge); color: var(--shape-ink); }
 }
+/* Een hart klopt één keer; andere figuren pulseren zacht. */
+.board.pulse { animation: pulse 0.8s ease; }
+@keyframes pulse { 50% { transform: scale(1.02); } }
 .board.heartbeat { animation: heartbeat 0.7s ease; }
 @keyframes heartbeat {
   0%, 100% { transform: none; }
@@ -1339,7 +1380,8 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
     transition-duration: 0.01ms !important;
   }
   .confetti span { display: none; }
-  .board.reveal .cell.in-heart { animation: none; }
+  .board.reveal .cell.in-shape { animation: none; }
+  .board.heartbeat, .board.pulse { animation: none; }
   .record-line { animation: none; }
 }
 

@@ -174,8 +174,10 @@ export class Game {
       solution: data.solution,
       levelId: LEVEL_IDS.includes(data.levelId) ? data.levelId : 'zondag',
       daily: isDay(data.daily) ? data.daily : null,
-      special: typeof data.special === 'string' && /^(jubileum|verjaardag)-\d{4}$/.test(data.special) ? data.special : null,
-      shape: data.shape === 'heart' ? 'heart' : null,
+      // Een speciale dag: '<soort>-<jaar>' of '<soort>-<JJJJ-MM-DD>' (zie messages.js).
+      special: typeof data.special === 'string' && /^[a-z]+(?:-[a-z]+)*-\d{4}(?:-\d{2}-\d{2})?$/.test(data.special) ? data.special : null,
+      // Een figuur uit SHAPES in generator.js (een oude hartjespuzzel heeft 'heart').
+      shape: typeof data.shape === 'string' && /^[a-z]+(?:-[a-z]+)*$/.test(data.shape) && data.shape.length <= 20 ? data.shape : null,
       id: typeof data.id === 'string' && data.id.length < 40 ? data.id : null,
       ...(isDay(data.match) && MATCH_KINDS.includes(data.matchKind) ? { match: data.match, matchKind: data.matchKind } : {}),
     });

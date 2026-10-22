@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { SPECIAL_DAYS, specialKindsOn, easter, kingsDay, monthsTogether, APP_GIFT, LAST_HOME_MATCH, MONTHSARY_LINES, specialLabel } from '../js/messages.js';
 import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine, milestoneBadge, humanDuration, recordLine, RECORD_LINES, FIRST_LEVEL_LINES, monthSummary, emptyDayLine, calendarRecordNote,
   PEPTALKS, peptalksFor, pickPeptalk, peptalkText, matchHeadline, duringLine, WARMUP_NOTES, warmupNote, OUTCOME_BUTTONS, OUTCOME_REPLIES, outcomeReply, RECOVERY_NOTES, recoveryNote } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
@@ -289,4 +290,156 @@ test('mijlpaal "Seizoen uitgespeeld" na de herstelpuzzel van de laatste wedstrij
   assert.equal(m.check(base), false);
   assert.equal(m.check({ ...base, matches: { '2027-04-17': { warmup: true } } }), false);
   assert.equal(m.check({ ...base, matches: { '2027-04-17': { herstel: true } } }), true);
+});
+
+// ---------- Speciale dagen ----------
+
+const at = (y, m, d) => new Date(y, m - 1, d, 12);
+
+test('voorrang bij samenvallen ligt vast', () => {
+  assert.deepEqual(SPECIAL_DAYS.map((s) => s.kind), [
+    'jubileum', 'verjaardag', 'halfjaar', 'honderd', 'app-verjaardag', 'thuiswedstrijd',
+    'valentijn', 'pasen', 'koningsdag', 'halloween', 'sinterklaas', 'kerst', 'tweede-kerstdag', 'nieuwjaar', 'maandversary']);
+  // Pasen 2043 valt op 29 maart: half jaar gaat voor Pasen, en beide voor de maandversary.
+  assert.deepEqual(specialKindsOn(at(2043, 3, 29)), ['halfjaar', 'pasen', 'maandversary']);
+  assert.equal(specialDay(at(2043, 3, 29)).kind, 'halfjaar');
+  // Een half jaar valt altijd op een 29e: dan geen maandversary.
+  assert.equal(specialDay(at(2027, 3, 29)).kind, 'halfjaar');
+  // Het jubileum (ook een 29e) gaat voor alles.
+  assert.deepEqual(specialKindsOn(at(2027, 9, 29)), ['jubileum', 'maandversary']);
+  assert.equal(specialDay(at(2027, 9, 29)).kind, 'jubileum');
+});
+
+test('jubileum en verjaardag blijven zoals ze waren', () => {
+  const j = specialDay(at(2027, 9, 29));
+  assert.deepEqual([j.id, j.title, j.shape, j.seed], ['jubileum-2027', '1 jaar samen 💛', 'heart', 290900 + 2027]);
+  assert.equal(j.text, 'Vandaag zijn we precies één jaar samen. Elk jaar met jou is mijn favoriete puzzel. Deze is speciaal voor jou gemaakt, kijk maar goed naar de vorm 😉');
+  assert.equal(j.solvedText, 'Gelukkig eenjarig jubileum, lieverd. Op nog heel veel jaren, puzzels en preitaartjes samen. Ik hou van je. 💛');
+  assert.equal(specialDay(at(2026, 9, 29)).title, 'Vandaag begon het 💛');
+  const v = specialDay(at(2027, 10, 12));
+  assert.deepEqual([v.id, v.title, v.shape, v.seed], ['verjaardag-2027', 'Gefeliciteerd, 22 jaar! 🎂', 'heart', 121000 + 2027]);
+  assert.match(v.text, /^Hiep hiep hoera, \S+.*! Vandaag ben je 22\./);
+  assert.equal(v.solvedText, 'Van harte gefeliciteerd met je 22e verjaardag, mooiste meisje dat er is. Ik hoop dat je dag net zo zonnig is als jij 🎉💛');
+  assert.deepEqual(j.celebrate, ['❤️', '💛', '💗', '💕']);
+});
+
+test('half jaar samen: elk jaar op 29 maart, met de juiste woorden', () => {
+  assert.equal(specialDay(at(2026, 3, 29)), null, 'vóór het jubileum nog niet');
+  assert.equal(specialDay(at(2027, 3, 29)).title, 'Een half jaar samen 💞');
+  assert.equal(specialDay(at(2028, 3, 29)).title, 'Anderhalf jaar samen 💞');
+  assert.equal(specialDay(at(2029, 3, 29)).title, 'Tweeënhalf jaar samen 💞');
+  assert.equal(specialDay(at(2030, 3, 29)).title, 'Drieënhalf jaar samen 💞');
+  assert.match(specialDay(at(2028, 3, 29)).text, /anderhalf jaar samen/);
+  assert.equal(specialDay(at(2027, 3, 29)).shape, 'half-heart');
+});
+
+test('100 dagen samen: alleen op 7 januari 2027', () => {
+  assert.equal(daysTogether(at(2027, 1, 7)), 100);
+  assert.equal(specialDay(at(2027, 1, 7)).id, 'honderd-2027');
+  assert.equal(specialDay(at(2027, 1, 7)).shape, 'balloon');
+  for (const d of [at(2028, 1, 7), at(2027, 1, 6), at(2027, 1, 8)]) assert.ok(!specialKindsOn(d).includes('honderd'));
+});
+
+test('app-verjaardag: niet op 21-10-2026, wel op 21-10-2027, met haar eigen cijfers', () => {
+  assert.deepEqual(APP_GIFT, { year: 2026, month: 10, day: 21 });
+  assert.equal(specialDay(at(2026, 10, 21)), null);
+  const s = specialDay(at(2027, 10, 21), { totalSolved: 247, bestStreak: 31 });
+  assert.equal(s.title, "1 jaar Ruby's Sudoku 🎁");
+  assert.match(s.text, /^1 jaar Ruby's Sudoku: 247 puzzels, langste reeks 31 dagen 🔥/);
+  assert.equal(s.shape, 'gift');
+  assert.match(specialDay(at(2029, 10, 21), { totalSolved: 1, bestStreak: 1 }).text, /^3 jaar Ruby's Sudoku: 1 puzzel, langste reeks 1 dag/);
+  assert.ok(!/undefined|NaN/.test(specialDay(at(2027, 10, 21)).text), 'ook zonder stats een nette tekst');
+});
+
+test('laatste thuiswedstrijd: alleen op 17-4-2027, met 200 dagen samen', async () => {
+  const s = specialDay(at(2027, 4, 17));
+  assert.equal(s.kind, 'thuiswedstrijd');
+  assert.equal(s.shape, 'volleyball');
+  assert.equal(s.replacesWarmup, true);
+  assert.match(s.text, /17:00/);
+  assert.match(s.text, /LSV/);
+  assert.match(s.text, /200 dagen samen/);
+  assert.equal(specialDay(at(2028, 4, 17)), null);
+  // De constante moet de laatste thuiswedstrijd in het schema zijn.
+  const { MATCHES } = await import('../js/matches.js');
+  const home = MATCHES.filter((m) => m.home).at(-1);
+  assert.deepEqual([home.date, home.time, home.opponent], [LAST_HOME_MATCH.date, LAST_HOME_MATCH.time, LAST_HOME_MATCH.opponent]);
+});
+
+test('Pasen (Meeus/Butcher) voor bekende jaren', () => {
+  const key = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  for (const [y, want] of [[2024, '2024-03-31'], [2025, '2025-04-20'], [2026, '2026-04-05'], [2027, '2027-03-28'], [2028, '2028-04-16'], [2038, '2038-04-25'], [2043, '2043-03-29']]) {
+    assert.equal(key(easter(y)), want, String(y));
+  }
+  assert.equal(specialDay(at(2027, 3, 28)).kind, 'pasen');
+  assert.equal(specialDay(at(2027, 3, 28)).shape, 'egg');
+});
+
+test('Koningsdag: 27 april, of 26 april als de 27e een zondag is', () => {
+  assert.equal(kingsDay(2027).getDate(), 27);
+  assert.equal(kingsDay(2025).getDate(), 26, '27 april 2025 is een zondag');
+  assert.equal(specialDay(at(2025, 4, 26)).kind, 'koningsdag');
+  assert.equal(specialDay(at(2025, 4, 27)), null);
+  assert.deepEqual(specialDay(at(2027, 4, 27)).celebrate, ['🧡', '👑', '🎉']);
+});
+
+test('feestdagen: de juiste dag, figuur en teksten', () => {
+  const cases = [
+    [at(2027, 2, 14), 'valentijn', 'heart-arrow'], [at(2026, 10, 31), 'halloween', 'pumpkin'],
+    [at(2026, 12, 5), 'sinterklaas', 'letter-r'], [at(2026, 12, 25), 'kerst', 'tree'],
+    [at(2026, 12, 26), 'tweede-kerstdag', 'star'], [at(2027, 1, 1), 'nieuwjaar', 'fireworks'],
+  ];
+  for (const [d, kind, shape] of cases) {
+    const s = specialDay(d);
+    assert.deepEqual([s.kind, s.shape], [kind, shape]);
+    assert.ok(s.title && s.text && s.solvedText && s.celebrate.length >= 3, kind);
+  }
+  assert.match(specialDay(at(2026, 12, 5)).text, /— de Sint/);
+  assert.match(specialDay(at(2027, 1, 1)).title, /2027/);
+  assert.match(specialDay(at(2031, 1, 1)).text + specialDay(at(2031, 1, 1)).solvedText, /2031/);
+  assert.ok(specialDay(at(2026, 12, 26)).text.length < specialDay(at(2026, 12, 25)).text.length, 'tweede kerstdag is korter');
+});
+
+test('maandversary: elke 29e (februari: laatste dag), alleen een kaartje', () => {
+  const s = specialDay(at(2026, 11, 29));
+  assert.deepEqual([s.id, s.title, s.shape], ['maandversary-2026-11-29', '2 maanden samen 💛', null]);
+  assert.equal(specialDay(at(2026, 10, 29)).title, '1 maand samen 💛');
+  assert.equal(specialDay(at(2027, 2, 28)).kind, 'maandversary', 'februari 2027 heeft geen 29e');
+  assert.equal(specialDay(at(2028, 2, 28)), null, 'in een schrikkeljaar niet op de 28e…');
+  assert.equal(specialDay(at(2028, 2, 29)).kind, 'maandversary', '…maar op de 29e');
+  assert.equal(monthsTogether(at(2027, 2, 28)), 5);
+  assert.ok(MONTHSARY_LINES.length >= 12);
+  for (const line of MONTHSARY_LINES) assert.match(line({ m: '7 maanden', n: 'Ruubs' }), /7 maanden/, 'elk zinnetje noemt het aantal maanden');
+  // Vast per maand, en een andere zin dan de maand ervoor.
+  assert.equal(specialDay(at(2026, 12, 29)).text, specialDay(at(2026, 12, 29)).text);
+  assert.notEqual(specialDay(at(2026, 12, 29)).text, specialDay(at(2026, 11, 29)).text);
+  assert.match(specialDay(at(2026, 12, 29)).text, /3 maanden/);
+});
+
+test('specialById herkent elke soort, ook na middernacht', () => {
+  const days = [at(2027, 9, 29), at(2027, 10, 12), at(2027, 3, 29), at(2027, 1, 7), at(2027, 10, 21), at(2027, 4, 17),
+    at(2027, 2, 14), at(2027, 3, 28), at(2027, 4, 27), at(2026, 10, 31), at(2026, 12, 5), at(2026, 12, 25), at(2026, 12, 26), at(2027, 1, 1), at(2026, 11, 29)];
+  const kinds = new Set();
+  for (const d of days) {
+    const s = specialDay(d, { totalSolved: 5, bestStreak: 2 });
+    const back = specialById(s.id, { totalSolved: 5, bestStreak: 2 });
+    assert.deepEqual(back, s, s.id);
+    kinds.add(s.kind);
+    assert.ok(specialLabel(s.id).length > 3);
+  }
+  assert.equal(kinds.size, SPECIAL_DAYS.length, 'elke soort getest');
+  assert.equal(specialById('kerst-2027').kind, 'kerst');
+  assert.equal(specialById('honderd-2028'), null, 'die dag bestaat niet');
+  assert.equal(specialById('app-verjaardag-2026'), null);
+  assert.equal(specialById('maandversary-2026-11-28'), null);
+  assert.equal(specialById('kerst-2026-12-25'), null);
+});
+
+test('teksten zijn vast per jaar en met een bijnaam', () => {
+  for (const d of [at(2026, 12, 25), at(2027, 3, 28), at(2027, 2, 14)]) {
+    assert.deepEqual(specialDay(d), specialDay(d));
+  }
+  const texts = [2026, 2027, 2028, 2029].map((y) => specialDay(at(y, 12, 25)).text);
+  assert.ok(new Set(texts).size > 1, 'niet elk jaar dezelfde kersttekst');
+  assert.ok(texts.some((t) => NICKNAMES.some((n) => t.includes(n))));
 });

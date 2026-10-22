@@ -162,7 +162,7 @@ export const LOG_DAYS = 800;
 const LOG_DAILY = 1, LOG_RECORD = 2;
 
 const isLevelId = (l) => l === null || (typeof l === 'string' && isKey(l));
-const isSpecialId = (sp) => typeof sp === 'string' && /^(jubileum|verjaardag)-\d{4}$/.test(sp);
+const isSpecialId = (sp) => typeof sp === 'string' && /^[a-z]+(?:-[a-z]+)*-\d{4}(?:-\d{2}-\d{2})?$/.test(sp);
 
 // Een logboekregel netjes maken, of null als hij niet klopt.
 function cleanLogRow(row) {
