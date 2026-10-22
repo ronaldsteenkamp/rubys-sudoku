@@ -1,7 +1,10 @@
 // Alles wat persoonlijk is: bijnamen, begroetingen, lieve berichtjes,
 // mijlpalen en speciale dagen. Pas gerust aan!
 
-export const NICKNAMES = ['Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje'];
+export const NICKNAMES = [
+  'Ruby', 'Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje',
+  'Van der Vegt', 'Vegtie', 'Au Pair', 'Jonkie',
+];
 
 // Samen sinds 29 september 2026; jarig op 12 oktober (2005).
 export const ANNIVERSARY = { year: 2026, month: 9, day: 29 };
