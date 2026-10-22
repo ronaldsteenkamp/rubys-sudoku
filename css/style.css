@@ -644,6 +644,14 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 .card.special { background: linear-gradient(135deg, color-mix(in srgb, var(--heart) 14%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--heart) 35%, var(--line)); }
 .card.special .card-kicker { color: var(--heart); }
 .card.continue { border-style: dashed; }
+/* Wedstrijddag: een kaartje met knoppen erin (dus zelf geen knop). */
+.card.match { gap: 6px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.card.match:active { transform: none; }
+.card.match .card-title { line-height: 1.2; }
+.match-text { margin: 4px 0 0; color: var(--ink); }
+.match-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.match-actions .btn { min-height: 44px; padding: 0 16px; }
+.match-outcomes .btn { flex: 1 1 auto; }
 .card.update { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 
 .section-title { font-size: 1.1rem; margin: 26px 4px 10px; }

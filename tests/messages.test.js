@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine, milestoneBadge, humanDuration, recordLine, RECORD_LINES, FIRST_LEVEL_LINES, monthSummary, emptyDayLine, calendarRecordNote } from '../js/messages.js';
+import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine, milestoneBadge, humanDuration, recordLine, RECORD_LINES, FIRST_LEVEL_LINES, monthSummary, emptyDayLine, calendarRecordNote,
+  PEPTALKS, peptalksFor, pickPeptalk, peptalkText, matchHeadline, duringLine, WARMUP_NOTES, warmupNote, OUTCOME_BUTTONS, OUTCOME_REPLIES, outcomeReply, RECOVERY_NOTES, recoveryNote } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
 // Voorspelbare 'random' zodat de tests altijd hetzelfde doen.
@@ -220,4 +221,72 @@ test('kalender: maandzinnetje, lege dag en recordnotitie', () => {
   assert.match(emptyDayLine({ future: true }), /nog komen/);
   assert.match(emptyDayLine({}), /Rustdagen/);
   assert.equal(calendarRecordNote('2026-10-22'), calendarRecordNote('2026-10-22'), 'vast per dag');
+});
+
+// ---------- Wedstrijddag ----------
+
+import { MATCHES } from '../js/matches.js';
+const dio = MATCHES[0]; // do 21:00 uit
+const dovo = MATCHES[1]; // za 17:00 thuis
+const kroton = MATCHES[5]; // za 11:00 uit
+
+test('wedstrijdkop: wanneer, thuis of uit, en tegen wie', () => {
+  assert.equal(matchHeadline(dio, 'voor'), 'Vanavond om 21:00 uit bij DIO Bedum 🏐');
+  assert.equal(matchHeadline(dovo, 'voor'), 'Vanmiddag om 17:00 thuis tegen Dovo/Hujades 🏐');
+  assert.equal(matchHeadline(kroton, 'voor'), 'Vanochtend om 11:00 uit bij Kroton 🏐');
+  assert.match(matchHeadline(dovo, 'tijdens'), /^Nu bezig: thuis tegen/);
+  assert.equal(matchHeadline(dio, 'na'), 'Uit bij DIO Bedum 🏐');
+  assert.match(duringLine(dio), /📣/);
+});
+
+test('peptalks: 15 tot 20, met bijnamen, rugnummer 33, thuis/uit, ochtend/avond en een paar grappige', () => {
+  assert.ok(PEPTALKS.length >= 15 && PEPTALKS.length <= 20);
+  const all = MATCHES.flatMap((m) => peptalksFor(m).map((i) => peptalkText(i, m)));
+  assert.ok(all.some((t) => /33/.test(t)), 'rugnummer 33');
+  assert.ok(all.some((t) => NICKNAMES.some((n) => t.includes(n))), 'met bijnaam');
+  for (const when of ['thuis', 'uit', 'ochtend', 'avond']) assert.ok(PEPTALKS.some((p) => p.when === when), when);
+  for (const m of MATCHES) for (const i of peptalksFor(m)) {
+    const t = peptalkText(i, m);
+    assert.ok(!/undefined|null/.test(t), t);
+  }
+  // Alleen passende peptalks: geen thuispeptalk bij een uitwedstrijd, geen ochtendpeptalk 's avonds.
+  const fits = (m) => peptalksFor(m).map((i) => PEPTALKS[i].when).filter(Boolean);
+  assert.deepEqual([...new Set(fits(dio))].sort(), ['avond', 'uit']);
+  assert.deepEqual([...new Set(fits(dovo))].sort(), ['thuis']);
+  assert.deepEqual([...new Set(fits(kroton))].sort(), ['ochtend', 'uit']);
+});
+
+test('peptalk: niet dezelfde als bij de vorige wedstrijden', () => {
+  const recent = peptalksFor(dio).slice(0, -1);
+  assert.equal(pickPeptalk(dio, recent, () => 0), peptalksFor(dio).at(-1));
+  // Alles al gehad: dan mag er toch weer eentje.
+  assert.ok(peptalksFor(dio).includes(pickPeptalk(dio, peptalksFor(dio), () => 0.5)));
+});
+
+test('warming-up, uitkomsten en herstel: teksten voor elk geval, met variatie', () => {
+  assert.ok(WARMUP_NOTES.length >= 3 && WARMUP_NOTES.includes('Hersens zijn warm, nu de armen nog 💪'));
+  assert.ok(WARMUP_NOTES.includes(warmupNote(() => 0.99)));
+  assert.deepEqual(OUTCOME_BUTTONS.map((b) => b.id), ['gewonnen', 'verloren', 'stil']);
+  for (const id of ['gewonnen', 'verloren', 'stil']) {
+    assert.ok(OUTCOME_REPLIES[id].length >= 3, id);
+    assert.ok(RECOVERY_NOTES[id].length >= 3, id);
+    assert.ok(OUTCOME_REPLIES[id].includes(outcomeReply(id, '2026-10-22')));
+    assert.equal(outcomeReply(id, '2026-10-22'), outcomeReply(id, '2026-10-22'), 'vast per wedstrijd');
+    assert.ok(RECOVERY_NOTES[id].includes(recoveryNote(id, () => 0.4)));
+  }
+  // Verloren: troostend en trots, nooit oppeppend-competitief.
+  for (const t of [...OUTCOME_REPLIES.verloren, ...RECOVERY_NOTES.verloren]) {
+    assert.doesNotMatch(t, /volgende keer|beter|winnen|harder|revanche/i, t);
+  }
+  // Zonder antwoord: de neutrale teksten.
+  assert.ok(RECOVERY_NOTES.stil.includes(recoveryNote(undefined, () => 0)));
+});
+
+test('mijlpaal "Seizoen uitgespeeld" na de herstelpuzzel van de laatste wedstrijd', () => {
+  const m = MILESTONES.find((x) => x.id === 'seizoen-uit');
+  assert.ok(m);
+  const base = { totalSolved: 1, levels: {}, matches: {} };
+  assert.equal(m.check(base), false);
+  assert.equal(m.check({ ...base, matches: { '2027-04-17': { warmup: true } } }), false);
+  assert.equal(m.check({ ...base, matches: { '2027-04-17': { herstel: true } } }), true);
 });

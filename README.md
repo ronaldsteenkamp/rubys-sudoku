@@ -23,6 +23,7 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
 - **Spelen.** Notities (met automatisch wegstrepen), markeren van rij, kolom, blok en gelijke cijfers, ongedaan maken en opnieuw, gum, reset, alle notities in één keer invullen, een verbergbare timer en pauze. Foutcontrole kan direct, op verzoek of uit. Het cijferpad toont hoeveel er van elk cijfer nog over zijn. Je speelt met touch of met het toetsenbord.
 - **Kalender en records.** In *Statistieken* staat naast het overzicht een maandkalender: op elke dag waarop Ruby een puzzel oploste staat een hartje (in Briefje het getekende hartje uit `hand/`), een dagpuzzel krijgt een zacht vlakje en een speciale dag een roze. Tik op een dag en je ziet wat ze toen deed: niveau, tijd, hints en of het de dagpuzzel was. Een nieuw persoonlijk record krijgt op het opgelost-scherm een eigen, warme regel (*"Nieuw record op Koffie erbij! 2 min sneller dan je vorige beste ☕"*); langzamer zegt de app nooit. Alles komt uit een compact logboek in de statistieken: ruim twee jaar, hooguit 1500 puzzels, en het gaat mee in de back-up.
 - **Persoonlijk.** Een begroeting per dagdeel met haar bijnamen en een teller van de dagen samen. Bij het oplossen dwarrelen er hartjes en pootjes en verschijnt een lief berichtje. Op het jubileum (29 september) en haar verjaardag (12 oktober) staat er een hartjespuzzel klaar. Mijlpalen ontgrendelen geheime berichtjes.
+- **Wedstrijddag.** Ruby speelt volleybal bij Donitas DS 14 (rugnummer 33). Op een wedstrijddag staat er een kaartje op het startscherm: vóór de wedstrijd tegenstander, tijd en thuis/uit met een peptalk (steeds een andere) en een korte warming-up-puzzel (±46 gegeven cijfers, alleen eenvoudige technieken). Tijdens de wedstrijd zit de app (in gedachten) langs de lijn. Daarna vraagt hij *Hoe ging het?* (gewonnen, verloren of zeg maar niks; de app weet de uitslag zelf nooit) en volgt een rustige herstelpuzzel met verborgen timer en zachte geluiden. Na een late wedstrijd (na 22:30 afgelopen) blijft dat tot de volgende dag 12:00 staan. Beide puzzels zijn vast per wedstrijd en tellen mee als gewone puzzels (niet als dagpuzzel); in Volleybal dwarrelen er ballen. Na de herstelpuzzel van de laatste wedstrijd van het seizoen komt de mijlpaal *Seizoen uitgespeeld* vrij. Zonder wedstrijd ziet het startscherm er gewoon uit zoals altijd.
 - **Thema's.** Zonnig (geel), Nacht, Gran Canaria, Lelie, Liefde, Sterren, Volleybal en Briefje. Briefje is een blaadje ruitjespapier: wat Ruby zelf invult staat er in het echte handschrift van de maker (de SVG's in `hand/`), net als het logo, de hartjes en het opgelost-scherm. Daarnaast vier seizoensthema's (Lente, Zomer, Herfst, Winter) die vrijkomen als Ruby 3 puzzels oplost binnen dat seizoen, plus de keuze *Seizoen*, die vanzelf meewisselt.
 - **PWA.** Een eigen icoon, werkt offline, met zachte geluidjes en trillen (beide uit te zetten).
 
@@ -40,6 +41,7 @@ js/hints.js           slimme hints in drie stappen
 js/game.js            spelstatus: cijfers, notities, undo/redo
 js/storage.js         localStorage: instellingen, lopende puzzel, statistieken
 js/messages.js        bijnamen, berichtjes, mijlpalen, speciale dagen ← hier pas je teksten aan
+js/matches.js         het wedstrijdschema van Donitas DS 14 ← hier pas je wedstrijden aan
 js/themes.js          de thema's als data, seizoenen en het ontgrendelen
 js/feedback.js        geluidjes en trillen
 js/worker.js          genereert puzzels in een Web Worker
@@ -64,6 +66,8 @@ Open daarna http://localhost:3000 (of :8080).
 
 **Speciale dagen testen:** voeg `?vandaag=2027-09-29` (jubileum) of `?vandaag=2027-10-12` (verjaardag) aan de URL toe. Met een testdatum gebruikt de app een eigen, aparte opslag (onderin staat dan *Testdatum … · aparte opslag*). Testen raakt dus nooit de echte reeks, statistieken of verrassingen, ook niet op Ruby's toestel.
 
+**Wedstrijddagen testen:** zet er ook een tijd bij, dan staat de klok stil op dat moment: `?vandaag=2026-11-28T09:30` (vóór de ochtendwedstrijd tegen Kroton, met peptalk en warming-up), `?vandaag=2026-11-28T11:30` (tijdens) en `?vandaag=2026-11-28T14:00` (*Hoe ging het?* en de herstelpuzzel). De late wedstrijd van 22 oktober (21:00) loopt door tot `?vandaag=2026-10-23T11:59`. Ook dit gebruikt de aparte testopslag.
+
 **Seizoensthema's testen:** `?vandaag=` bepaalt ook het seizoen. Los bijvoorbeeld op `?vandaag=2026-12-30` drie puzzels op (Zondagochtend gaat het snelst): na de derde verschijnt *Nieuw thema: Winter*. Dat kan ook verspreid over `?vandaag=2026-12-31` en `?vandaag=2027-01-02`, want december tot en met februari is één winter.
 
 ## Tests
@@ -74,9 +78,9 @@ Vereist Node 20 of nieuwer, zonder dependencies:
 npm test
 ```
 
-De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, het logboek en de recordteksten, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
+De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, het logboek en de recordteksten, het wedstrijdschema (ook rond zomer- en wintertijd) en de wedstrijdteksten, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
 
-Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub, een update die pas na een tik binnenkomt, en de kalender na twee dagen puzzelen.
+Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub, een update die pas na een tik binnenkomt, de kalender na twee dagen puzzelen, en een hele wedstrijddag (warming-up, uitkomst, herstel).
 
 ```bash
 npm run test:e2e
@@ -111,7 +115,8 @@ De tests draaien bij elke push en pull request automatisch via GitHub Actions (`
 
 ## Aanpassen
 
-- **Berichtjes, bijnamen en datums:** `js/messages.js`.
+- **Berichtjes, bijnamen en datums:** `js/messages.js` (ook de peptalks en de teksten voor na de wedstrijd).
+- **Wedstrijdschema:** `js/matches.js`. Bovenin staat hoe je een wedstrijd toevoegt, verzet of schrapt; `npm test` controleert het schema. Vergeet daarna `npm run release` niet.
 - **Kleuren van de thema's:** de variabelen bovenin `css/style.css`; naam, feest-emoji en voorproefkleuren in `js/themes.js`. `npm test` controleert of elk thema alle variabelen heeft, of de voorproefkleuren kloppen en of cijfers op het bord minstens 4.5:1 contrast halen.
 - **Iconen:** pas `icons/icon.svg` of `icons/maskable.svg` aan en draai `node scripts/render-icons.mjs` (vereist Playwright).
 - **Ontwerp controleren:** `node scripts/screenshots.mjs` maakt screenshots van start- en speelscherm in alle thema's, de verjaardag en de hart-onthulling (met `--maten` ook iPhone SE, Pro Max en liggend). Ze komen in `screenshots/`, met per scherm een overzicht; die map staat niet in git. Vereist Playwright.
