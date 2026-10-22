@@ -6,7 +6,7 @@ import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { FIXED_THEMES, SEASON_THEMES, AUTO_CHOICES, SEASON_AUTO, themeById, resolveTheme, recordSeasonSolve, checkThemeUnlocks, seasonOf, seasonProgress } from './themes.js';
+import { FIXED_THEMES, SEASON_THEMES, SEASON_AUTO, themeById, resolveTheme, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, seasonOf, seasonProgress } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -30,7 +30,15 @@ if (testDate) store.useTestStorage();
 
 // ---------- Status ----------
 
-let settings = store.loadSettings();
+// Instellingen, met het oude 'Automatisch'-thema omgezet naar wat ze nu ziet.
+function loadSettings() {
+  const s = store.loadSettings();
+  const theme = migrateThemeSetting(s.theme, matchMedia('(prefers-color-scheme: dark)').matches);
+  if (theme !== s.theme) { s.theme = theme; store.saveSettings(s); }
+  return s;
+}
+
+let settings = loadSettings();
 let stats = store.loadStats();
 let unlocked = store.loadUnlocked();
 let game = Game.fromJSON(store.loadGame());
@@ -121,18 +129,15 @@ function themePreview(id) {
   const { bg, surface, accent, digit } = themeById(id).swatch;
   return `<span class="tp" style="--tp-bg:${bg};--tp-surface:${surface};--tp-accent:${accent};--tp-digit:${digit}"><b>7</b><em></em></span>`;
 }
-const darkQuery = matchMedia('(prefers-color-scheme: dark)');
-
 // Briefje: wat Ruby zelf invult staat er in zijn handschrift (hand/*.svg, zie style.css).
 const handwritten = () => document.documentElement.dataset.theme === 'briefje';
 
 function applyTheme() {
-  const t = resolveTheme(settings.theme, today(), stats.unlockedThemes, darkQuery.matches);
+  const t = resolveTheme(settings.theme, today(), stats.unlockedThemes);
   document.documentElement.dataset.theme = t;
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   document.querySelector('meta[name="theme-color"]').setAttribute('content', bg || '#fff8e7');
 }
-darkQuery.addEventListener?.('change', applyTheme);
 
 // ---------- Puzzels ophalen (Web Worker, met vangnet op de hoofdthread) ----------
 
@@ -1078,7 +1083,7 @@ function lockedSeason(t) {
 }
 
 function renderSettings() {
-  $('#theme-options').innerHTML = [...AUTO_CHOICES, ...FIXED_THEMES.map((t) => ({ ...t, previews: [t.id] }))].map(themeChoice).join('');
+  $('#theme-options').innerHTML = FIXED_THEMES.map((t) => themeChoice({ ...t, previews: [t.id] })).join('');
   const own = stats.unlockedThemes;
   const seasonNow = resolveTheme('seizoen', today(), own);
   $('#season-options').innerHTML = [
@@ -1128,7 +1133,7 @@ function requestPersist() {
 // Alles opnieuw inlezen, bijvoorbeeld na het terugzetten van een back-up.
 function reloadState() {
   closeHint(false);
-  settings = store.loadSettings();
+  settings = loadSettings();
   stats = store.loadStats();
   unlocked = store.loadUnlocked();
   game = Game.fromJSON(store.loadGame());

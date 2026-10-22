@@ -40,7 +40,7 @@ function remove(key) {
 // ---------- Instellingen ----------
 
 export const DEFAULT_SETTINGS = {
-  theme: 'auto', // auto | zonnig | nacht | gran-canaria | lelie
+  theme: 'zonnig', // zonnig | nacht | … | seizoen (zie themes.js)
   errors: 'direct', // direct | verzoek | uit
   autoNotes: true,
   highlightSame: true,

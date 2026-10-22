@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { THEMES, resolveTheme, themeById, seasonOf, checkThemeUnlocks, recordSeasonSolve, seasonProgress, SEASON_THEMES } from '../js/themes.js';
+import { THEMES, resolveTheme, migrateThemeSetting, themeById, seasonOf, checkThemeUnlocks, recordSeasonSolve, seasonProgress, SEASON_THEMES } from '../js/themes.js';
 import { emptyStats, migrateStats } from '../js/storage.js';
 
 // ---------- CSS-variabelen per thema uit style.css halen ----------
@@ -99,9 +99,11 @@ test('selectie, peers, gelijke cijfers, fout en hart zijn duidelijk van elkaar t
 
 const d = (y, m, day) => new Date(y, m - 1, day, 12);
 
-test('auto kiest licht of donker; onbekend valt terug op zonnig', () => {
-  assert.equal(resolveTheme('auto', d(2026, 10, 21), [], false), 'zonnig');
-  assert.equal(resolveTheme('auto', d(2026, 10, 21), [], true), 'nacht');
+test("het oude 'auto' wordt het thema dat ze toen zag; onbekend valt terug op zonnig", () => {
+  assert.equal(migrateThemeSetting('auto', false), 'zonnig');
+  assert.equal(migrateThemeSetting('auto', true), 'nacht');
+  assert.equal(migrateThemeSetting('lelie', true), 'lelie');
+  assert.equal(resolveTheme('auto', d(2026, 10, 21), []), 'zonnig');
   assert.equal(resolveTheme('lelie', d(2026, 10, 21), []), 'lelie');
   assert.equal(resolveTheme('bestaat-niet', d(2026, 10, 21), []), 'zonnig');
   assert.equal(themeById('nacht').scheme, 'dark');

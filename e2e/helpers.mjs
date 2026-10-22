@@ -25,9 +25,9 @@ export function savedGame(extra = {}) {
 
 // Opent de app. `storage` komt vóór het laden in localStorage (alleen bij de eerste keer, niet bij herladen).
 // Paginafouten worden verzameld in page.errors.
-export async function open(base, { storage = {}, prefix = PREFIX, query = '', serviceWorkers = 'block', viewport = { width: 390, height: 844 }, clock } = {}) {
+export async function open(base, { storage = {}, prefix = PREFIX, query = '', serviceWorkers = 'block', viewport = { width: 390, height: 844 }, clock, colorScheme = 'light' } = {}) {
   const b = await launch();
-  const context = await b.newContext({ viewport, serviceWorkers, isMobile: true, hasTouch: true, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
+  const context = await b.newContext({ viewport, serviceWorkers, colorScheme, isMobile: true, hasTouch: true, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
   if (clock) await context.clock.install({ time: clock });
   await context.addInitScript(({ storage, prefix }) => {
     if (sessionStorage.getItem('e2e-seeded')) return;

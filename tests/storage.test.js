@@ -256,7 +256,7 @@ test('berichtjes in de opslag zijn altijd een lijst met teksten', () => {
 test('instellingen met een verkeerd type vallen terug op standaard', () => {
   globalThis.localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme: 5, errors: 'uit', autoNotes: 'ja' }));
   const s = S.loadSettings();
-  assert.equal(s.theme, 'auto');
+  assert.equal(s.theme, 'zonnig');
   assert.equal(s.errors, 'uit');
   assert.equal(s.autoNotes, true);
 });
