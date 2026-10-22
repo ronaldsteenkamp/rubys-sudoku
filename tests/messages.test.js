@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine } from '../js/messages.js';
+import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine, milestoneBadge } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
 // Voorspelbare 'random' zodat de tests altijd hetzelfde doen.
@@ -136,12 +136,15 @@ test('volgende mijlpaal: de dichtstbijzijnde die nog geheim is', () => {
   assert.equal(next.milestone.id, 'streak3');
   assert.equal(next.remaining, 2);
   assert.equal(milestoneLine(next), 'Nog 2 dagen op rij tot je volgende geheime berichtje 🔐');
+  assert.equal(milestoneBadge(next), 'nog 2 dagen 🔐');
+  assert.equal(milestoneBadge({ ...next, remaining: 1 }), 'nog 1 dag 🔐', 'het bolletje zegt waar het om gaat');
 
   st.totalSolved = 9;
   const tien = nextMilestone(st, ['eerste', 'dag1', 'zonderhint']);
   assert.equal(tien.milestone.id, 'tien');
   assert.deepEqual([tien.current, tien.target], [9, 10]);
   assert.equal(milestoneLine(tien), 'Nog 1 puzzel tot je volgende geheime berichtje 🔐');
+  assert.equal(milestoneBadge(tien), 'nog 1 puzzel 🔐');
 
   st.streak = 0;
   st.totalSolved = 3;
@@ -155,6 +158,7 @@ test('volgende mijlpaal: niks meer te tellen, dan geen regeltje', () => {
   const rest = MILESTONES.filter((m) => m.progress).map((m) => m.id);
   assert.equal(nextMilestone(st, rest), null);
   assert.equal(milestoneLine(null), '');
+  assert.equal(milestoneBadge(null), '');
   assert.ok(!MILESTONES.find((m) => m.id === 'ruby').progress);
 });
 

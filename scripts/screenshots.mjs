@@ -47,7 +47,7 @@ function heartGame(almost) {
 const stats = { totalSolved: 9, dailySolved: 3, noHintSolved: 4, streak: 3, bestStreak: 3, lastSolvedDay: null, dailyDone: [], levels: { zondag: { played: 5, solved: 5, best: 241000, totalTime: 1500000 }, koffie: { played: 4, solved: 4, best: 402000, totalTime: 1900000 } } };
 
 // ---------- Schermen ----------
-const THEMES = [...ALL_THEMES.map((t) => [t.id, t.scheme]), ['auto', 'dark']]
+const THEMES = ALL_THEMES.map((t) => [t.id, t.scheme])
   .filter(([id]) => !only || only.includes(id));
 const IPHONE13 = { width: 390, height: 844 };
 // Met een iPhone-useragent verschijnt ook het 'zet op beginscherm'-bannertje.

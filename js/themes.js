@@ -4,8 +4,8 @@
 // Seizoensthema's (`season`) komen vrij door te spelen (`unlock`).
 
 export const THEMES = [
-  // Volgorde in de kiezer: eerst Zonnig en Nacht (waar 'Automatisch' tussen wisselt),
-  // dan het andere donkere thema, dan de persoonlijke thema's.
+  // Volgorde in de kiezer: eerst Zonnig en Nacht, dan het andere donkere
+  // thema, dan de persoonlijke thema's.
   {
     id: 'zonnig', name: 'Zonnig', scheme: 'light',
     celebrate: ['💛', '🐾', '🌼', '☀️'],
@@ -78,10 +78,7 @@ export const themeById = (id) => THEMES.find((t) => t.id === id) || THEMES.find(
 export const SEASON_THEMES = THEMES.filter((t) => t.season);
 export const FIXED_THEMES = THEMES.filter((t) => !t.season);
 
-// Keuzes in de kiezer die zelf geen thema zijn, maar er één uitkiezen.
-export const AUTO_CHOICES = [
-  { id: 'auto', name: 'Automatisch', previews: ['zonnig', 'nacht'] },
-];
+// Een keuze in de kiezer die zelf geen thema is, maar er één uitkiest.
 export const SEASON_AUTO = { id: 'seizoen', name: 'Seizoen', previews: ['lente', 'herfst'] };
 
 // ---------- Seizoenen ----------
@@ -119,12 +116,14 @@ export function checkThemeUnlocks(stats, date = new Date()) {
   return [theme.id];
 }
 
+// Vroeger kon het thema 'auto' zijn (licht of donker zoals het toestel). Dat
+// bestaat niet meer: wie het had, houdt het thema dat ze op dat moment zag.
+export const migrateThemeSetting = (setting, prefersDark = false) => (setting === 'auto' ? (prefersDark ? 'nacht' : 'zonnig') : setting);
+
 // Welk thema hoort bij een instelling?
-// - 'auto' volgt licht/donker van het toestel;
 // - 'seizoen' kiest het thema van nu als dat vrij is, anders zonnig;
-// - een (nog) vergrendeld seizoensthema valt terug op zonnig.
-export function resolveTheme(setting, date = new Date(), unlocked = [], prefersDark = false) {
-  if (setting === 'auto') return prefersDark ? 'nacht' : 'zonnig';
+// - een (nog) vergrendeld seizoensthema of een onbekende keuze valt terug op zonnig.
+export function resolveTheme(setting, date = new Date(), unlocked = []) {
   if (setting === 'seizoen') {
     const { season } = seasonOf(date);
     const t = SEASON_THEMES.find((s) => s.season === season);

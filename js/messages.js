@@ -1,7 +1,10 @@
 // Alles wat persoonlijk is: bijnamen, begroetingen, lieve berichtjes,
 // mijlpalen en speciale dagen. Pas gerust aan!
 
-export const NICKNAMES = ['Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje'];
+export const NICKNAMES = [
+  'Ruby', 'Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje',
+  'Van der Vegt', 'Vegtie', 'Au Pair', 'Jonkie',
+];
 
 // Samen sinds 29 september 2026; jarig op 12 oktober (2005).
 export const ANNIVERSARY = { year: 2026, month: 9, day: 29 };
@@ -314,12 +317,12 @@ export const MILESTONES = [
   { id: 'streak3', title: 'Drie op een rij', icon: '✨',
     hint: 'Puzzel 3 dagen achter elkaar',
     text: 'Drie dagen op rij! Je bent een gewoontedier, net als een hond die precies weet hoe laat het wandeltijd is 🐶',
-    unit: ['dag op rij', 'dagen op rij'], progress: (s) => ({ current: s.streak, target: 3 }),
+    unit: ['dag op rij', 'dagen op rij'], badge: ['dag', 'dagen'], progress: (s) => ({ current: s.streak, target: 3 }),
     check: (s) => s.bestStreak >= 3 },
   { id: 'streak7', title: 'Een hele week', icon: '🌈',
     hint: 'Puzzel 7 dagen achter elkaar',
     text: 'Een hele week elke dag gepuzzeld! Weet je wat ik elke dag doe? Blij zijn dat ik jou heb. 💛',
-    unit: ['dag op rij', 'dagen op rij'], progress: (s) => ({ current: s.streak, target: 7 }),
+    unit: ['dag op rij', 'dagen op rij'], badge: ['dag', 'dagen'], progress: (s) => ({ current: s.streak, target: 7 }),
     check: (s) => s.bestStreak >= 7 },
   { id: 'ruby', title: 'Ruby-modus verslagen', icon: '🔥',
     hint: 'Los een puzzel op in Ruby-modus',
@@ -333,7 +336,7 @@ export const MILESTONES = [
   { id: 'streak30', title: 'Een maand lang', icon: '🏆',
     hint: 'Puzzel 30 dagen achter elkaar',
     text: 'Dertig dagen op rij. Dertig! Volgens mij ben jij het meest volhardende mens dat ik ken. Ik ben trots op je.',
-    unit: ['dag op rij', 'dagen op rij'], progress: (s) => ({ current: s.streak, target: 30 }),
+    unit: ['dag op rij', 'dagen op rij'], badge: ['dag', 'dagen'], progress: (s) => ({ current: s.streak, target: 30 }),
     check: (s) => s.bestStreak >= 30 },
   { id: 'rugnummer33', title: 'Rugnummer 33', icon: '🏐',
     hint: 'Los 33 puzzels op',
@@ -374,6 +377,13 @@ export function milestoneLine(next) {
   if (!next) return '';
   const [one, many] = next.milestone.unit;
   return `Nog ${next.remaining} ${next.remaining === 1 ? one : many} tot je volgende geheime berichtje 🔐`;
+}
+
+// Kort, voor het bolletje op de knop Berichtjes: "nog 1 dag 🔐", "nog 3 puzzels 🔐".
+export function milestoneBadge(next) {
+  if (!next) return '';
+  const [one, many] = next.milestone.badge || next.milestone.unit;
+  return `nog ${next.remaining} ${next.remaining === 1 ? one : many} 🔐`;
 }
 
 // ---------- Nieuwe thema's (seizoenen) ----------

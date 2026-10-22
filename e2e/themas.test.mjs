@@ -1,0 +1,24 @@
+// Thema's: 'Automatisch' (licht/donker) bestaat niet meer, 'Seizoen' wel.
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { start, open, shutdown, stored } from './helpers.mjs';
+
+let server, base;
+before(async () => ({ server, base } = await start()));
+after(async () => { await shutdown(); server.close(); });
+
+for (const [colorScheme, want] of [['light', 'zonnig'], ['dark', 'nacht']]) {
+  test(`wie 'Automatisch' had, houdt op een ${colorScheme === 'dark' ? 'donker' : 'licht'} toestel het thema dat ze zag (${want})`, async () => {
+    const page = await open(base, { colorScheme, storage: { settings: { theme: 'auto' }, stats: { unlockedThemes: ['herfst'], levels: {} } } });
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), want);
+    assert.equal((await stored(page, 'settings')).theme, want);
+    await page.click('[data-open="settings-dialog"]');
+    const themes = await page.$$eval('#theme-options .theme-name', (els) => els.map((e) => e.textContent));
+    assert.ok(!themes.includes('Automatisch'));
+    assert.ok(themes.includes('Zonnig') && themes.includes('Nacht'));
+    const seasons = await page.$$eval('#season-options .theme-name', (els) => els.map((e) => e.textContent));
+    assert.ok(seasons.includes('Seizoen'), 'Seizoen (automatisch) blijft');
+    assert.deepEqual(page.errors, []);
+    await page.context().close();
+  });
+}
