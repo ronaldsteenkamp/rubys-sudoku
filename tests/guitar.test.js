@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pluck, harmonic, noteFreq, SCALE, digitNote, VOICES, createGuitar, G_CHORD, UNLOCK_TUNE, ALL_STRINGS } from '../js/guitar.js';
+import { pluck, harmonic, noteFreq, SCALE, digitNote, VOICES, createGuitar, G_CHORD, UNLOCK_TUNE, ALL_STRINGS, MAX_VOICES } from '../js/guitar.js';
 
 const SR = 44100;
 const rms = (a, from, to) => { let s = 0; for (let i = from; i < to; i++) s += a[i] * a[i]; return Math.sqrt(s / (to - from)); };
@@ -98,19 +98,19 @@ test('pluck is snel genoeg om bij de eerste tik te maken', () => {
 
 // Net genoeg van Web Audio om te zien welke buffers wanneer en hoe hard starten.
 function fakeContext() {
-  const param = (v = 0) => ({ value: v, events: [], setValueAtTime(x, t) { this.events.push(['set', x, t]); }, linearRampToValueAtTime(x, t) { this.events.push(['lin', x, t]); }, exponentialRampToValueAtTime(x, t) { this.events.push(['exp', x, t]); }, cancelScheduledValues() {} });
+  const param = (v = 0) => ({ value: v, events: [], setValueAtTime(x, t) { this.events.push(['set', x, t]); }, linearRampToValueAtTime(x, t) { this.events.push(['lin', x, t]); }, exponentialRampToValueAtTime(x, t) { this.events.push(['exp', x, t]); }, setTargetAtTime(x, t, c) { this.events.push(['target', x, t, c]); }, cancelScheduledValues() {} });
   const node = (extra = {}) => ({ connect(n) { return n; }, disconnect() {}, ...extra });
   const ctx = {
     sampleRate: 22050, currentTime: 10, destination: node(), started: [], made: 0,
     createBuffer(ch, length, sampleRate) { ctx.made++; const data = new Float32Array(length); return { length, sampleRate, data, copyToChannel(d) { data.set(d); }, getChannelData: () => data }; },
     createBufferSource() {
-      const src = node({ playbackRate: param(1), start(t) { ctx.started.push({ src, t, gain: src.out?.gain }); }, stop() {} });
+      const src = node({ playbackRate: param(1), start(t) { ctx.started.push({ src, t, gain: src.out?.gain }); }, stop(t) { src.stoppedAt = t; } });
       src.connect = (g) => { src.out = g; return g; };
       return src;
     },
     createGain() { return node({ gain: param(1) }); },
     createBiquadFilter() { return node({ type: '', frequency: param(), Q: param() }); },
-    createDynamicsCompressor() { return node({ threshold: param(), knee: param(), ratio: param(), attack: param(), release: param() }); },
+    createWaveShaper() { return node({ curve: null }); },
   };
   return ctx;
 }
@@ -197,4 +197,46 @@ test('gitaar: hint en gum, en warm() maakt alles alvast aan', () => {
   assert.equal(ctx.made, ALL_STRINGS.length);
   g.play('solved'); g.play('done', { digit: 9 }); g.play('unlock');
   assert.equal(ctx.made, ALL_STRINGS.length, 'na warm() hoeft er niks meer gemaakt te worden');
+});
+
+// Klinkt nog (niet gedempt)? Gedempt = een 'target'-event naar 0 op de gain.
+const ringing = (ctx) => ctx.started.filter((v) => !v.gain.events.some((e) => e[0] === 'target' && e[1] === 0));
+
+test('gitaar: hetzelfde cijfer snel achter elkaar dempt de vorige toon, zoals een snaar', () => {
+  const ctx = fakeContext();
+  const g = createGuitar(ctx);
+  for (let k = 0; k < 5; k++) { g.play('place', { digit: 4 }); ctx.currentTime += 0.08; }
+  assert.equal(ctx.started.length, 5);
+  assert.equal(ringing(ctx).length, 1, 'alleen de laatste klinkt nog');
+  assert.equal(ringing(ctx)[0], ctx.started[4]);
+  // Zacht afgekapt, niet abrupt, en daarna gestopt.
+  const fade = ctx.started[0].gain.events.find((e) => e[0] === 'target');
+  assert.ok(fade[3] >= 0.01 && fade[3] <= 0.05, 'korte, zachte demping');
+  assert.ok(ctx.started[0].src.stoppedAt > fade[2]);
+  // Een notitie op dezelfde snaar dempt hem ook.
+  g.play('note', { digit: 4 });
+  assert.equal(ringing(ctx).length, 1);
+});
+
+test(`gitaar: nooit meer dan ${MAX_VOICES} klanken tegelijk, ook bij heel snel tikken`, () => {
+  const ctx = fakeContext();
+  const g = createGuitar(ctx);
+  for (let k = 0; k < 30; k++) { g.play(k % 3 ? 'place' : 'note', { digit: (k % 9) + 1 }); ctx.currentTime += 0.03; }
+  g.play('solved'); g.play('unlock'); g.play('hint');
+  assert.ok(ringing(ctx).length <= MAX_VOICES, `${ringing(ctx).length} klanken tegelijk`);
+  // De nieuwste klanken zijn degene die blijven.
+  assert.ok(ringing(ctx).includes(ctx.started.at(-1)));
+});
+
+test('gitaar: de upstroke dempt dezelfde snaren van de downstroke, op het moment van aanslaan', () => {
+  const ctx = fakeContext();
+  createGuitar(ctx).play('solved');
+  const down = ctx.started.slice(0, 6), up = ctx.started.slice(6);
+  for (const name of ['G3', 'B3', 'G4']) {
+    const v = down[G_CHORD.indexOf(name)];
+    const fade = v.gain.events.find((e) => e[0] === 'target');
+    assert.ok(fade, `${name} wordt gedempt`);
+    assert.ok(Math.abs(fade[2] - up.find((u) => near(freqOf(u), name)).t) < 1e-9, `${name}: precies bij de upstroke`);
+  }
+  for (const name of ['G2', 'B2', 'D3']) assert.ok(ringing(ctx).includes(down[G_CHORD.indexOf(name)]), `${name} klinkt door`);
 });

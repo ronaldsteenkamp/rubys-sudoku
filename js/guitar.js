@@ -112,6 +112,9 @@ export const VOICES = {
 
 // ---------- Afspelen ----------
 
+// Hoeveel klanken er tegelijk mogen klinken. Meer wordt bij snel tikken een harde brij.
+export const MAX_VOICES = 8;
+
 // G-majeur op zes snaren (G2 B2 D3 G3 B3 G4), van laag naar hoog zoals bij een downstroke.
 export const G_CHORD = ['G2', 'B2', 'D3', 'G3', 'B3', 'G4'];
 
@@ -128,6 +131,9 @@ export const ALL_STRINGS = [
   ...G_CHORD.map((n) => [n, 'strum']),
   ...SCALE.slice(9).map((n) => [n, 'open']),
 ];
+
+// Zachte begrenzer: tanh over het bereik -1..1.
+const SOFT_CLIP = Float32Array.from({ length: 1025 }, (_, i) => Math.tanh((i / 512 - 1) * 1.5) / Math.tanh(1.5));
 
 // Een vast zaadje per toon: dezelfde snaar klinkt steeds hetzelfde.
 const seedOf = (name) => [...name].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619), 2166136261);
@@ -155,28 +161,46 @@ export function createGuitar(ctx) {
       : pluck(noteFreq(name), { sampleRate: sr, ...VOICES[kind], seed: seedOf(name) })));
   }
 
-  // Uitgang: een zachte laagdoorlaat voor een warme toon, en een begrenzer als vangnet.
+  // Uitgang: een zachte laagdoorlaat voor een warme toon, en een zachte begrenzer als vangnet.
+  // Geen DynamicsCompressor: die drukt elke aanslag plat en blaast de staart op (automatische
+  // make-up gain), wat bij snel tikken juist harder klinkt. Een tanh-curve is bij gewone volumes
+  // onhoorbaar (tanh(0,1) = 0,0997) en rondt alleen af als er toch veel tegelijk klinkt.
   const warmth = ctx.createBiquadFilter();
   warmth.type = 'lowpass';
   warmth.frequency.value = 3800;
   warmth.Q.value = 0.5;
-  const limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -14;
-  limiter.knee.value = 12;
-  limiter.ratio.value = 6;
-  limiter.attack.value = 0.003;
-  limiter.release.value = 0.25;
-  warmth.connect(limiter).connect(ctx.destination);
+  const soft = ctx.createWaveShaper();
+  soft.curve = SOFT_CLIP;
+  warmth.connect(soft).connect(ctx.destination);
 
-  function voice(buf, { at = 0, gain = 0.1 } = {}) {
+  // Wat er nu klinkt. `key` is de snaar (de toon): een nieuwe toon op dezelfde snaar dempt de
+  // vorige, zoals bij een echte gitaar.
+  let active = [];
+  function choke(v, at) {
+    const t = Math.max(at, v.t);
+    try {
+      v.g.gain.cancelScheduledValues(t);
+      v.g.gain.setTargetAtTime(0, t, 0.02);
+      v.src.stop(t + 0.15);
+    } catch { /* al gestopt */ }
+    v.choked = true;
+  }
+
+  function voice(buf, { at = 0, gain = 0.1, key = null } = {}) {
     const t = ctx.currentTime + at;
+    active = active.filter((v) => !v.choked && v.t + v.src.buffer.length / sr > ctx.currentTime);
+    if (key) for (const v of active) if (v.key === key) choke(v, t);
+    active = active.filter((v) => !v.choked);
+    while (active.length >= MAX_VOICES) choke(active.shift(), t);
     const src = ctx.createBufferSource();
     src.buffer = buf;
     const g = ctx.createGain();
     g.gain.setValueAtTime(gain, t);
     src.connect(g).connect(warmth);
     src.start(t);
-    return { src, g, t };
+    const v = { src, g, t, key };
+    active.push(v);
+    return v;
   }
 
   const note = (d) => SCALE[Math.min(Math.max(1, d || 6), 9) - 1];
@@ -185,41 +209,42 @@ export function createGuitar(ctx) {
   function strum(names, { at = 0, gain = 0.08, spacing = 0.024 } = {}) {
     names.forEach((name, k) => {
       const jitter = (Math.random() - 0.5) * 0.008;
-      voice(string(name, 'strum'), { at: at + k * spacing + Math.max(0, jitter), gain: gain * (0.85 + Math.random() * 0.3) });
+      voice(string(name, 'strum'), { at: at + k * spacing + Math.max(0, jitter), gain: gain * (0.85 + Math.random() * 0.3), key: name });
     });
   }
 
   const SOUNDS = {
     // Cijfer zetten: de eigen toon van dat cijfer.
-    place: ({ digit }) => voice(string(note(digit)), { gain: 0.15 }),
+    place: ({ digit }) => voice(string(note(digit)), { gain: 0.09, key: note(digit) }),
     // Notitie: dezelfde toon, maar gedempt (palm mute).
-    note: ({ digit }) => voice(string(note(digit), 'mute'), { gain: 0.08 }),
+    note: ({ digit }) => voice(string(note(digit), 'mute'), { gain: 0.07, key: note(digit) }),
     // Gummen of ongedaan maken: een lage, gedempte snaar.
-    erase: () => voice(string('G2', 'mute'), { gain: 0.12 }),
+    erase: () => voice(string('G2', 'mute'), { gain: 0.07, key: 'G2' }),
     // Fout: de toon van het cijfer zakt na de aanslag een halve toon, zacht.
     wrong: ({ digit }) => {
-      const v = voice(string(note(digit)), { gain: 0.09 });
+      const v = voice(string(note(digit)), { gain: 0.055, key: note(digit) });
       v.src.playbackRate.setValueAtTime(1, v.t + 0.07);
       v.src.playbackRate.linearRampToValueAtTime(2 ** (-1 / 12), v.t + 0.32);
       return v;
     },
     // Hint: een flageolet, helder en puur.
-    hint: () => voice(string('G5', 'harmonic'), { gain: 0.07 }),
+    hint: () => voice(string('G5', 'harmonic'), { gain: 0.028, key: 'flageolet' }),
     // Cijfer compleet: drie tonen omhoog, met steeds één toon van de toonladder ertussen.
     done: ({ digit }) => [0, 2, 4].forEach((step, k) => {
-      voice(string(SCALE[Math.min(Math.max(1, digit || 1), 9) - 1 + step]), { at: k * 0.075, gain: 0.11 });
+      const name = SCALE[Math.min(Math.max(1, digit || 1), 9) - 1 + step];
+      voice(string(name), { at: k * 0.075, gain: 0.065, key: name });
     }),
     // Opgelost: een G-akkoord als downstroke, daarna een zachtere upstroke op de bovenste snaren.
     solved: () => {
-      strum(G_CHORD, { gain: 0.09, spacing: 0.025 });
-      strum(['G4', 'B3', 'G3'], { at: 0.62, gain: 0.05, spacing: 0.018 });
+      strum(G_CHORD, { gain: 0.055, spacing: 0.025 });
+      strum(['G4', 'B3', 'G3'], { at: 0.62, gain: 0.03, spacing: 0.018 });
     },
     // Nieuw geheim berichtje: een eigen melodietje.
     unlock: () => UNLOCK_TUNE.forEach(([name, at], k) => {
-      voice(string(name), { at, gain: k === UNLOCK_TUNE.length - 1 ? 0.13 : 0.11 });
+      voice(string(name), { at, gain: k === UNLOCK_TUNE.length - 1 ? 0.08 : 0.065, key: name });
     }),
     // Voorproefje bij het kiezen van Gitaar: één zachte, vlotte aanslag.
-    preview: () => strum(G_CHORD, { gain: 0.06, spacing: 0.02 }),
+    preview: () => strum(G_CHORD, { gain: 0.036, spacing: 0.02 }),
   };
 
   return {

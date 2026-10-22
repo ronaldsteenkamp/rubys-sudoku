@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Gitaargeluiden</title>
+  <!-- Luisterpagina voor de gitaarklanken van Ruby's Sudoku (niet in de app zelf, niet in de service worker).
+       Open hem op de iPhone via …/rubys-sudoku/scripts/gitaar.html -->
+  <style>
+    :root { color-scheme: light dark; --bg: #fff8e7; --card: #fff; --ink: #3a2e1f; --soft: #6b5c46; --line: #ecdcb7; --accent: #f5c02e; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #16141d; --card: #221f2d; --ink: #f3ecdf; --soft: #b9ad9a; --line: #3a3447; --accent: #f5c451; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: max(16px, env(safe-area-inset-top)) 16px 32px; background: var(--bg); color: var(--ink); font: 17px/1.45 system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    main { max-width: 520px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+    h2 { font-size: 1rem; margin: 22px 0 8px; color: var(--soft); text-transform: uppercase; letter-spacing: 0.06em; }
+    p { margin: 0 0 8px; color: var(--soft); font-size: 0.95rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+    .digits { grid-template-columns: repeat(9, 1fr); gap: 5px; }
+    button { min-height: 52px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); font: 600 0.95rem/1.2 system-ui, -apple-system, sans-serif; touch-action: manipulation; }
+    button:active { transform: scale(0.96); background: var(--accent); }
+    .digits button { font-size: 1.3rem; padding: 0; }
+    small { display: block; font-weight: 400; font-size: 0.72rem; color: var(--soft); }
+    #status { margin-top: 18px; min-height: 1.4em; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Gitaargeluiden 🎸</h1>
+  <p>Alle klanken van de stijl Gitaar, met precies dezelfde code als in de app. Het geluid volgt de stilteschakelaar: staat de iPhone op stil, dan hoor je niks.</p>
+
+  <h2>Cijfer zetten</h2>
+  <div class="grid digits" data-sound="place"></div>
+  <h2>Notitie (palm mute)</h2>
+  <div class="grid digits" data-sound="note"></div>
+  <h2>Fout cijfer (buigt een halve toon omlaag)</h2>
+  <div class="grid digits" data-sound="wrong"></div>
+  <h2>Cijfer compleet (arpeggio)</h2>
+  <div class="grid digits" data-sound="done"></div>
+
+  <h2>Overige</h2>
+  <div class="grid">
+    <button data-play="erase">Gum<small>en ongedaan maken</small></button>
+    <button data-play="hint">Hint<small>flageolet</small></button>
+    <button data-play="solved">Opgelost<small>G-akkoord</small></button>
+    <button data-play="unlock">Geheim berichtje<small>melodietje</small></button>
+    <button data-play="preview">Voorproefje<small>bij kiezen van Gitaar</small></button>
+  </div>
+
+  <h2>Stresstest</h2>
+  <div class="grid">
+    <button id="fast">Snel 1 t/m 9<small>60 ms per tik</small></button>
+    <button id="same">20× dezelfde<small>cijfer 5, 50 ms</small></button>
+    <button id="mash">Wild tikken<small>40 tikken in 1,2 s</small></button>
+    <button id="melody">Een rijtje zetten<small>zoals tijdens het spelen</small></button>
+  </div>
+  <p id="status"></p>
+</main>
+
+<script type="module">
+  import { createGuitar, ALL_STRINGS } from '../js/guitar.js';
+
+  // Net als in de app: geluid als 'ambient', dan volgt het de stilteschakelaar.
+  try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch { /* oudere browsers */ }
+
+  for (const row of document.querySelectorAll('[data-sound]')) {
+    for (let d = 1; d <= 9; d++) row.insertAdjacentHTML('beforeend', `<button data-play="${row.dataset.sound}" data-digit="${d}">${d}</button>`);
+  }
+
+  let ctx = null, guitar = null;
+  const status = (text) => { document.querySelector('#status').textContent = text; };
+
+  // Pas bij de eerste tik: iOS start geen geluid zonder tik.
+  function ready() {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      guitar = createGuitar(ctx);
+      const t = performance.now();
+      guitar.warm(ALL_STRINGS, (fn) => fn());
+      status(`Alle ${ALL_STRINGS.length} klanken gemaakt in ${Math.round(performance.now() - t)} ms (${ctx.sampleRate} Hz).`);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return guitar;
+  }
+  const play = (kind, digit) => ready().play(kind, { digit });
+  const repeat = (n, ms, fn) => { for (let k = 0; k < n; k++) setTimeout(() => fn(k), k * ms); };
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-play]');
+    if (b) play(b.dataset.play, Number(b.dataset.digit) || undefined);
+  });
+  document.querySelector('#fast').addEventListener('click', () => { ready(); repeat(9, 60, (k) => play('place', k + 1)); });
+  document.querySelector('#same').addEventListener('click', () => { ready(); repeat(20, 50, () => play('place', 5)); });
+  document.querySelector('#mash').addEventListener('click', () => { ready(); repeat(40, 30, () => play(Math.random() < 0.3 ? 'note' : 'place', 1 + Math.floor(Math.random() * 9))); });
+  document.querySelector('#melody').addEventListener('click', () => { ready(); [5, 3, 8, 1, 6, 9, 2, 7, 4].forEach((d, k) => setTimeout(() => play('place', d), k * 420 + Math.random() * 150)); });
+</script>
+</body>
+</html>
