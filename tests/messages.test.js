@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine, milestoneBadge } from '../js/messages.js';
+import { greeting, GREETINGS, WEEKDAY_GREETINGS, SUBTITLES, PART_SUBTITLES, subtitle, partOfDay, specialDay, specialById, daysTogether, loveNote, LOVE_NOTES, newMilestones, NICKNAMES, MILESTONES, nextMilestone, milestoneLine, milestoneBadge, humanDuration, recordLine, RECORD_LINES, FIRST_LEVEL_LINES, monthSummary, emptyDayLine, calendarRecordNote } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
 // Voorspelbare 'random' zodat de tests altijd hetzelfde doen.
@@ -172,4 +172,52 @@ test('begroeting gebruikt geen bijnamen van 1–2 tekens', () => {
       assert.ok(short.every((n) => !new RegExp(`\\b${n}\\b`).test(g)), g);
     }
   }
+});
+
+test('tijdsverschil zoals je het zegt', () => {
+  const cases = [
+    [400, 'een tikje'], [1000, '1 seconde'], [12000, '12 seconden'], [59000, '59 seconden'],
+    [60000, 'een minuut'], [80000, 'ruim een minuut'], [110000, 'bijna 2 min'], [120000, '2 min'],
+    [150000, 'ruim 2 min'], [170000, 'bijna 3 min'], [3585000, 'bijna een uur'], [3570000, 'ruim 59 min'], [3600000, 'een uur'],
+    [5400000, 'ruim een uur'], [7200000, '2 uur'], [-5, 'een tikje'],
+  ];
+  for (const [ms, want] of cases) assert.equal(humanDuration(ms), want, `${ms} ms`);
+});
+
+const koffie = { name: 'Koffie erbij', emoji: '☕' };
+
+test('recordregel: warm, met het niveau en hoeveel sneller, in elke variant', () => {
+  assert.ok(RECORD_LINES.length >= 4);
+  for (let k = 0; k < RECORD_LINES.length; k++) {
+    const rng = () => (k + 0.5) / RECORD_LINES.length;
+    const line = recordLine({ level: koffie, elapsed: 300000, previousBest: 420000, firstOnLevel: false }, rng);
+    assert.match(line, /Koffie erbij/);
+    assert.match(line, /2 min/);
+    assert.ok(!/undefined|null|NaN/.test(line), line);
+    assert.match(line.charAt(0), /[A-Z0-9]/, `begint met een hoofdletter of getal: ${line}`);
+  }
+  assert.equal(recordLine({ level: koffie, elapsed: 300000, previousBest: 420000 }, () => 0),
+    'Nieuw record op Koffie erbij! 2 min sneller dan je vorige beste ☕');
+});
+
+test('recordregel: niets bij langzamer of even snel, zacht bij de allereerste', () => {
+  assert.equal(recordLine({ level: koffie, elapsed: 500000, previousBest: 420000, firstOnLevel: false }), '');
+  assert.equal(recordLine({ level: koffie, elapsed: 420000, previousBest: 420000, firstOnLevel: false }), '');
+  assert.equal(recordLine({ level: koffie, elapsed: 420000, previousBest: null, firstOnLevel: false }), '');
+  for (let k = 0; k < FIRST_LEVEL_LINES.length; k++) {
+    const line = recordLine({ level: { name: 'Even nadenken', emoji: '🤔' }, elapsed: 1, previousBest: null, firstOnLevel: true }, () => (k + 0.5) / FIRST_LEVEL_LINES.length);
+    assert.match(line, /eerste Even nadenken/);
+    assert.ok(!/sneller/.test(line));
+  }
+});
+
+test('kalender: maandzinnetje, lege dag en recordnotitie', () => {
+  assert.equal(monthSummary({ puzzles: 14, days: 9, current: true, month: 'oktober' }), 'Deze maand: 14 puzzels op 9 dagen 💛');
+  assert.equal(monthSummary({ puzzles: 1, days: 1, current: false, month: 'september' }), 'In september: 1 puzzel op 1 dag 💛');
+  assert.match(monthSummary({ puzzles: 0, days: 0, current: true, month: 'oktober' }), /Deze maand nog geen/);
+  assert.match(monthSummary({ puzzles: 0, days: 0, current: false, month: 'augustus' }), /In augustus/);
+  assert.match(emptyDayLine({ isToday: true }), /Vandaag/);
+  assert.match(emptyDayLine({ future: true }), /nog komen/);
+  assert.match(emptyDayLine({}), /Rustdagen/);
+  assert.equal(calendarRecordNote('2026-10-22'), calendarRecordNote('2026-10-22'), 'vast per dag');
 });

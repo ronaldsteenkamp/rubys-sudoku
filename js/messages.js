@@ -386,6 +386,80 @@ export function milestoneBadge(next) {
   return `nog ${next.remaining} ${next.remaining === 1 ? one : many} 🔐`;
 }
 
+// ---------- Persoonlijke records ----------
+
+const capital = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+
+// Een tijdsverschil zoals je het hardop zou zeggen: "12 seconden",
+// "ruim een minuut", "2 min", "bijna een uur".
+export function humanDuration(ms) {
+  const s = Math.round(Math.max(0, ms) / 1000);
+  if (s < 1) return 'een tikje';
+  if (s === 1) return '1 seconde';
+  if (s < 60) return `${s} seconden`;
+  // In hele minuten (of uren), met 'ruim' of 'bijna' voor wat er overblijft.
+  const say = (n, rest, part, one, unit, next) => {
+    if (rest < part / 4) return n === 1 ? one : `${n} ${unit}`;
+    if (rest < (part * 3) / 4) return n === 1 ? `ruim ${one}` : `ruim ${n} ${unit}`;
+    return `bijna ${next(n + 1)}`;
+  };
+  if (s < 3600) {
+    return say(Math.floor(s / 60), s % 60, 60, 'een minuut', 'min', (n) => (n === 60 ? 'een uur' : `${n} min`));
+  }
+  return say(Math.floor(s / 3600), s % 3600, 3600, 'een uur', 'uur', (n) => `${n} uur`);
+}
+
+// Een nieuw persoonlijk record. `level` = { name, emoji }; `diff` = hoeveel sneller (tekst).
+export const RECORD_LINES = [
+  ({ name, emoji, diff }) => `Nieuw record op ${name}! ${capital(diff)} sneller dan je vorige beste ${emoji}`,
+  ({ name, emoji, diff }) => `${capital(diff)} sneller dan ooit op ${name}. Wat ben jij goed bezig ${emoji}`,
+  ({ name, diff }) => `Record op ${name}! Je was ${diff} sneller dan je vorige beste 🏅`,
+  ({ name, diff }) => `Zo snel was je nog nooit op ${name}: ${diff} van je record af 💛`,
+  ({ name, emoji, diff, nick }) => `Wauw${nick}, een nieuw record op ${name}! ${capital(diff)} sneller dan vorige keer ${emoji}`,
+];
+
+// De allereerste op een niveau: nog geen record, wel iets om naar uit te kijken.
+export const FIRST_LEVEL_LINES = [
+  ({ name, emoji }) => `Je eerste ${name}! Vanaf nu heb je een record om te verbreken ${emoji}`,
+  ({ name, emoji }) => `Hoera, je allereerste ${name}! Deze tijd is vanaf nu je record ${emoji}`,
+  ({ name, emoji }) => `Je eerste ${name} staat erop. Volgende keer mag je tegen jezelf racen ${emoji}`,
+];
+
+// De regel voor het opgelost-scherm, of '' als er niks te melden valt. We zijn
+// nooit negatief: langzamer dan je record zeggen we gewoon niet.
+export function recordLine({ level, elapsed, previousBest, firstOnLevel }, rng = Math.random) {
+  if (firstOnLevel && previousBest == null) return pick(FIRST_LEVEL_LINES, rng)(level);
+  if (previousBest == null || !(elapsed < previousBest)) return '';
+  return pick(RECORD_LINES, rng)({ ...level, diff: humanDuration(previousBest - elapsed), nick: maybeNick(rng, 0.6) });
+}
+
+// ---------- Kalender ----------
+
+export const CALENDAR_WEEKDAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
+export const CALENDAR_PICK_DAY = 'Tik op een dag om te zien wat je toen hebt opgelost.';
+
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+// Onderaan de maand: "Deze maand: 14 puzzels op 9 dagen 💛".
+export function monthSummary({ puzzles, days, current, month }) {
+  if (!puzzles) return current ? 'Deze maand nog geen puzzels. Zin in eentje? 💛' : `In ${month} geen puzzels: even pauze, dat mag ook 🌿`;
+  return `${current ? 'Deze maand' : `In ${month}`}: ${plural(puzzles, 'puzzel', 'puzzels')} op ${plural(days, 'dag', 'dagen')} 💛`;
+}
+
+// Een dag zonder puzzels.
+export function emptyDayLine({ isToday, future }) {
+  if (future) return 'Deze dag moet nog komen ✨';
+  if (isToday) return 'Vandaag nog niks opgelost. De dagpuzzel staat voor je klaar ☀️';
+  return 'Deze dag even geen puzzel. Rustdagen horen er ook bij 🌿';
+}
+
+// Bij een puzzel waarmee ze een record zette (vast per dag, zodat het niet verspringt).
+export const CALENDAR_RECORD_NOTES = ['Hier zette je een nieuw record 🏅', 'Record! Sneller dan ooit op dit niveau 🏅', 'Een record-dag, wat knap 🏅'];
+export const calendarRecordNote = (day) => CALENDAR_RECORD_NOTES[Number(day.slice(-2)) % CALENDAR_RECORD_NOTES.length];
+
+// Waar een speciale puzzel bij hoorde, voor de kalender.
+export const specialLabel = (id) => (specialById(id)?.kind === 'verjaardag' ? 'je verjaardag 🎂' : 'ons jubileum 💛');
+
 // ---------- Nieuwe thema's (seizoenen) ----------
 
 export const THEME_UNLOCK_TEXT = {

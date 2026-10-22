@@ -56,6 +56,8 @@ let paused = false;
 const svg = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 const ICONS = {
   back: svg('<path d="M15 5l-7 7 7 7"/>'),
+  next: svg('<path d="M9 5l7 7-7 7"/>'),
+  heart: '<svg viewBox="0 0 24 22" aria-hidden="true"><path fill="currentColor" d="M12 21.5C5.6 16.6 1 12.6 1 7.6A5.8 5.8 0 0 1 6.8 1.8c2.1 0 3.9 1.1 5.2 2.9 1.3-1.8 3.1-2.9 5.2-2.9A5.8 5.8 0 0 1 23 7.6c0 5-4.6 9-11 13.9z"/></svg>',
   pause: svg('<path d="M9 5v14M15 5v14"/>'),
   menu: svg('<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>'),
   undo: svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/>'),
@@ -903,7 +905,7 @@ function onSolved() {
   render();
   const day = dateKey(today());
   const started = dateKey(new Date(g.startedAt));
-  const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started }, day);
+  const { previousBest, firstOnLevel, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started }, day);
   // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
   let freshThemes = [];
   if (counted) {
@@ -958,10 +960,14 @@ function onSolved() {
   $('#solved-stats').textContent = [
     g.special ? 'Speciale puzzel' : g.daily ? `Dagpuzzel · ${lvl.name}` : lvl.name,
     formatTime(g.elapsed),
-    newBest && stats.levels[g.levelId].solved > 1 ? 'nieuw record! 🏅' : null,
     g.hints ? `${g.hints} ${g.hints === 1 ? 'hint' : 'hints'}` : 'zonder hints',
     !g.mistakes && settings.errors !== 'uit' ? 'zonder fouten ✨' : null,
   ].filter(Boolean).join(' · ');
+  // Een nieuw persoonlijk record (of de allereerste op dit niveau) krijgt een eigen, warme regel.
+  // Een speciale puzzel is geen wedstrijdje; daar zeggen we niks over tijden.
+  const recordText = counted && !g.special ? M.recordLine({ level: lvl, elapsed: g.elapsed, previousBest, firstOnLevel }) : '';
+  $('#solved-record').textContent = recordText;
+  $('#solved-record').hidden = !recordText;
   $('#solved-note').textContent = note;
   $('#solved-again').textContent = 'Nog eentje';
   $('#solved-again').dataset.level = g.special || g.daily ? 'koffie' : g.levelId;
@@ -1223,7 +1229,21 @@ $('#backup-undo').addEventListener('click', () => { undoRestore().catch(() => to
 
 // ---------- Statistieken & berichtjes ----------
 
+// Statistieken: 'Overzicht' (de cijfers) of 'Kalender'.
+let statsView = 'overzicht';
+function showStatsView(view) {
+  statsView = view;
+  for (const r of document.querySelectorAll('input[name="stats-view"]')) r.checked = r.value === view;
+  $('#stats-body').hidden = view !== 'overzicht';
+  $('#calendar').hidden = view !== 'kalender';
+  if (view === 'kalender') renderCalendar();
+}
+for (const r of document.querySelectorAll('input[name="stats-view"]')) r.addEventListener('change', () => showStatsView(r.value));
+
 function renderStats() {
+  calMonth = null;
+  calSelected = dateKey(today());
+  showStatsView(statsView);
   const key = dateKey(today());
   const rows = LEVELS.map((l) => {
     const s = stats.levels[l.id] || {};
@@ -1245,6 +1265,141 @@ function renderStats() {
       <tbody>${rows}</tbody>
     </table>`;
 }
+
+// ---------- Kalender ----------
+
+let calMonth = null; // { y, m } die nu in beeld is (m = 0..11)
+let calSelected = null; // 'JJJJ-MM-DD'
+
+const monthKey = ({ y, m }) => y * 12 + m;
+const dayKeyOf = (y, m, d) => dateKey(new Date(y, m, d));
+const monthName = (y, m) => new Date(y, m, 1).toLocaleDateString('nl-NL', { month: 'long' });
+const longDate = (key) => {
+  const [y, m, d] = key.split('-').map(Number);
+  const text = new Date(y, m - 1, d).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+// Alle opgeloste puzzels per dag, en de eerste maand waar iets in staat.
+function calendarData() {
+  const byDay = new Map();
+  for (const e of store.logEntries(stats)) {
+    if (!byDay.has(e.day)) byDay.set(e.day, []);
+    byDay.get(e.day).push(e);
+  }
+  const first = store.logEntries(stats)[0]?.day;
+  return { byDay, first: first ? { y: Number(first.slice(0, 4)), m: Number(first.slice(5, 7)) - 1 } : null };
+}
+
+function renderCalendar() {
+  const now = today();
+  const todayKey = dateKey(now);
+  const thisMonth = { y: now.getFullYear(), m: now.getMonth() };
+  const { byDay, first } = calendarData();
+  const minMonth = first && monthKey(first) < monthKey(thisMonth) ? first : thisMonth;
+  calMonth ??= thisMonth;
+  if (monthKey(calMonth) > monthKey(thisMonth)) calMonth = thisMonth;
+  if (monthKey(calMonth) < monthKey(minMonth)) calMonth = minMonth;
+  const { y, m } = calMonth;
+  const name = monthName(y, m);
+
+  $('#cal-prev').innerHTML = ICONS.back;
+  $('#cal-next').innerHTML = ICONS.next;
+  $('#cal-prev').disabled = monthKey(calMonth) <= monthKey(minMonth);
+  $('#cal-next').disabled = monthKey(calMonth) >= monthKey(thisMonth);
+  $('#cal-month').textContent = `${name.charAt(0).toUpperCase()}${name.slice(1)} ${y}`;
+  $('#cal-weekdays').innerHTML = M.CALENDAR_WEEKDAYS.map((d) => `<span>${d}</span>`).join('');
+
+  // Het maandrooster: maandag eerst, lege plekjes vóór de eerste dag.
+  const days = new Date(y, m + 1, 0).getDate();
+  const offset = (new Date(y, m, 1).getDay() + 6) % 7;
+  const hand = handwritten();
+  // Een gekozen dag uit een andere maand telt hier niet.
+  if (calSelected?.slice(0, 7) !== dayKeyOf(y, m, 1).slice(0, 7)) calSelected = null;
+  // Wie met het toetsenbord in het rooster komt, landt op de gekozen dag (of vandaag, of de 1e).
+  const focusKey = calSelected || (monthKey(calMonth) === monthKey(thisMonth) ? todayKey : dayKeyOf(y, m, 1));
+  let html = '<span></span>'.repeat(offset);
+  let puzzles = 0, solvedDays = 0;
+  for (let d = 1; d <= days; d++) {
+    const key = dayKeyOf(y, m, d);
+    const list = byDay.get(key) || [];
+    const future = key > todayKey;
+    puzzles += list.length;
+    if (list.length) solvedDays++;
+    const daily = list.some((e) => e.daily), special = list.find((e) => e.special);
+    const cls = ['cal-day', list.length ? 'solved' : '', daily ? 'daily' : '', special ? 'special' : '', key === todayKey ? 'today' : ''].filter(Boolean).join(' ');
+    const heart = list.length ? (hand ? '<span class="cal-heart hand-art hart-2" aria-hidden="true"></span>' : `<span class="cal-heart" aria-hidden="true">${ICONS.heart}</span>`) : '';
+    const label = [
+      `${d} ${name}`, key === todayKey ? 'vandaag' : '',
+      list.length ? `${list.length} ${list.length === 1 ? 'puzzel' : 'puzzels'} opgelost` : future ? '' : 'geen puzzel',
+      daily ? 'met de dagpuzzel' : '', special ? `speciale puzzel voor ${M.specialLabel(special.special).replace(/ \S+$/, '')}` : '',
+    ].filter(Boolean).join(', ');
+    html += `<button type="button" class="${cls}" data-day="${key}" aria-label="${escapeHtml(label)}" aria-pressed="${key === calSelected}"
+      tabindex="${key === focusKey ? 0 : -1}"${future ? ' disabled' : ''}><span class="cal-num">${d}</span>${heart}</button>`;
+  }
+  $('#cal-grid').innerHTML = html;
+  $('#cal-grid').setAttribute('aria-label', `Dagen in ${name} ${y}`);
+  $('#cal-summary').textContent = M.monthSummary({ puzzles, days: solvedDays, current: monthKey(calMonth) === monthKey(thisMonth), month: name });
+  renderCalendarDay(byDay, todayKey);
+}
+
+// Wat ze op de gekozen dag heeft opgelost.
+function renderCalendarDay(byDay, todayKey) {
+  const box = $('#cal-detail');
+  if (!calSelected) { box.innerHTML = `<p class="muted">${escapeHtml(M.CALENDAR_PICK_DAY)}</p>`; return; }
+  const list = byDay.get(calSelected) || [];
+  const items = list.map((e) => {
+    const lvl = e.level ? levelById(e.level) : null;
+    const [emoji, what] = e.special ? ['💛', 'Hartjespuzzel'] : lvl ? [lvl.emoji, lvl.name] : ['📅', 'Dagpuzzel'];
+    const meta = [
+      e.special ? M.specialLabel(e.special) : '',
+      e.ms != null ? formatTime(e.ms) : '',
+      e.hints == null ? '' : e.hints ? `${e.hints} ${e.hints === 1 ? 'hint' : 'hints'}` : 'zonder hints',
+      e.daily && lvl ? 'de dagpuzzel' : '',
+    ].filter(Boolean).join(' · ');
+    return `<li><span class="cal-emoji" aria-hidden="true">${emoji}</span><div><span class="cal-what">${escapeHtml(what)}</span>
+      ${meta ? `<span class="cal-meta"> · ${escapeHtml(meta)}</span>` : ''}${e.record ? `<p class="cal-record">${escapeHtml(M.calendarRecordNote(e.day))}</p>` : ''}</div></li>`;
+  }).join('');
+  box.innerHTML = `<h4>${escapeHtml(longDate(calSelected))}</h4>${items
+    ? `<ul class="cal-list">${items}</ul>`
+    : `<p class="muted">${escapeHtml(M.emptyDayLine({ isToday: calSelected === todayKey, future: calSelected > todayKey }))}</p>`}`;
+}
+
+function moveCalMonth(step) {
+  calMonth = { y: calMonth.y + Math.floor((calMonth.m + step) / 12), m: (((calMonth.m + step) % 12) + 12) % 12 };
+  calSelected = null;
+  renderCalendar();
+}
+$('#cal-prev').addEventListener('click', () => moveCalMonth(-1));
+$('#cal-next').addEventListener('click', () => moveCalMonth(1));
+
+$('#cal-grid').addEventListener('click', (e) => {
+  const b = e.target.closest('.cal-day');
+  if (!b || b.disabled) return;
+  calSelected = b.dataset.day;
+  renderCalendar();
+  $(`#cal-grid [data-day="${calSelected}"]`)?.focus();
+});
+
+// Met het toetsenbord: pijltjes per dag of week, Home/End naar begin of eind, PageUp/PageDown per maand.
+$('#cal-grid').addEventListener('keydown', (e) => {
+  const b = e.target.closest('.cal-day');
+  if (!b) return;
+  const days = [...$('#cal-grid').querySelectorAll('.cal-day:not(:disabled)')];
+  const i = days.indexOf(b);
+  const to = { ArrowLeft: i - 1, ArrowRight: i + 1, ArrowUp: i - 7, ArrowDown: i + 7, Home: 0, End: days.length - 1 }[e.key];
+  if (e.key === 'PageUp' || e.key === 'PageDown') {
+    const btn = e.key === 'PageUp' ? $('#cal-prev') : $('#cal-next');
+    e.preventDefault();
+    if (!btn.disabled) { moveCalMonth(e.key === 'PageUp' ? -1 : 1); $('#cal-grid .cal-day[tabindex="0"]')?.focus(); }
+    return;
+  }
+  if (to === undefined) return;
+  e.preventDefault();
+  const target = days[Math.max(0, Math.min(days.length - 1, to))];
+  for (const d of days) d.tabIndex = d === target ? 0 : -1;
+  target.focus();
+});
 
 function renderMilestones() {
   $('#notes-list').innerHTML = M.MILESTONES.map((m) => {

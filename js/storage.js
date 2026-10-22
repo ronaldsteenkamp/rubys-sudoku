@@ -98,7 +98,62 @@ export function emptyStats() {
     specialDone: [],
     seasonSolves: {}, // { 'herfst-2026': 2 } opgeloste puzzels per seizoen
     unlockedThemes: [], // ontgrendelde seizoensthema's, bijv. ['herfst']
+    log: [], // logboek van opgeloste puzzels, zie hieronder
   };
+}
+
+// ---------- Logboek (voor de kalender) ----------
+
+// Elke meegetelde opgeloste puzzel komt in het logboek. De statistieken gaan
+// bij elke oplossing in hun geheel naar localStorage, dus het logboek is
+// compact: geen object per puzzel, maar een korte rij
+//   [dag, niveau, seconden, hints, vlaggen]  of met een speciale dag erachter:
+//   [dag, niveau, seconden, hints, vlaggen, speciaal]
+// met vlaggen 1 = dagpuzzel en 2 = record. Een regel is zo ±40 tekens, dus
+// zelfs een vol logboek blijft rond de 60 KB. Seconden zijn genoeg (de app
+// toont nooit meer). Niveau en hints zijn null bij oude dagpuzzels (van vóór
+// het logboek) waarvan we die niet weten, en de tijd soms ook.
+// Bewaard wordt ruim twee jaar, en hooguit 1500 puzzels; de oudste gaan eruit.
+export const LOG_MAX = 1500;
+export const LOG_DAYS = 800;
+const LOG_DAILY = 1, LOG_RECORD = 2;
+
+const isLevelId = (l) => l === null || (typeof l === 'string' && isKey(l));
+const isSpecialId = (sp) => typeof sp === 'string' && /^(jubileum|verjaardag)-\d{4}$/.test(sp);
+
+// Een logboekregel netjes maken, of null als hij niet klopt.
+function cleanLogRow(row) {
+  if (!Array.isArray(row) || row.length < 5 || row.length > 6) return null;
+  const [day, level, sec, hints, flags, special] = row;
+  if (!isDay(day) || !isLevelId(level)) return null;
+  if (sec !== null && !(Number.isFinite(sec) && sec >= 0)) return null;
+  if (hints !== null && !(Number.isInteger(hints) && hints >= 0)) return null;
+  if (!Number.isInteger(flags) || flags < 0 || flags > 3) return null;
+  if (row.length === 6 && !isSpecialId(special)) return null;
+  return row.slice();
+}
+
+// Het logboek als gewone objecten: { day, level, ms, hints, daily, special, record }.
+export function logEntries(stats) {
+  return (stats.log || []).map(([day, level, sec, hints, flags, special]) => ({
+    day, level, ms: sec === null ? null : sec * 1000, hints,
+    daily: Boolean(flags & LOG_DAILY), record: Boolean(flags & LOG_RECORD), special: special ?? null,
+  }));
+}
+
+// Houdt het logboek binnen de perken: niet ouder dan LOG_DAYS dagen vóór `today`, en hooguit LOG_MAX regels.
+function trimLog(log, today) {
+  const from = new Date(today + 'T12:00');
+  from.setDate(from.getDate() - LOG_DAYS);
+  const oldest = `${from.getFullYear()}-${String(from.getMonth() + 1).padStart(2, '0')}-${String(from.getDate()).padStart(2, '0')}`;
+  return log.filter((row) => row[0] >= oldest).slice(-LOG_MAX);
+}
+
+// Oude statistieken (van vóór het logboek): dagpuzzels die we kennen, worden
+// logboekregels met een onbekend niveau. Zo staan ze toch als hartje in de kalender.
+function logFromDailies(dailyDone, dailyTimes) {
+  const days = [...new Set([...dailyDone, ...Object.keys(dailyTimes)])].filter(isDay).sort();
+  return days.map((day) => [day, null, dailyTimes[day] == null ? null : Math.round(dailyTimes[day] / 1000), null, LOG_DAILY]);
 }
 
 const isObj = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
@@ -138,6 +193,11 @@ export function migrateStats(raw) {
     }
   }
   s.unlockedThemes = Array.isArray(r.unlockedThemes) ? r.unlockedThemes.filter((t) => SEASON_IDS.includes(t)) : [];
+  // Het logboek: kapotte regels eruit, op datum gesorteerd. Zonder logboek
+  // (oude opslag of back-up) maken we er een van de bekende dagpuzzels.
+  s.log = Array.isArray(r.log)
+    ? r.log.map(cleanLogRow).filter(Boolean).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).slice(-LOG_MAX)
+    : logFromDailies(s.dailyDone, s.dailyTimes);
   return s;
 }
 
@@ -165,13 +225,19 @@ function markPlayed(stats, day) {
 // Werkt de statistieken bij na een opgeloste puzzel. `today` = 'JJJJ-MM-DD'.
 // `started` is de dag waarop de puzzel begon. Een dagpuzzel die al eens is
 // opgelost telt niet nog een keer mee.
+// Geeft terug: `newBest` (dit is nu de beste tijd op dit niveau), `previousBest`
+// (het record van daarvoor, of null) en `firstOnLevel` (de allereerste op dit niveau).
 export function recordSolve(stats, { levelId, elapsed, hints, daily, special, started }, today) {
-  if (daily && stats.dailyDone.includes(daily)) return { stats, newBest: false, counted: false };
+  if (daily && stats.dailyDone.includes(daily)) return { stats, newBest: false, previousBest: null, firstOnLevel: false, counted: false };
   const l = stats.levels[levelId] || (stats.levels[levelId] = { played: 1, solved: 0, best: null, totalTime: 0 });
+  const previousBest = l.best;
   l.solved++;
   l.totalTime += elapsed;
   const newBest = l.best == null || elapsed < l.best;
   if (newBest) l.best = elapsed;
+  const firstOnLevel = l.solved === 1;
+  // Een echt record is sneller dan een eerder record; de allereerste is nog geen record.
+  const record = previousBest != null && newBest;
   stats.totalSolved++;
   if (!hints) stats.noHintSolved++;
   if (daily) {
@@ -189,7 +255,14 @@ export function recordSolve(stats, { levelId, elapsed, hints, daily, special, st
   if (stats.lastSolvedDay && stats.lastSolvedDay > today) stats.lastSolvedDay = today;
   for (const day of [...new Set([started, daily, today].filter((d) => isDay(d) && d <= today))].sort()) markPlayed(stats, day);
   stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
-  return { stats, newBest, counted: true };
+
+  // In het logboek: een dagpuzzel op de dag van de puzzel (net als bij de
+  // reeks), de rest op de dag van oplossen.
+  const row = [daily && isDay(daily) ? daily : today, levelId, Math.round(elapsed / 1000), Number.isInteger(hints) ? hints : null,
+    (daily ? LOG_DAILY : 0) | (record ? LOG_RECORD : 0)];
+  if (isSpecialId(special)) row.push(special);
+  stats.log = trimLog([...(stats.log || []), row].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)), today);
+  return { stats, newBest, previousBest, firstOnLevel, counted: true };
 }
 
 // Streak zoals die vandaag telt (0 als ze gisteren niet gespeeld heeft).
