@@ -24,6 +24,10 @@ function today() {
   return now;
 }
 
+// Met een testdatum krijgt de app een eigen opslag, zodat Ruby's echte voortgang onaangeroerd blijft.
+const testDate = params.has('vandaag');
+if (testDate) store.useTestStorage();
+
 // ---------- Status ----------
 
 let settings = store.loadSettings();
@@ -259,8 +263,13 @@ function showMessage({ icon = '💛', title = '', text = '', ok = 'Oké' }) {
 
 const BRAND_HTML = $('.brand').innerHTML;
 
+// Wat het startscherm het laatst liet zien (dag en dagdeel); zie 'visibilitychange'.
+let homeMoment = '';
+const momentOf = (date) => `${dateKey(date)} ${M.partOfDay(date)}`;
+
 function renderHome() {
   const now = today();
+  homeMoment = momentOf(now);
   // In Briefje staan de naam van de app en het hartje er in zijn handschrift.
   const hand = handwritten();
   $('.brand').innerHTML = hand
@@ -745,6 +754,9 @@ $('#pause-dialog').addEventListener('close', () => {
 document.addEventListener('visibilitychange', () => {
   lastTick = performance.now();
   if (document.visibilityState === 'hidden') saveGame();
+  // Een app op het beginscherm blijft vaak dagen open. Is het intussen een
+  // nieuwe dag (of een ander dagdeel), dan het startscherm opnieuw tekenen.
+  else if (!$('#home').hidden && momentOf(today()) !== homeMoment) { applyTheme(); renderHome(); }
 });
 window.addEventListener('pagehide', saveGame);
 
@@ -851,7 +863,8 @@ function onSolved() {
   selected = null;
   render();
   const day = dateKey(today());
-  const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
+  const started = dateKey(new Date(g.startedAt));
+  const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started }, day);
   // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
   let freshThemes = [];
   if (counted) {
@@ -1346,6 +1359,12 @@ $('#daily-card').addEventListener('click', () => {
 
 applyTheme();
 configureFeedback(settings);
+if (testDate) {
+  const badge = document.createElement('div');
+  badge.className = 'test-badge';
+  badge.textContent = `Testdatum ${dateKey(today())} · aparte opslag`;
+  document.body.append(badge);
+}
 try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch { /* oudere browsers */ }
 buildBoard();
 renderHome();

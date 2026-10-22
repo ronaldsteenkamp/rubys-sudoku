@@ -4,6 +4,7 @@ import { serve } from '../scripts/static-server.mjs';
 import { generate } from '../js/generator.js';
 
 export const PREFIX = 'rubys-sudoku:';
+export const TEST_PREFIX = 'rubys-sudoku-test:'; // opslag bij ?vandaag=
 
 let browser;
 export async function launch() {
@@ -24,15 +25,15 @@ export function savedGame(extra = {}) {
 
 // Opent de app. `storage` komt vóór het laden in localStorage (alleen bij de eerste keer, niet bij herladen).
 // Paginafouten worden verzameld in page.errors.
-export async function open(base, { storage = {}, query = '', serviceWorkers = 'block', viewport = { width: 390, height: 844 }, clock } = {}) {
+export async function open(base, { storage = {}, prefix = PREFIX, query = '', serviceWorkers = 'block', viewport = { width: 390, height: 844 }, clock } = {}) {
   const b = await launch();
-  const context = await b.newContext({ viewport, serviceWorkers, isMobile: true, hasTouch: true });
+  const context = await b.newContext({ viewport, serviceWorkers, isMobile: true, hasTouch: true, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
   if (clock) await context.clock.install({ time: clock });
   await context.addInitScript(({ storage, prefix }) => {
     if (sessionStorage.getItem('e2e-seeded')) return;
     sessionStorage.setItem('e2e-seeded', '1');
     for (const [k, v] of Object.entries(storage)) localStorage.setItem(prefix + k, typeof v === 'string' ? v : JSON.stringify(v));
-  }, { storage, prefix: PREFIX });
+  }, { storage, prefix });
   const page = await context.newPage();
   page.errors = [];
   page.on('pageerror', (e) => page.errors.push(e.message));
@@ -42,11 +43,19 @@ export async function open(base, { storage = {}, query = '', serviceWorkers = 'b
   return page;
 }
 
-export const stored = (page, key) => page.evaluate((k) => JSON.parse(localStorage.getItem(k)), PREFIX + key);
+export const stored = (page, key, prefix = PREFIX) => page.evaluate((k) => JSON.parse(localStorage.getItem(k)), prefix + key);
+
+// Doet alsof de app even op de achtergrond stond en weer terugkomt.
+export const backAndForth = (page) => page.evaluate(() => {
+  for (const state of ['hidden', 'visible']) {
+    Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  }
+});
 
 // Vult via de interface vakjes in: `pick(i, game)` geeft het cijfer voor vakje i (of 0 = overslaan).
-export async function fill(page, pick) {
-  const game = await stored(page, 'game');
+export async function fill(page, pick, prefix = PREFIX) {
+  const game = await stored(page, 'game', prefix);
   for (let i = 0; i < 81; i++) {
     if (game.values[i]) continue;
     const d = pick(i, game);
@@ -57,4 +66,4 @@ export async function fill(page, pick) {
 }
 
 // Lost de lopende puzzel op via de interface.
-export const solve = (page) => fill(page, (i, g) => g.solution[i]);
+export const solve = (page, prefix) => fill(page, (i, g) => g.solution[i], prefix);

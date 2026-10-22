@@ -287,3 +287,44 @@ test('foutenlogboek: alleen de laatste 20, en ze gaan mee in de back-up', () => 
   // Bij terugzetten doen ze niets.
   assert.equal(S.validateBackup(S.exportBackup()).ok, true);
 });
+
+test('dagpuzzel van gisteravond die na middernacht af is, houdt de reeks heel', () => {
+  const st = { ...S.emptyStats(), streak: 5, bestStreak: 5, lastSolvedDay: '2026-10-21' };
+  // Begonnen op 22 oktober om 23:58, opgelost op 23 oktober om 00:03.
+  S.recordSolve(st, { levelId: 'koffie', elapsed: 1, hints: 0, daily: '2026-10-22', started: '2026-10-22' }, '2026-10-23');
+  assert.equal(st.streak, 7, '22 en 23 oktober tellen allebei');
+  assert.equal(st.lastSolvedDay, '2026-10-23');
+  assert.ok(st.dailyDone.includes('2026-10-22'));
+  // Ook een gewone puzzel die gisteren begon.
+  const st2 = { ...S.emptyStats(), streak: 2, lastSolvedDay: '2026-10-21' };
+  S.recordSolve(st2, { levelId: 'zondag', elapsed: 1, hints: 0, started: '2026-10-22' }, '2026-10-23');
+  assert.equal(st2.streak, 4);
+});
+
+test('de reeks gaat nooit achteruit en loopt niet vast op een datum in de toekomst', () => {
+  const st = { ...S.emptyStats(), streak: 4, bestStreak: 4, lastSolvedDay: '2026-10-22' };
+  // Een puzzel die al dagen geleden begon, verandert niets aan wat al geteld is.
+  S.recordSolve(st, { levelId: 'zondag', elapsed: 1, hints: 0, started: '2026-10-10' }, '2026-10-22');
+  assert.equal(st.streak, 4);
+  // De klok stond even vooruit (laatste dag in de toekomst): de reeks blijft staan en telt gewoon door.
+  const fut = { ...S.emptyStats(), streak: 3, bestStreak: 3, lastSolvedDay: '2027-09-29' };
+  assert.equal(S.currentStreak(fut, '2026-10-22'), 3);
+  S.recordSolve(fut, { levelId: 'zondag', elapsed: 1, hints: 0 }, '2026-10-22');
+  assert.equal(fut.lastSolvedDay, '2026-10-22');
+  assert.equal(fut.streak, 3);
+  S.recordSolve(fut, { levelId: 'zondag', elapsed: 1, hints: 0 }, '2026-10-23');
+  assert.equal(fut.streak, 4);
+});
+
+test('met een testdatum gaat alles naar een aparte opslag', () => {
+  S.saveStats({ ...S.emptyStats(), totalSolved: 12 });
+  S.useTestStorage();
+  try {
+    assert.equal(S.loadStats().totalSolved, 0);
+    S.saveStats({ ...S.emptyStats(), totalSolved: 1 });
+    assert.equal(JSON.parse(globalThis.localStorage.getItem('rubys-sudoku:stats')).totalSolved, 12);
+    assert.equal(JSON.parse(globalThis.localStorage.getItem('rubys-sudoku-test:stats')).totalSolved, 1);
+  } finally {
+    S.useTestStorage(false);
+  }
+});

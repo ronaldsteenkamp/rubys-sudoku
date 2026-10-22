@@ -4,7 +4,11 @@
 import { SEASON_THEMES } from './themes.js';
 import { isValidGameData } from './game.js';
 
-const PREFIX = 'rubys-sudoku:';
+let PREFIX = 'rubys-sudoku:';
+
+// Met ?vandaag= (een testdatum) gebruikt de app een aparte opslag, zodat
+// testen nooit Ruby's echte reeks, statistieken of verrassingen raakt.
+export function useTestStorage(on = true) { PREFIX = on ? 'rubys-sudoku-test:' : 'rubys-sudoku:'; }
 const SEASON_IDS = SEASON_THEMES.map((t) => t.id);
 
 function read(key, fallback) {
@@ -149,9 +153,19 @@ export function recordStart(stats, levelId) {
   return stats;
 }
 
+// Telt een dag mee voor de reeks. De reeks gaat alleen vooruit: een dag die
+// eerder ligt dan de laatst getelde dag verandert niets.
+function markPlayed(stats, day) {
+  const last = stats.lastSolvedDay;
+  if (last && day <= last) return;
+  stats.streak = last && dayDiff(last, day) === 1 ? stats.streak + 1 : 1;
+  stats.lastSolvedDay = day;
+}
+
 // Werkt de statistieken bij na een opgeloste puzzel. `today` = 'JJJJ-MM-DD'.
-// Een dagpuzzel die al eens is opgelost telt niet nog een keer mee.
-export function recordSolve(stats, { levelId, elapsed, hints, daily, special }, today) {
+// `started` is de dag waarop de puzzel begon. Een dagpuzzel die al eens is
+// opgelost telt niet nog een keer mee.
+export function recordSolve(stats, { levelId, elapsed, hints, daily, special, started }, today) {
   if (daily && stats.dailyDone.includes(daily)) return { stats, newBest: false, counted: false };
   const l = stats.levels[levelId] || (stats.levels[levelId] = { played: 1, solved: 0, best: null, totalTime: 0 });
   l.solved++;
@@ -168,12 +182,12 @@ export function recordSolve(stats, { levelId, elapsed, hints, daily, special }, 
   }
   if (special && !stats.specialDone.includes(special)) stats.specialDone = [...stats.specialDone, special];
 
-  // Streak: dagen achter elkaar met minstens één opgeloste puzzel.
-  if (stats.lastSolvedDay !== today) {
-    const gap = stats.lastSolvedDay ? dayDiff(stats.lastSolvedDay, today) : null;
-    stats.streak = gap === 1 ? stats.streak + 1 : 1;
-    stats.lastSolvedDay = today;
-  }
+  // Streak: dagen achter elkaar met minstens één opgeloste puzzel. Ook de dag
+  // van de dagpuzzel en de dag waarop ze begon tellen mee: een puzzel van
+  // gisteravond die pas na middernacht af is, houdt de reeks dus heel.
+  // Ligt de laatste dag in de toekomst (klok verzet), dan rekenen we vanaf vandaag.
+  if (stats.lastSolvedDay && stats.lastSolvedDay > today) stats.lastSolvedDay = today;
+  for (const day of [...new Set([started, daily, today].filter((d) => isDay(d) && d <= today))].sort()) markPlayed(stats, day);
   stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
   return { stats, newBest, counted: true };
 }

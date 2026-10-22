@@ -1264,3 +1264,19 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   .controls { margin: 0; align-self: center; }
   .num { height: 56px; }
 }
+
+/* Alleen met ?vandaag=: laat zien dat dit een test is (met een eigen opslag). */
+.test-badge {
+  position: fixed;
+  left: 50%;
+  bottom: max(6px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.75rem;
+  font-weight: 700;
+  pointer-events: none;
+}

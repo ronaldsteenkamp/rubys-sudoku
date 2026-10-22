@@ -60,19 +60,21 @@ const shots = [];
 
 async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference', dailyDone = false, extraStats = {} }) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: scheme, reducedMotion, isMobile: true, hasTouch: true, userAgent: IPHONE_UA });
-  await ctx.addInitScript(({ theme, stats, game, dailyDone, extraStats }) => {
+  // Met ?vandaag= gebruikt de app een aparte testopslag.
+  const prefix = query.includes('vandaag=') ? 'rubys-sudoku-test:' : 'rubys-sudoku:';
+  await ctx.addInitScript(({ theme, stats, game, dailyDone, extraStats, prefix }) => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
     const today = new Date();
     const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme }));
+    localStorage.setItem(prefix + 'settings', JSON.stringify({ theme }));
     const done = dailyDone ? { dailyDone: [key], dailyTimes: { [key]: 372000 } } : {};
     // Seizoensthema's staan vrij, anders zou het thema terugvallen op zonnig.
     const seasons = { unlockedThemes: ['lente', 'zomer', 'herfst', 'winter'] };
-    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, ...done, ...seasons, ...extraStats, lastSolvedDay: key }));
-    localStorage.setItem('rubys-sudoku:unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
-    if (game) localStorage.setItem('rubys-sudoku:game', JSON.stringify(game));
-  }, { theme, stats, game, dailyDone, extraStats });
+    localStorage.setItem(prefix + 'stats', JSON.stringify({ ...stats, ...done, ...seasons, ...extraStats, lastSolvedDay: key }));
+    localStorage.setItem(prefix + 'unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
+    if (game) localStorage.setItem(prefix + 'game', JSON.stringify(game));
+  }, { theme, stats, game, dailyDone, extraStats, prefix });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.error('paginafout:', e.message));
   await p.goto(base + query);

@@ -60,7 +60,7 @@ npx serve .            # of: python3 -m http.server 8080
 
 Open daarna http://localhost:3000 (of :8080).
 
-**Speciale dagen testen:** voeg `?vandaag=2027-09-29` (jubileum) of `?vandaag=2027-10-12` (verjaardag) aan de URL toe.
+**Speciale dagen testen:** voeg `?vandaag=2027-09-29` (jubileum) of `?vandaag=2027-10-12` (verjaardag) aan de URL toe. Met een testdatum gebruikt de app een eigen, aparte opslag (onderin staat dan *Testdatum … · aparte opslag*). Testen raakt dus nooit de echte reeks, statistieken of verrassingen, ook niet op Ruby's toestel.
 
 **Seizoensthema's testen:** `?vandaag=` bepaalt ook het seizoen. Los bijvoorbeeld op `?vandaag=2026-12-30` drie puzzels op (Zondagochtend gaat het snelst): na de derde verschijnt *Nieuw thema: Winter*. Dat kan ook verspreid over `?vandaag=2026-12-31` en `?vandaag=2027-01-02`, want december tot en met februari is één winter.
 
