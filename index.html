@@ -128,11 +128,18 @@
         <label><input type="radio" name="errors" value="uit"><span>Uit</span></label>
       </div>
     </fieldset>
+    <fieldset class="setting">
+      <legend>Geluid</legend>
+      <div class="segmented" id="sound-options">
+        <label><input type="radio" name="sound" value="uit"><span>Uit</span></label>
+        <label><input type="radio" name="sound" value="zacht"><span>Zacht</span></label>
+        <label><input type="radio" name="sound" value="gitaar"><span>Gitaar</span></label>
+      </div>
+    </fieldset>
     <div class="setting toggles">
       <label class="toggle"><span>Notities automatisch wegstrepen</span><input type="checkbox" name="autoNotes"></label>
       <label class="toggle"><span>Gelijke cijfers markeren</span><input type="checkbox" name="highlightSame"></label>
       <label class="toggle"><span>Timer tonen</span><input type="checkbox" name="showTimer"></label>
-      <label class="toggle"><span>Zachte geluidjes</span><input type="checkbox" name="sound"></label>
       <label class="toggle" id="haptics-row"><span>Trillen</span><input type="checkbox" name="haptics"></label>
     </div>
     <button type="button" class="menu-item" id="install-setting"><span aria-hidden="true" data-icon="install"></span> Zet op je beginscherm</button>

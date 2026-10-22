@@ -1021,7 +1021,8 @@ function renderSettings() {
     ...SEASON_THEMES.map((t) => (own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedSeason(t))),
   ].join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
-  for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'sound', 'haptics']) {
+  for (const r of document.querySelectorAll('input[name="sound"]')) r.checked = r.value === settings.sound;
+  for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
   }
   $('#haptics-row').hidden = !hasHaptics;
@@ -1036,7 +1037,8 @@ $('#settings-dialog').addEventListener('change', (e) => {
   configureFeedback(settings);
   if (name === 'theme') { applyTheme(); renderHome(); } // render() volgt hieronder
   if (name === 'errors') checkMarks = new Set();
-  if (name === 'sound' && checked) feedback('place');
+  // Even laten horen hoe het klinkt: bij Gitaar een kort akkoord.
+  if (name === 'sound') feedback(value === 'gitaar' ? 'preview' : 'place');
   renderTimer();
   render();
 });

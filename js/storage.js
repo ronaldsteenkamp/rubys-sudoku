@@ -36,11 +36,23 @@ export const DEFAULT_SETTINGS = {
   autoNotes: true,
   highlightSame: true,
   showTimer: true,
-  sound: true,
+  sound: 'zacht', // uit | zacht | gitaar
   haptics: true,
 };
 
-export const loadSettings = () => ({ ...DEFAULT_SETTINGS, ...read('settings', {}) });
+export const SOUND_STYLES = ['uit', 'zacht', 'gitaar'];
+
+// Vroeger was geluid een schakelaar (true/false): aan wordt 'zacht', uit wordt 'uit'.
+function migrateSound(sound) {
+  if (typeof sound === 'boolean') return sound ? 'zacht' : 'uit';
+  return SOUND_STYLES.includes(sound) ? sound : DEFAULT_SETTINGS.sound;
+}
+
+export function loadSettings() {
+  const s = { ...DEFAULT_SETTINGS, ...read('settings', {}) };
+  s.sound = migrateSound(s.sound);
+  return s;
+}
 export const saveSettings = (s) => write('settings', s);
 
 // ---------- Lopende puzzel ----------
@@ -191,6 +203,8 @@ export function validateBackup(obj) {
   // Alleen bekende instellingen, met het juiste type.
   const settings = { ...DEFAULT_SETTINGS };
   for (const [k, def] of Object.entries(DEFAULT_SETTINGS)) if (typeof d.settings[k] === typeof def) settings[k] = d.settings[k];
+  // Ook een back-up van vóór de geluidsstijlen (sound: true/false) komt goed over.
+  if ('sound' in d.settings) settings.sound = migrateSound(d.settings.sound);
   return {
     ok: true,
     data: { settings, stats: migrateStats(d.stats), unlocked: d.unlocked ?? [], recentNotes: d.recentNotes ?? [], game: g, scribbleDay },

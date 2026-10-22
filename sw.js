@@ -21,6 +21,7 @@ const SHELL = [
   'js/messages.js',
   'js/themes.js',
   'js/feedback.js',
+  'js/guitar.js',
   'js/worker.js',
   'fonts/fraunces-latin.woff2',
   'fonts/nunito-latin.woff2',
