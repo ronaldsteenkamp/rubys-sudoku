@@ -87,6 +87,33 @@ test('mijlpalen ontgrendelen op het juiste moment', () => {
   assert.deepEqual(newMilestones(st, ['eerste', 'zonderhint']).map((m) => m.id), ['tien', 'streak3', 'streak7', 'ruby']);
 });
 
+test('rugnummer 33: dicht bij 32 puzzels, vrij bij 33', () => {
+  const st = emptyStats();
+  const before = ['eerste', 'dag1', 'zonderhint', 'tien', 'streak3', 'streak7', 'vijfentwintig'];
+  st.totalSolved = 32;
+  assert.deepEqual(newMilestones(st, before).map((m) => m.id), []);
+  const next = nextMilestone(st, before);
+  assert.equal(next.milestone.id, 'rugnummer33');
+  assert.deepEqual([next.current, next.target, next.remaining], [32, 33, 1]);
+  assert.equal(milestoneLine(next), 'Nog 1 puzzel tot je volgende geheime berichtje 🔐');
+
+  st.totalSolved = 33;
+  assert.deepEqual(newMilestones(st, before).map((m) => m.id), ['rugnummer33']);
+  assert.deepEqual(newMilestones(st, [...before, 'rugnummer33']), []);
+  // Daarna is 50 de volgende puzzelmijlpaal.
+  assert.equal(nextMilestone(st, [...before, 'rugnummer33']).milestone.id, 'vijftig');
+
+  // Na 25 telt het regeltje al af naar 33, niet naar 50.
+  st.totalSolved = 26;
+  assert.equal(milestoneLine(nextMilestone(st, before)), 'Nog 7 puzzels tot je volgende geheime berichtje 🔐');
+
+  // Op de goede plek: na 25 (en de maand op rij), vóór 50.
+  const ids = MILESTONES.map((m) => m.id);
+  assert.ok(ids.indexOf('vijfentwintig') < ids.indexOf('rugnummer33') && ids.indexOf('rugnummer33') < ids.indexOf('vijftig'));
+  const m = MILESTONES.find((x) => x.id === 'rugnummer33');
+  assert.deepEqual([m.title, m.icon, m.hint], ['Rugnummer 33', '🏐', 'Los 33 puzzels op']);
+});
+
 test('"Ik hou van je" is bewaard voor de 100e puzzel', () => {
   assert.ok(LOVE_NOTES.every((m) => !/hou van je/i.test(m)));
   assert.match(MILESTONES.find((m) => m.id === 'honderd').text, /Ik hou van je/);

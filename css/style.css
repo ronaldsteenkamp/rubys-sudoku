@@ -1183,6 +1183,8 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 @media (orientation: landscape) and (max-height: 560px) {
   [data-theme="volleybal"] body::before { background-size: 190px auto; }
 }
+/* Het feestje bij de 33e puzzel: het rugnummer zelf dwarrelt mee, geel met een blauwe rand. */
+.confetti span.jersey-33 { font: 800 var(--s, 24px)/1 "Nunito", sans-serif; color: var(--accent); -webkit-text-stroke: 1.5px var(--user); }
 
 /* Briefje: wat Ruby zelf invult, in zijn handschrift. Het SVG-bestand is een masker,
    dus de kleur komt gewoon van het vakje (balpen, selectie, fout, pauze). */

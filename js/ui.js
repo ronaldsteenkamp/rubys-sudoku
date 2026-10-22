@@ -800,11 +800,12 @@ $('#hint-close').addEventListener('click', () => closeHint());
 
 // ---------- Opgelost! ----------
 
-function celebrate(special) {
+// `jersey`: de 33e puzzel in Volleybal, dan dwarrelen er ballen en haar rugnummer.
+function celebrate(special, jersey = false) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box = $('#confetti');
   box.innerHTML = '';
-  const set = special ? ['❤️', '💛', '💗', '💕'] : themeById(document.documentElement.dataset.theme).celebrate;
+  const set = special ? ['❤️', '💛', '💗', '💕'] : jersey ? ['🏐', '33'] : themeById(document.documentElement.dataset.theme).celebrate;
   const hand = handwritten();
   for (let k = 0; k < 28; k++) {
     const s = document.createElement('span');
@@ -812,7 +813,10 @@ function celebrate(special) {
     if (hand) {
       s.className = `hand-art hart-${(k % 2) + 1}`;
       s.style.color = k % 4 < 2 ? 'var(--heart)' : 'var(--user)';
-    } else s.textContent = set[k % set.length];
+    } else {
+      s.textContent = set[k % set.length];
+      if (s.textContent === '33') s.className = 'jersey-33';
+    }
     s.style.left = `${Math.random() * 100}%`;
     s.style.setProperty('--s', `${18 + Math.random() * 22}px`);
     s.style.setProperty('--d', `${3.2 + Math.random() * 2.5}s`);
@@ -860,7 +864,9 @@ function onSolved() {
     board.classList.add('solved-glow');
     setTimeout(() => board.classList.remove('solved-glow'), 1500);
   }
-  celebrate(Boolean(g.special));
+  // Rugnummer 33 net vrij in Volleybal: een eigen feestje (een speciale puzzel gaat voor).
+  const jersey = !g.special && fresh.some((m) => m.id === 'rugnummer33') && document.documentElement.dataset.theme === 'volleybal';
+  celebrate(Boolean(g.special), jersey);
 
   // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
   const special = g.special ? M.specialById(g.special) : null;
@@ -877,7 +883,7 @@ function onSolved() {
   if (hand && !g.special) $('#solved-title').innerHTML = '<span class="hand-art goed-zo" role="img" aria-label="Goed zo!"></span>';
   else $('#solved-title').textContent = g.special ? 'Het is je gelukt!' : 'Opgelost!';
   if (hand) document.querySelector('.solved-emoji').innerHTML = '<span class="hand-art hart-2 solved-heart"></span>';
-  else document.querySelector('.solved-emoji').textContent = g.special ? '💛' : '🎉';
+  else document.querySelector('.solved-emoji').textContent = g.special ? '💛' : jersey ? '🏐' : '🎉';
   const scribble = hand && store.scribbleDue(store.loadScribbleDay(), day);
   if (scribble) store.saveScribbleDay(day);
   $('#solved-scribble').hidden = !scribble;
