@@ -657,7 +657,6 @@ h3 { font-size: 1.1rem; margin-top: 1.2em; }
 .level-name { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 1.1rem; line-height: 1.2; }
 .level-tag { font-size: 0.85rem; color: var(--ink-soft); }
 .level-best { margin-top: auto; padding-top: 6px; font-size: 0.8rem; color: var(--ink-soft); }
-.level[data-level="ruby"] { background: linear-gradient(160deg, var(--surface) 30%, color-mix(in srgb, var(--accent) 22%, var(--surface))); }
 
 .home-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 22px 0 8px; }
 .nav-btn {
