@@ -96,3 +96,29 @@ test('opslaan en terugladen via JSON', () => {
   assert.equal(Game.fromJSON({ v: 0 }), null);
   assert.equal(Game.fromJSON(null), null);
 });
+
+test('een kapotte of gemanipuleerde opgeslagen puzzel wordt geweigerd in plaats van te crashen', () => {
+  const good = JSON.parse(JSON.stringify(newGame()));
+  const broken = [
+    { ...good, solution: undefined }, // zonder oplossing liep de app vroeger bij elke start vast
+    { ...good, solution: good.solution.slice(0, 80) },
+    { ...good, solution: good.solution.map((v, i) => (i === 3 ? 0 : v)) },
+    { ...good, givens: 'x'.repeat(81) },
+    { ...good, values: 'x'.repeat(81) },
+    { ...good, values: good.values.map((v, i) => (i === 2 ? '<img>' : v)) },
+    { ...good, values: good.values.map((v, i) => (good.givens[i] ? 0 : v)) }, // gegeven cijfers weg
+    { ...good, givens: good.givens.map((v, i) => (v ? (v % 9) + 1 : 0)) }, // past niet bij de oplossing
+    { ...good, notes: new Array(81).fill(1024) },
+  ];
+  for (const b of broken) assert.doesNotThrow(() => assert.equal(Game.fromJSON(b), null));
+
+  // Onbekende extra's worden netjes opgeruimd, de puzzel zelf blijft.
+  const g = Game.fromJSON({ ...good, levelId: '__proto__', daily: '<b>', special: 'iets', shape: 'ster', elapsed: -5, hints: 'veel' });
+  assert.equal(g.levelId, 'zondag');
+  assert.equal(g.daily, null);
+  assert.equal(g.special, null);
+  assert.equal(g.shape, null);
+  assert.equal(g.elapsed, 0);
+  assert.equal(g.hints, 0);
+  assert.equal(Game.fromJSON({ ...good, daily: '2026-10-22', special: 'verjaardag-2027', shape: 'heart' }).special, 'verjaardag-2027');
+});

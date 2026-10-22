@@ -91,9 +91,24 @@ function toast(text, ms = 2600) {
 
 const announce = (text) => { $('#sr-status').textContent = text; };
 
-function saveGame() {
-  if (game && !game.solved) store.saveGame(game.toJSON());
+// Lukt opslaan niet (volle of geblokkeerde opslag), dan zeggen we dat één keer,
+// in plaats van stilletjes voortgang kwijt te raken.
+let warnedNotSaved = false;
+function saved(ok) {
+  if (!ok && !warnedNotSaved) {
+    warnedNotSaved = true;
+    toast('Ik kan je voortgang nu even niet bewaren. Maak voor de zekerheid een back-up 💛', 6000);
+  }
+  return ok;
 }
+
+function saveGame() {
+  if (game && !game.solved) saved(store.saveGame(game.toJSON()));
+}
+
+// Fouten onthouden we (de laatste 20); ze gaan mee in een back-up, zodat je kunt zien wat er misging.
+window.addEventListener('error', (e) => store.logError(e.message || 'fout'));
+window.addEventListener('unhandledrejection', (e) => store.logError(e.reason?.stack || e.reason || 'promise'));
 
 // ---------- Thema ----------
 
@@ -374,7 +389,7 @@ async function startGame({ kind, levelId, special }) {
       daily: p.daily || null, special: special?.id || null, shape: p.shape || null,
     });
     store.recordStart(stats, game.levelId);
-    store.saveStats(stats);
+    saved(store.saveStats(stats));
     saveGame();
     selected = null;
     focusDigit = null;
@@ -835,7 +850,6 @@ function onSolved() {
   const g = game;
   selected = null;
   render();
-  store.clearGame();
   const day = dateKey(today());
   const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
   // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
@@ -844,7 +858,9 @@ function onSolved() {
     recordSeasonSolve(stats, today());
     freshThemes = checkThemeUnlocks(stats, today());
   }
-  store.saveStats(stats);
+  // Pas de puzzel opruimen als de statistieken echt bewaard zijn; anders staat
+  // hij er na een herstart nog en telt hij alsnog mee.
+  if (saved(store.saveStats(stats))) store.clearGame();
   requestPersist();
   const fresh = M.newMilestones(stats, unlocked);
   unlocked = [...unlocked, ...fresh.map((m) => m.id)];
@@ -1028,6 +1044,7 @@ function renderSettings() {
   }
   $('#haptics-row').hidden = !hasHaptics;
   $('#install-setting').hidden = !canInstall();
+  $('#backup-undo').hidden = !store.loadPreviousBackup();
 }
 
 $('#settings-dialog').addEventListener('change', (e) => {
@@ -1104,10 +1121,15 @@ async function restoreBackup(file) {
   }
   const created = new Date(parsed.created);
   const when = Number.isNaN(created.getTime()) ? '' : ` van ${created.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-  const n = res.data.stats.totalSolved;
-  const ok = await confirmDialog('Back-up terugzetten?',
-    `Deze back-up${when} heeft ${n} ${n === 1 ? 'opgeloste puzzel' : 'opgeloste puzzels'}. Wat er nu op dit toestel staat, wordt daardoor vervangen.`,
-    'Ja, terugzetten', 'Nee');
+  const b = res.data.stats;
+  const puzzles = (n) => `${n} ${n === 1 ? 'opgeloste puzzel' : 'opgeloste puzzels'}`;
+  const streaks = (s) => `langste reeks ${s.bestStreak}`;
+  // Heeft de back-up minder dan wat er nu staat? Dan zeggen we dat extra duidelijk.
+  const less = b.totalSolved < stats.totalSolved || b.bestStreak < stats.bestStreak;
+  const ok = await confirmDialog(less ? 'Let op: deze back-up heeft minder' : 'Back-up terugzetten?',
+    `Nu op dit toestel: ${puzzles(stats.totalSolved)}, ${streaks(stats)}. In de back-up${when}: ${puzzles(b.totalSolved)}, ${streaks(b)}. `
+      + 'Wat er nu staat, wordt vervangen. Je kunt dat daarna nog één keer terugdraaien bij Instellingen.',
+    less ? 'Toch terugzetten' : 'Ja, terugzetten', 'Nee');
   if (!ok) return;
   if (!store.importBackup(parsed).ok) { toast('Dat lukte niet. Er is niks veranderd 💛', 4000); return; }
   reloadState();
@@ -1115,12 +1137,27 @@ async function restoreBackup(file) {
   toast('Je voortgang is terug 💛');
 }
 
+async function undoRestore() {
+  closeDialog('settings-dialog');
+  const prev = store.loadPreviousBackup();
+  if (!prev) return;
+  const n = prev.data.stats.totalSolved;
+  const ok = await confirmDialog('Terug naar hoe het was?',
+    `Dan staat alles weer zoals vlak vóór het terugzetten (${n} ${n === 1 ? 'opgeloste puzzel' : 'opgeloste puzzels'}).`,
+    'Ja, terug', 'Nee');
+  if (!ok) return;
+  if (!store.restorePrevious().ok) { toast('Dat lukte niet. Er is niks veranderd 💛', 4000); return; }
+  reloadState();
+  toast('Alles staat weer zoals het was 💛');
+}
+
 $('#backup-save').addEventListener('click', () => { saveBackup().catch(() => toast('Dat lukte even niet. Probeer je het nog eens?')); });
 $('#backup-restore').addEventListener('click', () => { $('#backup-file').value = ''; $('#backup-file').click(); });
 $('#backup-file').addEventListener('change', (e) => {
   const file = e.target.files?.[0];
-  if (file) restoreBackup(file);
+  if (file) restoreBackup(file).catch(() => toast('Dat lukte niet. Er is niks veranderd 💛', 4000));
 });
+$('#backup-undo').addEventListener('click', () => { undoRestore().catch(() => toast('Dat lukte niet. Er is niks veranderd 💛', 4000)); });
 
 // ---------- Statistieken & berichtjes ----------
 
