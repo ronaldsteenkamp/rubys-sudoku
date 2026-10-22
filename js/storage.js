@@ -131,6 +131,14 @@ export const saveUnlocked = (u) => write('unlocked', u);
 export const loadRecentNotes = () => read('recent-notes', []);
 export const saveRecentNotes = (n) => write('recent-notes', n.slice(-8));
 
+// ---------- Krabbeltje in Briefje (één keer per dag) ----------
+
+// De dag ('JJJJ-MM-DD') waarop het krabbeltje voor het laatst te zien was.
+export const loadScribbleDay = () => { const d = read('scribble', null); return typeof d === 'string' ? d : null; };
+export const saveScribbleDay = (day) => write('scribble', day);
+// Het krabbeltje mag vandaag (nog) als het vandaag nog niet geweest is.
+export const scribbleDue = (lastDay, today) => lastDay !== today;
+
 // ---------- Puzzelvoorraad (zodat een nieuwe puzzel meteen klaarstaat) ----------
 
 export const loadStash = () => read('stash', {});
@@ -147,18 +155,19 @@ export const BACKUP_APP = 'rubys-sudoku';
 export const BACKUP_VERSION = 1;
 
 // Bouwt een back-up-object uit de losse onderdelen (puur, makkelijk te testen).
-export function makeBackup({ settings, stats, unlocked, recentNotes, game }, date = new Date()) {
+export function makeBackup({ settings, stats, unlocked, recentNotes, game, scribbleDay = null }, date = new Date()) {
   return {
     app: BACKUP_APP,
     version: BACKUP_VERSION,
     created: date.toISOString(),
-    data: { settings, stats, unlocked, recentNotes, game: game ?? null },
+    data: { settings, stats, unlocked, recentNotes, game: game ?? null, scribbleDay },
   };
 }
 
 // Alles wat nu in de opslag staat, als back-up.
 export const exportBackup = (date) => makeBackup({
   settings: loadSettings(), stats: loadStats(), unlocked: loadUnlocked(), recentNotes: loadRecentNotes(), game: loadGame(),
+  scribbleDay: loadScribbleDay(),
 }, date);
 
 const isObj = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
@@ -176,12 +185,15 @@ export function validateBackup(obj) {
   const g = d.game ?? null;
   if (g !== null && (!isObj(g) || g.v !== 1 || !Array.isArray(g.givens) || g.givens.length !== 81)) return { ok: false, reason: 'puzzel klopt niet' };
 
+  // Oudere back-ups kennen het krabbeltje nog niet; iets anders dan een datum telt als 'nooit'.
+  const scribbleDay = typeof d.scribbleDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.scribbleDay) ? d.scribbleDay : null;
+
   // Alleen bekende instellingen, met het juiste type.
   const settings = { ...DEFAULT_SETTINGS };
   for (const [k, def] of Object.entries(DEFAULT_SETTINGS)) if (typeof d.settings[k] === typeof def) settings[k] = d.settings[k];
   return {
     ok: true,
-    data: { settings, stats: migrateStats(d.stats), unlocked: d.unlocked ?? [], recentNotes: d.recentNotes ?? [], game: g },
+    data: { settings, stats: migrateStats(d.stats), unlocked: d.unlocked ?? [], recentNotes: d.recentNotes ?? [], game: g, scribbleDay },
   };
 }
 
@@ -189,11 +201,12 @@ export function validateBackup(obj) {
 export function importBackup(obj) {
   const res = validateBackup(obj);
   if (!res.ok) return res;
-  const { settings, stats, unlocked, recentNotes, game } = res.data;
+  const { settings, stats, unlocked, recentNotes, game, scribbleDay } = res.data;
   saveSettings(settings);
   saveStats(stats);
   saveUnlocked(unlocked);
   saveRecentNotes(recentNotes);
   if (game) saveGame(game); else clearGame();
+  if (scribbleDay) saveScribbleDay(scribbleDay); else remove('scribble');
   return res;
 }

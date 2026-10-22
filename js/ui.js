@@ -104,6 +104,9 @@ function themePreview(id) {
 }
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 
+// Briefje: wat Ruby zelf invult staat er in zijn handschrift (hand/*.svg, zie style.css).
+const handwritten = () => document.documentElement.dataset.theme === 'briefje';
+
 function applyTheme() {
   const t = resolveTheme(settings.theme, today(), stats.unlockedThemes, darkQuery.matches);
   document.documentElement.dataset.theme = t;
@@ -239,12 +242,20 @@ function showMessage({ icon = '💛', title = '', text = '', ok = 'Oké' }) {
 
 // ---------- Startscherm ----------
 
+const BRAND_HTML = $('.brand').innerHTML;
+
 function renderHome() {
   const now = today();
+  // In Briefje staan de naam van de app en het hartje er in zijn handschrift.
+  const hand = handwritten();
+  $('.brand').innerHTML = hand
+    ? '<span class="hand-art hart-1 brand-heart" aria-hidden="true"></span><span class="hand-art logo" role="img" aria-label="Ruby\'s Sudoku"></span>'
+    : BRAND_HTML;
   $('#greeting').textContent = M.greeting(now);
   $('#subtitle').textContent = M.subtitle(now);
   const days = M.daysTogether(now);
-  $('#together').textContent = days > 0 ? `Al ${days} ${days === 1 ? 'dag' : 'dagen'} samen 💛` : '';
+  const heart = hand ? '<span class="hand-art hart-2 together-heart" role="img" aria-label="hartje"></span>' : '💛';
+  $('#together').innerHTML = days > 0 ? `Al ${days} ${days === 1 ? 'dag' : 'dagen'} samen ${heart}` : '';
 
   // Speciale dag
   const special = M.specialDay(now);
@@ -502,6 +513,7 @@ function render() {
   const strike = new Map();
   if (stage?.strike) for (const { cell, digit } of stage.strike) strike.set(cell, (strike.get(cell) || 0) | bit(digit));
   const showWrong = settings.errors === 'direct';
+  const hand = handwritten();
 
   const cells = $('#board').children;
   for (let i = 0; i < 81; i++) {
@@ -509,7 +521,7 @@ function render() {
     const given = game.isGiven(i);
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
-    if (v) cls.push(given ? 'given' : 'user');
+    if (v) cls.push(given ? 'given' : 'user', ...(hand && !given ? ['hand'] : []));
     if (game.shape === 'heart' && HEART_MASK[i]) cls.push('in-heart', ...(HEART_OUTLINE[i] ? ['heart-edge'] : []), ...(given ? ['shape-heart'] : []));
     if (peerSet?.has(i)) cls.push('peer');
     if (hlDigit && v === hlDigit) cls.push('same');
@@ -520,7 +532,7 @@ function render() {
     if (i === popCell) cls.push('pop');
 
     let html = '';
-    if (v) html = `<span class="v">${v}</span>`;
+    if (v) html = hand && !given ? `<span class="v hand d${v}"></span>` : `<span class="v">${v}</span>`;
     else if (game.notes[i]) {
       html = '<span class="notes">';
       for (let d = 1; d <= 9; d++) {
@@ -793,9 +805,14 @@ function celebrate(special) {
   const box = $('#confetti');
   box.innerHTML = '';
   const set = special ? ['❤️', '💛', '💗', '💕'] : themeById(document.documentElement.dataset.theme).celebrate;
+  const hand = handwritten();
   for (let k = 0; k < 28; k++) {
     const s = document.createElement('span');
-    s.textContent = set[k % set.length];
+    // Briefje: zijn twee getekende hartjes, om en om in rood en balpenblauw.
+    if (hand) {
+      s.className = `hand-art hart-${(k % 2) + 1}`;
+      s.style.color = k % 4 < 2 ? 'var(--heart)' : 'var(--user)';
+    } else s.textContent = set[k % set.length];
     s.style.left = `${Math.random() * 100}%`;
     s.style.setProperty('--s', `${18 + Math.random() * 22}px`);
     s.style.setProperty('--d', `${3.2 + Math.random() * 2.5}s`);
@@ -855,8 +872,15 @@ function onSolved() {
     store.saveRecentNotes([...recent, note]);
   }
   const lvl = levelById(g.levelId);
-  $('#solved-title').textContent = g.special ? 'Het is je gelukt!' : 'Opgelost!';
-  document.querySelector('.solved-emoji').textContent = g.special ? '💛' : '🎉';
+  // Briefje: een getekend hartje, "Goed zo!" in zijn handschrift en één keer per dag een krabbeltje.
+  const hand = handwritten();
+  if (hand && !g.special) $('#solved-title').innerHTML = '<span class="hand-art goed-zo" role="img" aria-label="Goed zo!"></span>';
+  else $('#solved-title').textContent = g.special ? 'Het is je gelukt!' : 'Opgelost!';
+  if (hand) document.querySelector('.solved-emoji').innerHTML = '<span class="hand-art hart-2 solved-heart"></span>';
+  else document.querySelector('.solved-emoji').textContent = g.special ? '💛' : '🎉';
+  const scribble = hand && store.scribbleDue(store.loadScribbleDay(), day);
+  if (scribble) store.saveScribbleDay(day);
+  $('#solved-scribble').hidden = !scribble;
   $('#solved-stats').textContent = [
     g.special ? 'Speciale puzzel' : g.daily ? `Dagpuzzel · ${lvl.name}` : lvl.name,
     formatTime(g.elapsed),
@@ -889,6 +913,8 @@ async function offerTheme(id) {
   settings.theme = id;
   store.saveSettings(settings);
   applyTheme();
+  renderHome();
+  render();
 }
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
@@ -1002,7 +1028,7 @@ $('#settings-dialog').addEventListener('change', (e) => {
   settings[name] = type === 'checkbox' ? checked : value;
   store.saveSettings(settings);
   configureFeedback(settings);
-  if (name === 'theme') applyTheme();
+  if (name === 'theme') { applyTheme(); renderHome(); } // render() volgt hieronder
   if (name === 'errors') checkMarks = new Set();
   if (name === 'sound' && checked) feedback('place');
   renderTimer();

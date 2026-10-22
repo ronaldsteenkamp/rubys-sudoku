@@ -67,6 +67,8 @@ const PAIRS = [
 ];
 
 test('contrast van de belangrijkste kleurparen is minstens 4.5:1', () => {
+  // Ook de persoonlijke thema's zonder eigen test, zoals Briefje, gaan hier doorheen.
+  for (const id of ['briefje', 'volleybal', 'liefde']) assert.ok(THEMES.some((t) => t.id === id) && vars[id], id);
   const fails = [];
   for (const t of THEMES) {
     const v = vars[t.id];

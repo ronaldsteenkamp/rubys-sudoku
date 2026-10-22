@@ -1,7 +1,7 @@
 // Service worker: de app werkt volledig offline na het eerste bezoek.
 // Verhoog VERSION bij elke release, dan haalt iedereen de nieuwe bestanden op.
 // Een nieuwe versie wacht netjes tot Ruby op "verversen" tikt (zie ui.js).
-const VERSION = 'v12';
+const VERSION = 'v13';
 const CACHE = `rubys-sudoku-${VERSION}`;
 const NETWORK_TIMEOUT = 3000;
 
@@ -29,6 +29,20 @@ const SHELL = [
   'icons/icon-512.png',
   'icons/maskable-512.png',
   'icons/apple-touch-icon.png',
+  'hand/digit-1.svg',
+  'hand/digit-2.svg',
+  'hand/digit-3.svg',
+  'hand/digit-4.svg',
+  'hand/digit-5.svg',
+  'hand/digit-6.svg',
+  'hand/digit-7.svg',
+  'hand/digit-8.svg',
+  'hand/digit-9.svg',
+  'hand/logo.svg',
+  'hand/hart-1.svg',
+  'hand/hart-2.svg',
+  'hand/goed-zo.svg',
+  'hand/ik-vind-je-heel-leuk.svg',
 ];
 
 self.addEventListener('install', (event) => {
