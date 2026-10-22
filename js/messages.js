@@ -48,6 +48,25 @@ export function loveNote(recent = [], rng = Math.random) {
   return pick(fresh.length ? fresh : LOVE_NOTES, rng);
 }
 
+// ---------- Slaapstand (zie sleep.js) ----------
+
+// Na een puzzel laat op de avond: geen gewoon berichtje, maar een zacht duwtje richting bed.
+export const SLEEP_NOTES = [
+  'Telefoon weg, slapen 😴 Ik droom vast van je.',
+  'Opgelost! Nu ogen dicht, lieverd 🌙',
+  'Dat was de laatste voor vandaag. Welterusten, slaap lekker 💛',
+  'Goed gedaan. Je hoofd mag nu uit, net als dit scherm 😴',
+  'Puzzel klaar, dag klaar. Droom maar iets moois ✨',
+  'Kussen erbij, telefoon eraf. Tot morgen 🌙',
+  'Zelfs je hersentjes moeten slapen. Welterusten, slimmerd 💤',
+  'Opgelost in je pyjama. Nu nog even slapen in je pyjama 😴',
+  'Morgen staat er een nieuwe puzzel. Nu eerst dromen 💛',
+  'De honden slapen al. Jij nu ook 🐶💤',
+  'Slaap lekker, en droom van een bord vol goede cijfers 🧩',
+  'Lichtjes uit, ogen dicht. Ik hou van je, ook in je slaap 🌙',
+];
+export const sleepNote = (rng = Math.random) => pick(SLEEP_NOTES, rng);
+
 // ---------- Begroeting per dagdeel ----------
 
 // In de grote begroeting alleen bijnamen van minstens 3 tekens ("Goedemorgen R" leest raar).
@@ -740,6 +759,88 @@ export const RECOVERY_NOTES = {
   ],
 };
 export const recoveryNote = (uitslag, rng = Math.random) => pick(RECOVERY_NOTES[uitslag] || RECOVERY_NOTES.stil, rng);
+
+// ---------- Ruby Wrapped (jaaroverzicht, zie wrapped.js) ----------
+
+export const WRAPPED_CARD_TITLE = 'Jouw jaar in puzzels ✨';
+const clock = (ms) => { const sec = Math.round(ms / 1000); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
+const longDay = (key) => new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, Number(key.slice(8, 10)), 12).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
+const monthNameOf = (m) => new Date(2026, m, 1).toLocaleDateString('nl-NL', { month: 'long' });
+const thousands = (n) => n.toLocaleString('nl-NL');
+
+const FAVORITE_LINES = {
+  zondag: 'Rustig wakker worden is helemaal jouw ding ☀️',
+  koffie: 'Altijd met een bakkie erbij. Natuurlijk ☕',
+  nadenken: 'Jij houdt van een beetje hersengekraak 🤔',
+  ruby: 'Ruby-modus, uiteraard. Hij heet niet voor niks naar jou 🔥',
+};
+const PART_LINES = {
+  ochtend: ['Jij puzzelt het liefst bij het ontbijt ☕', 'Vroege vogel met een vroege sudoku 🐦'],
+  middag: ['Een puzzel in de middagpauze, daar word je blij van 🌼', 'Middagdipje? Niet bij jou: dan puzzel je 🧩'],
+  avond: ['Op de bank, dekentje erbij, puzzel erop 🛋️', 'De avond is van jou en je sudoku 🌙'],
+  nacht: ['Nachtuiltje! De beste puzzels doe jij als iedereen slaapt 🦉', 'Als de maan op is, ben jij aan het puzzelen 🌙'],
+};
+const PART_NAMES = { ochtend: 'ochtendpuzzelaar', middag: 'middagpuzzelaar', avond: 'avondpuzzelaar', nacht: 'nachtpuzzelaar' };
+const PUZZLE_LINES = ['Dat zijn heel wat cijfertjes 🧩', 'Tel ze maar niet na, ik heb het al gedaan 😉', 'Al die vakjes, één voor één. Knap hoor 💛'];
+const STREAK_LINES = ['Zo vaak achter elkaar! Dat is pas doorzetten 🔥', 'Dag na dag na dag. Ik ben trots op je 🔥', 'Een reeks om in te lijsten 🖼️🔥'];
+const CLOSING_LINES = [
+  'Elk vakje dat jij invulde, maakte mij ook een beetje blij. Dank je dat je speelt, en dat je er bent.',
+  'Wat een jaar. Al die puzzels, al die koffie, en al die keren dat je glimlachte als het klopte. Ik heb van elke minuut genoten.',
+  'Je bent slimmer dan je denkt, liever dan je weet, en mijn favoriete puzzel blijft altijd jij.',
+];
+
+// De kaarten van Ruby Wrapped: [{ id, emoji, kicker, big, text }]. `level(id)` geeft
+// { name, emoji } van een niveau. Kaarten zonder genoeg gegevens worden overgeslagen.
+// Teksten liggen vast per jaar.
+export function wrappedCards(w, level) {
+  const y = w.year;
+  const nick = byYear(GREETING_NICKNAMES, y, 3);
+  const when = w.partial ? `Sinds ${longDay(w.since)}` : `Dit jaar`;
+  const cards = [{
+    id: 'opening', emoji: '✨', kicker: `Ruby Wrapped ${y}`, big: `Hoi ${nick}!`,
+    text: w.partial ? `Dit is jouw puzzeljaar sinds ${longDay(w.since)}, toen je deze app kreeg. Tik maar door ✨` : `Dit was jouw ${y} in puzzels. Tik maar door ✨`,
+  }];
+  if (w.puzzles >= 1) {
+    cards.push({ id: 'puzzels', emoji: '🧩', kicker: `${when} opgelost`, big: `${w.puzzles} ${w.puzzles === 1 ? 'puzzel' : 'puzzels'}`,
+      text: `Daarvoor vulde je ongeveer ${thousands(w.cells)} vakjes in. ${byYear(PUZZLE_LINES, y)}` });
+  }
+  if (w.favorite) {
+    const l = level(w.favorite.level);
+    cards.push({ id: 'favoriet', emoji: l.emoji, kicker: 'Je favoriete niveau', big: l.name,
+      text: `${w.favorite.count} keer gespeeld. ${FAVORITE_LINES[w.favorite.level] || ''}`.trim() });
+  }
+  if (w.fastest) {
+    const l = level(w.fastest.level);
+    cards.push({ id: 'snelste', emoji: '⚡', kicker: 'Je snelste puzzel', big: clock(w.fastest.ms),
+      text: `${l.emoji} ${l.name}, op ${longDay(w.fastest.day)}. Bliksemsnel!` });
+  }
+  if (w.longestStreak >= 2) {
+    cards.push({ id: 'reeks', emoji: '🔥', kicker: 'Je langste reeks', big: `${w.longestStreak} dagen`, text: byYear(STREAK_LINES, y) });
+  }
+  if (w.hours) {
+    cards.push({ id: 'uur', emoji: { ochtend: '🌅', middag: '🌼', avond: '🛋️', nacht: '🦉' }[w.hours.part], kicker: 'Jouw puzzeluur',
+      big: `Een ${PART_NAMES[w.hours.part]}`, text: `Je drukste uur was ${w.hours.peak}:00. ${byYear(PART_LINES[w.hours.part], y)}` });
+  }
+  if (w.busiestMonth && w.busiestDay) {
+    const month = monthNameOf(w.busiestMonth.month);
+    // De drukste dag alleen als er een dag met meer dan één puzzel was.
+    const dayLine = w.busiestDay.count >= 2 ? ` Je drukste dag was ${longDay(w.busiestDay.day)}, met ${w.busiestDay.count} puzzels.` : '';
+    cards.push({ id: 'maand', emoji: '📅', kicker: 'Je drukste maand', big: `${month.charAt(0).toUpperCase()}${month.slice(1)}`,
+      text: `In ${month} loste je ${w.busiestMonth.count} ${w.busiestMonth.count === 1 ? 'puzzel' : 'puzzels'} op.${dayLine}` });
+  }
+  const specials = w.specials.map((id) => specialById(id)).filter(Boolean);
+  if (specials.length) {
+    cards.push({ id: 'speciaal', emoji: specials.map((s) => s.icon).join(' '), kicker: 'Speciale dagen',
+      big: `${specials.length} ${specials.length === 1 ? 'figuurpuzzel' : 'figuurpuzzels'}`,
+      text: `Je loste ${specials.length === 1 ? 'hem' : 'ze'} op voor ${specials.map((s) => s.label.replace(/\s+\S+$/u, '')).join(', ').replace(/, ([^,]*)$/, ' en $1')}. Stuk voor stuk speciaal, net als jij 💛` });
+  }
+  if (w.puzzles >= 2) {
+    cards.push({ id: 'koffie', emoji: '☕', kicker: 'Koppen koffie', big: `± ${w.coffee}`,
+      text: `Ongeveer 1 kop per 2 puzzels ☕ Het Koffiemonster in jou heeft goed gewerkt 😉` });
+  }
+  cards.push({ id: 'afsluiter', emoji: '💛', kicker: `Van mij, voor jou`, big: `Op naar ${y + 1} 💛`, text: byYear(CLOSING_LINES, y) });
+  return cards;
+}
 
 // ---------- Nieuwe thema's (seizoenen) ----------
 

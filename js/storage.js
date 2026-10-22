@@ -47,6 +47,7 @@ export const DEFAULT_SETTINGS = {
   showTimer: true,
   sound: 'zacht', // uit | zacht | gitaar
   haptics: true,
+  sleep: 'auto', // auto (23:00–06:00) | aan | uit, zie sleep.js
 };
 
 export const SOUND_STYLES = ['uit', 'zacht', 'gitaar'];
@@ -64,6 +65,7 @@ function cleanSettings(raw) {
   for (const [k, def] of Object.entries(DEFAULT_SETTINGS)) if (typeof raw[k] === typeof def) s[k] = raw[k];
   // Ook instellingen van vóór de geluidsstijlen (sound: true/false) komen goed over.
   if ('sound' in raw) s.sound = migrateSound(raw.sound);
+  if (!['auto', 'aan', 'uit'].includes(s.sleep)) s.sleep = DEFAULT_SETTINGS.sleep;
   return s;
 }
 
@@ -100,6 +102,7 @@ export function emptyStats() {
     unlockedThemes: [], // ontgrendelde seizoensthema's, bijv. ['herfst']
     log: [], // logboek van opgeloste puzzels, zie hieronder
     matches: {}, // per wedstrijddatum: { uitslag, warmup, herstel, pep }, zie hieronder
+    wrapped: {}, // per jaar het laatst berekende Ruby Wrapped, zie hieronder
   };
 }
 
@@ -130,6 +133,35 @@ function cleanMatches(raw) {
 
 const matchEntry = (stats, date) => (stats.matches[date] ||= {});
 
+// ---------- Ruby Wrapped ----------
+
+// Het logboek bewaart ruim twee jaar. Zodat een Wrapped van langer geleden te
+// bekijken blijft, bewaren we per jaar ook het uitgerekende overzicht (klein:
+// alleen getallen, datums en id's; zie wrapped.js). Alleen nette waarden.
+const WRAPPED_KEYS = { year: 'n', partial: 'b', since: 's', puzzles: 'n', cells: 'n', days: 'n', longestStreak: 'n', coffee: 'n',
+  favorite: 'o', fastest: 'o', hours: 'o', busiestMonth: 'o', busiestDay: 'o', specials: 'a' };
+const okValue = (v) => v === null || typeof v === 'boolean' || typeof v === 'string' || Number.isFinite(v)
+  || (Array.isArray(v) && v.every(okValue)) || (isObj(v) && Object.values(v).every(okValue));
+function cleanWrapped(raw) {
+  const out = {};
+  if (!isObj(raw)) return out;
+  for (const [year, w] of Object.entries(raw)) {
+    if (!/^\d{4}$/.test(year) || !isObj(w) || w.year !== Number(year) || JSON.stringify(w).length > 4000) continue;
+    const kinds = { n: Number.isFinite, b: (v) => typeof v === 'boolean', s: (v) => v === null || isDay(v), o: (v) => v === null || (isObj(v) && okValue(v)), a: (v) => isStrings(v) };
+    if (Object.entries(WRAPPED_KEYS).every(([k, kind]) => kinds[kind](w[k]))) out[year] = Object.fromEntries(Object.keys(WRAPPED_KEYS).map((k) => [k, w[k]]));
+  }
+  return out;
+}
+
+// Bewaart een overzicht als het meer puzzels heeft dan wat er al stond.
+// Geeft het overzicht terug dat je moet tonen (het verse, of het bewaarde als dat vollediger is).
+export function rememberWrapped(stats, fresh) {
+  const old = stats.wrapped?.[fresh.year];
+  if (old && old.puzzles > fresh.puzzles) return old;
+  if (fresh.puzzles > 0) stats.wrapped = { ...(stats.wrapped || {}), [fresh.year]: cleanWrapped({ [fresh.year]: fresh })[fresh.year] ?? fresh };
+  return fresh;
+}
+
 // "Hoe ging het?" Alleen wat zij zelf kiest; de app weet de uitslag niet.
 export function setMatchOutcome(stats, date, uitslag) {
   if (isDay(date) && MATCH_OUTCOMES.includes(uitslag)) matchEntry(stats, date).uitslag = uitslag;
@@ -150,9 +182,12 @@ export const recentPeptalks = (stats, n = 8) => Object.keys(stats.matches).sort(
 // Elke meegetelde opgeloste puzzel komt in het logboek. De statistieken gaan
 // bij elke oplossing in hun geheel naar localStorage, dus het logboek is
 // compact: geen object per puzzel, maar een korte rij
-//   [dag, niveau, seconden, hints, vlaggen]  of met een speciale dag erachter:
-//   [dag, niveau, seconden, hints, vlaggen, speciaal]
-// met vlaggen 1 = dagpuzzel en 2 = record. Een regel is zo ±40 tekens, dus
+//   [dag, niveau, seconden, hints, vlaggen, speciaal, uur]
+// met vlaggen 1 = dagpuzzel en 2 = record, `speciaal` de id van een speciale
+// dag (of null) en `uur` het uur van oplossen (0–23). Lege velden achteraan
+// laten we weg: een gewone puzzel zonder uur is [dag, niveau, seconden, hints, vlaggen].
+// Oude regels (van vóór het uur) hebben geen uur; die tellen overal mee, behalve
+// bij "haar puzzeluur" in Ruby Wrapped. Een regel is zo ±40 tekens, dus
 // zelfs een vol logboek blijft rond de 60 KB. Seconden zijn genoeg (de app
 // toont nooit meer). Niveau en hints zijn null bij oude dagpuzzels (van vóór
 // het logboek) waarvan we die niet weten, en de tijd soms ook.
@@ -164,23 +199,34 @@ const LOG_DAILY = 1, LOG_RECORD = 2;
 const isLevelId = (l) => l === null || (typeof l === 'string' && isKey(l));
 const isSpecialId = (sp) => typeof sp === 'string' && /^[a-z]+(?:-[a-z]+)*-\d{4}(?:-\d{2}-\d{2})?$/.test(sp);
 
+const isHour = (h) => Number.isInteger(h) && h >= 0 && h <= 23;
+
+// Een rij zo kort mogelijk: lege velden (null) achteraan eraf.
+function compactRow(row) {
+  const r = row.slice();
+  while (r.length > 5 && r[r.length - 1] == null) r.pop();
+  return r;
+}
+
 // Een logboekregel netjes maken, of null als hij niet klopt.
 function cleanLogRow(row) {
-  if (!Array.isArray(row) || row.length < 5 || row.length > 6) return null;
-  const [day, level, sec, hints, flags, special] = row;
+  if (!Array.isArray(row) || row.length < 5 || row.length > 7) return null;
+  const [day, level, sec, hints, flags, special = null, hour = null] = row;
   if (!isDay(day) || !isLevelId(level)) return null;
   if (sec !== null && !(Number.isFinite(sec) && sec >= 0)) return null;
   if (hints !== null && !(Number.isInteger(hints) && hints >= 0)) return null;
   if (!Number.isInteger(flags) || flags < 0 || flags > 3) return null;
-  if (row.length === 6 && !isSpecialId(special)) return null;
-  return row.slice();
+  if (special !== null && !isSpecialId(special)) return null;
+  if (hour !== null && !isHour(hour)) return null;
+  return compactRow([day, level, sec, hints, flags, special, hour]);
 }
 
-// Het logboek als gewone objecten: { day, level, ms, hints, daily, special, record }.
+// Het logboek als gewone objecten: { day, level, ms, hints, daily, special, record, hour }.
+// `hour` is null bij oude regels.
 export function logEntries(stats) {
-  return (stats.log || []).map(([day, level, sec, hints, flags, special]) => ({
+  return (stats.log || []).map(([day, level, sec, hints, flags, special = null, hour = null]) => ({
     day, level, ms: sec === null ? null : sec * 1000, hints,
-    daily: Boolean(flags & LOG_DAILY), record: Boolean(flags & LOG_RECORD), special: special ?? null,
+    daily: Boolean(flags & LOG_DAILY), record: Boolean(flags & LOG_RECORD), special, hour,
   }));
 }
 
@@ -239,6 +285,7 @@ export function migrateStats(raw) {
   // Het logboek: kapotte regels eruit, op datum gesorteerd. Zonder logboek
   // (oude opslag of back-up) maken we er een van de bekende dagpuzzels.
   s.matches = cleanMatches(r.matches);
+  s.wrapped = cleanWrapped(r.wrapped);
   s.log = Array.isArray(r.log)
     ? r.log.map(cleanLogRow).filter(Boolean).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).slice(-LOG_MAX)
     : logFromDailies(s.dailyDone, s.dailyTimes);
@@ -273,7 +320,8 @@ function markPlayed(stats, day) {
 // (het record van daarvoor, of null) en `firstOnLevel` (de allereerste op dit niveau).
 // `match` = { date, kind } voor de warming-up of herstelpuzzel van een wedstrijd;
 // die telt mee als gewone puzzel (niet als dagpuzzel), en per wedstrijd één keer.
-export function recordSolve(stats, { levelId, elapsed, hints, daily, special, started, match }, today) {
+// `hour`: het uur van oplossen (0–23), voor Ruby Wrapped.
+export function recordSolve(stats, { levelId, elapsed, hints, daily, special, started, match, hour }, today) {
   const notCounted = { stats, newBest: false, previousBest: null, firstOnLevel: false, counted: false };
   if (daily && stats.dailyDone.includes(daily)) return notCounted;
   if (match && stats.matches?.[match.date]?.[match.kind]) return notCounted;
@@ -310,9 +358,8 @@ export function recordSolve(stats, { levelId, elapsed, hints, daily, special, st
 
   // In het logboek: een dagpuzzel op de dag van de puzzel (net als bij de
   // reeks), de rest op de dag van oplossen.
-  const row = [daily && isDay(daily) ? daily : today, levelId, Math.round(elapsed / 1000), Number.isInteger(hints) ? hints : null,
-    (daily ? LOG_DAILY : 0) | (record ? LOG_RECORD : 0)];
-  if (isSpecialId(special)) row.push(special);
+  const row = compactRow([daily && isDay(daily) ? daily : today, levelId, Math.round(elapsed / 1000), Number.isInteger(hints) ? hints : null,
+    (daily ? LOG_DAILY : 0) | (record ? LOG_RECORD : 0), isSpecialId(special) ? special : null, isHour(hour) ? hour : null]);
   stats.log = trimLog([...(stats.log || []), row].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)), today);
   return { stats, newBest, previousBest, firstOnLevel, counted: true };
 }

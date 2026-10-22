@@ -4,11 +4,14 @@
 import { createGuitar, ALL_STRINGS } from './guitar.js';
 
 let ctx = null;
+let master = null; // hoofdvolume: alle geluiden gaan hierdoorheen
 let guitar = null;
-let enabled = { sound: 'zacht', haptics: true };
+let enabled = { sound: 'zacht', haptics: true, volume: 1 };
 
-export function configure(settings) {
-  enabled = { sound: settings.sound, haptics: settings.haptics };
+// `volume` (0–1): de slaapstand zet het op de helft.
+export function configure(settings, { volume = 1 } = {}) {
+  enabled = { sound: settings.sound, haptics: settings.haptics, volume };
+  if (master) master.gain.value = volume;
 }
 
 function audio() {
@@ -16,6 +19,9 @@ function audio() {
     const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
     if (!AC) return null;
     ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = enabled.volume;
+    master.connect(ctx.destination);
   }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
@@ -32,7 +38,7 @@ function tone(freq, { at = 0, dur = 0.12, gain = 0.06, type = 'sine' } = {}) {
   g.gain.setValueAtTime(0, t);
   g.gain.linearRampToValueAtTime(gain, t + 0.012);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  osc.connect(g).connect(a.destination);
+  osc.connect(g).connect(master);
   osc.start(t);
   osc.stop(t + dur + 0.02);
 }
@@ -79,7 +85,7 @@ function playGuitar(kind, opts) {
   const a = audio();
   if (!a) return;
   if (!guitar) {
-    guitar = createGuitar(a);
+    guitar = createGuitar(a, master);
     // De andere klanken alvast maken, in rustige momenten, zodat geen tik hoeft te wachten.
     const idle = globalThis.requestIdleCallback ? (fn) => requestIdleCallback(fn, { timeout: 500 }) : (fn) => setTimeout(fn, 40);
     setTimeout(() => guitar.warm(ALL_STRINGS, idle), 400);
