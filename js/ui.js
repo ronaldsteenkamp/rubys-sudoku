@@ -136,30 +136,34 @@ darkQuery.addEventListener?.('change', applyTheme);
 
 // ---------- Puzzels ophalen (Web Worker, met vangnet op de hoofdthread) ----------
 
-let worker;
+// Twee workers: 'nu' voor een puzzel waar Ruby op wacht, en 'voorraad' die op
+// de achtergrond rustig (met veel tijd) de volgende puzzels klaarzet. Zo hoeft
+// een tik nooit te wachten op het vullen van de voorraad.
+const workers = {};
 let reqId = 0;
 const pending = new Map();
 
-function getWorker() {
-  if (worker !== undefined) return worker;
+function getWorker(lane) {
+  if (lane in workers) return workers[lane];
+  let w = null;
   try {
-    worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
-    worker.onmessage = ({ data }) => {
+    w = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+    w.onmessage = ({ data }) => {
       const p = pending.get(data.id);
       if (!p) return;
       pending.delete(data.id);
       clearTimeout(p.timer);
       if (data.error) p.reject(new Error(data.error)); else p.resolve(data.puzzle);
     };
-    worker.onerror = () => {
-      worker = null;
-      for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('worker')); }
-      pending.clear();
+    w.onerror = () => {
+      workers[lane] = null;
+      for (const [id, p] of pending) if (p.lane === lane) { clearTimeout(p.timer); p.reject(new Error('worker')); pending.delete(id); }
     };
   } catch {
-    worker = null;
+    w = null;
   }
-  return worker;
+  workers[lane] = w;
+  return w;
 }
 
 async function generateHere(kind, args) {
@@ -169,18 +173,24 @@ async function generateHere(kind, args) {
   return g.generate(args);
 }
 
-function requestPuzzle(kind, args) {
-  const w = getWorker();
-  if (!w) return generateHere(kind, args);
-  return new Promise((resolve, reject) => {
+// Zonder `background` rekenen we bij problemen met de worker zelf verder (Ruby wacht);
+// op de achtergrond niet, want dat zou de app laten haperen.
+function requestPuzzle(kind, args, { background = false } = {}) {
+  const lane = background ? 'voorraad' : 'nu';
+  const w = getWorker(lane);
+  if (!w) return background ? Promise.reject(new Error('geen worker')) : generateHere(kind, args);
+  const job = new Promise((resolve, reject) => {
     const id = ++reqId;
-    const timer = setTimeout(() => { pending.delete(id); reject(new Error('timeout')); }, 8000);
-    pending.set(id, { resolve, reject, timer });
+    const timer = setTimeout(() => { pending.delete(id); reject(new Error('timeout')); }, background ? 60000 : 8000);
+    pending.set(id, { resolve, reject, timer, lane });
     w.postMessage({ id, kind, args });
-  }).catch(() => generateHere(kind, args));
+  });
+  return background ? job : job.catch(() => generateHere(kind, args));
 }
 
-// Per niveau ligt er alvast een puzzel klaar, zodat starten meteen gaat.
+// Per niveau ligt er alvast een puzzel klaar, zodat starten meteen gaat. Die
+// maken we op de achtergrond met ruim de tijd (5 s), zodat ook een trage iPhone
+// een verse puzzel vindt in plaats van er een uit de voorraad (bank.js) te pakken.
 let stashBusy = false;
 async function fillStash() {
   if (stashBusy) return;
@@ -188,7 +198,7 @@ async function fillStash() {
   try {
     for (const l of LEVELS) {
       if (store.loadStash()[l.id]) continue;
-      const p = await requestPuzzle('level', { levelId: l.id, timeBudget: 400 });
+      const p = await requestPuzzle('level', { levelId: l.id, timeBudget: 5000 }, { background: true });
       const s = store.loadStash();
       s[l.id] = p;
       store.saveStash(s);

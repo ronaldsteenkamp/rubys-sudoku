@@ -60,23 +60,27 @@ function attempt(rng, cap, minClues) {
 // Genereert een puzzel van het gevraagde niveau. Met `maxAttempts` blijft het
 // deterministisch voor een gegeven seed (nodig voor de dagpuzzel); `timeBudget`
 // (ms) houdt het snel op een telefoon. Lukt het niet op tijd, dan pakken we een
-// puzzel uit de voorraad (bank.js) en husselen die onherkenbaar door elkaar.
+// puzzel uit de voorraad (bank.js) en husselen die onherkenbaar door elkaar;
+// `bankIndex` kiest welke (anders een willekeurige).
+// Niveaus zonder voorraad zijn snel te maken; daar gaan we door tot het niveau
+// echt klopt, zodat Koffie erbij nooit stiekem een Zondagochtend wordt.
 export function generate({
-  levelId = 'zondag', seed = (Math.random() * 2 ** 32) >>> 0, maxAttempts = 400, timeBudget = Infinity, useBank = true,
+  levelId = 'zondag', seed = (Math.random() * 2 ** 32) >>> 0, maxAttempts = 400, timeBudget = Infinity, useBank = true, bankIndex = null,
 } = {}) {
   const lvl = levelById(levelId);
   const rng = mulberry32(seed);
+  const bank = useBank ? BANK[lvl.id] : null;
   const start = Date.now();
   let best = null;
   for (let n = 0; n < maxAttempts; n++) {
     const res = attempt(rng, lvl.level, lvl.minClues);
     if (res.level === lvl.level) return finish(res, lvl, seed, 'generator');
     if (!best || res.level > best.level) best = res;
-    if (Date.now() - start > timeBudget) break;
+    if (bank?.length && Date.now() - start > timeBudget) break;
   }
-  const bank = BANK[lvl.id];
-  if (useBank && bank && bank.length) {
-    const base = parseGrid(bank[Math.floor(rng() * bank.length)]);
+  if (bank?.length) {
+    const k = bankIndex ?? Math.floor(rng() * bank.length);
+    const base = parseGrid(bank[((k % bank.length) + bank.length) % bank.length]);
     const givens = transform(base, rng);
     const r = logicalSolve(givens, lvl.level);
     return finish({ puzzle: givens, solution: solve(givens), clues: givens.filter(Boolean).length, level: r.level, used: r.used }, lvl, seed, 'bank');
@@ -139,9 +143,24 @@ export function dailyLevelFor(date) {
   return DAILY_LEVEL[date.getDay()];
 }
 
+// Welke voorraadpuzzel een dag krijgt als de generator het niet redt: per
+// niveau gewoon de volgende, zodat dezelfde puzzel pas terugkomt als de hele
+// voorraad geweest is (bij 120 puzzels en twee dagen per week: ruim een jaar).
+export function dailyBankIndex(date) {
+  const day = Math.round(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+  const week = Math.floor((day + 4) / 7); // 1 januari 1970 was een donderdag; een week begint op zondag
+  const slots = DAILY_LEVEL.flatMap((l, wd) => (l === dailyLevelFor(date) ? [wd] : []));
+  const k = week * slots.length + slots.indexOf(date.getDay());
+  // Een stap die geen deler gemeen heeft met de voorraad, zodat ze elkaar niet opvolgen in bank-volgorde.
+  return k * 7919;
+}
+
 export function generateDaily(date = new Date()) {
   const key = dateKey(date);
-  const p = generate({ levelId: dailyLevelFor(date), seed: hashString('ruby-dagpuzzel-' + key), maxAttempts: 30 });
+  const levelId = dailyLevelFor(date);
+  // Zonder voorraad (Zondagochtend, Koffie) mag de generator langer zoeken: dat gaat snel.
+  const maxAttempts = BANK[levelId] ? 30 : 400;
+  const p = generate({ levelId, seed: hashString('ruby-dagpuzzel-' + key), maxAttempts, bankIndex: dailyBankIndex(date) });
   return { ...p, daily: key };
 }
 

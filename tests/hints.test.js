@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseGrid, solve, bit } from '../js/solver.js';
+import { computeCandidates } from '../js/techniques.js';
 import { Game } from '../js/game.js';
 import { getHint, unitName } from '../js/hints.js';
 import { generateHeart } from '../js/generator.js';
@@ -84,7 +85,43 @@ test('hint bij een eliminatie-techniek benoemt de techniek en wat er weg kan', (
   }
   assert.ok(h.action.eliminations.length > 0);
   assert.ok(h.stages[1].strike.length > 0);
-  assert.match(h.stages[2].text, /blijft/);
+  assert.match(h.stages[2].text, /blijft|één plek/);
+});
+
+// Speelt hints af en geeft alle hints terug waarbij eerst notities weg moesten.
+function chainHints(puzzles) {
+  const out = [];
+  for (const s of puzzles) {
+    const g = gameFrom(parseGrid(s));
+    for (let n = 0; n < 81 && !g.solved; n++) {
+      const h = getHint(g, rng);
+      if (h.action.eliminations?.length) out.push({ h, g: { values: g.values.slice() } });
+      g.setDigit(h.action.cell, h.action.digit);
+    }
+  }
+  return out;
+}
+
+test('een hint met tussenstappen wijst de plek aan waar het cijfer komt, en de uitleg klopt', () => {
+  const hints = chainHints([...BANK.nadenken.slice(0, 15), ...BANK.ruby.slice(0, 15)]);
+  assert.ok(hints.length > 20);
+  for (const { h, g } of hints) {
+    const { cell, digit } = h.action;
+    // Stap 1 kijkt naar een gebied waar het vakje van het antwoord in ligt.
+    const region = new Set(h.stages[0].units.flatMap((u) => (u < 9 ? [...Array(9)].map((_, c) => u * 9 + c)
+      : u < 18 ? [...Array(9)].map((_, r) => r * 9 + u - 9) : [...Array(9)].map((_, k) => {
+        const b = u - 18;
+        return (Math.floor(b / 3) * 3 + Math.floor(k / 3)) * 9 + (b % 3) * 3 + (k % 3);
+      }))));
+    assert.ok(region.has(cell), `vakje ${cell} valt buiten ${h.stages[0].text}`);
+    // "Alleen de X blijft over" alleen als dat ook echt zo is: na alle eliminaties
+    // heeft het vakje dan nog maar één kandidaat.
+    if (/blijft voor dit vakje alleen/.test(h.stages[2].text)) {
+      const cands = computeCandidates(g.values);
+      for (const e of h.action.eliminations) cands[e.cell] &= ~bit(e.digit);
+      assert.equal(cands[cell], bit(digit), h.stages[2].text);
+    } else assert.match(h.stages[2].text, /nog maar op één plek/);
+  }
 });
 
 test('ook de hartjespuzzel is met hints op te lossen', () => {

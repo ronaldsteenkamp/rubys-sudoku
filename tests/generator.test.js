@@ -100,3 +100,29 @@ test('hartjespuzzel: uniek, binnen het hart, met volledige omtrek', async () => 
     assert.deepEqual(generateHeart(seed).givens, p.givens);
   }
 });
+
+test('Koffie erbij is altijd echt Koffie, ook als de tijd op is en op dagen die vroeger te makkelijk waren', async () => {
+  const { generateDaily } = await import('../js/generator.js');
+  for (const s of [1, 2, 3, 4, 5]) assert.equal(generate({ levelId: 'koffie', seed: s, timeBudget: 0 }).rating, 2);
+  for (const day of ['2027-02-15', '2027-04-05', '2027-06-24', '2027-08-02', '2027-08-26', '2027-11-30']) {
+    const [y, m, d] = day.split('-').map(Number);
+    const p = generateDaily(new Date(y, m - 1, d));
+    assert.equal(p.levelId, 'koffie');
+    assert.equal(p.rating, 2, day);
+  }
+});
+
+test('dagpuzzels uit de voorraad komen pas terug als de hele voorraad geweest is', async () => {
+  const { dailyBankIndex, dailyLevelFor } = await import('../js/generator.js');
+  for (const level of ['nadenken', 'ruby']) {
+    const n = BANK[level].length;
+    const used = new Map();
+    for (let d = 0; used.size < n; d++) {
+      const date = new Date(2026, 9, 22 + d);
+      if (dailyLevelFor(date) !== level) continue;
+      const k = dailyBankIndex(date) % n;
+      assert.ok(!used.has(k), `${level}: voorraadpuzzel ${k} komt al terug op dag ${d} (eerder op dag ${used.get(k)})`);
+      used.set(k, d);
+    }
+  }
+});

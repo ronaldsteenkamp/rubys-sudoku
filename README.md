@@ -83,7 +83,7 @@ npm run test:e2e
 
 ## Snelheid
 
-Generatie draait in een Web Worker. Voor de twee zwaarste niveaus zijn passende puzzels zeldzaam bij willekeurig weghalen. Daarom krijgt de generator een tijdslimiet (400 ms). Lukt het niet binnen die tijd, dan pakt hij een puzzel uit `js/bank.js` en husselt die onherkenbaar door elkaar: cijfers hernummeren, spiegelen en rijen wisselen. De moeilijkheid blijft daarbij precies gelijk. Daarnaast ligt er per niveau altijd al een puzzel klaar, zodat starten direct gaat.
+Generatie draait in een Web Worker. Per niveau ligt er altijd al een puzzel klaar, zodat starten direct gaat; die voorraad vult een tweede worker op de achtergrond, met ruim de tijd (5 s). Voor de twee zwaarste niveaus zijn passende puzzels zeldzaam bij willekeurig weghalen. Moet er meteen een puzzel komen, dan krijgt de generator een tijdslimiet (400 ms). Lukt het niet binnen die tijd, dan pakt hij een puzzel uit `js/bank.js` en husselt die onherkenbaar door elkaar: cijfers hernummeren, rijen en kolommen binnen hun band wisselen en kantelen. De moeilijkheid blijft daarbij precies gelijk. De dagpuzzel neemt de voorraad op volgorde door, zodat dezelfde puzzel pas na ruim een jaar terugkomt. Zondagochtend en Koffie erbij hebben geen voorraad nodig: daar zoekt de generator gewoon door tot het niveau klopt.
 
 De voorraad opnieuw maken (duurt een halve minuut):
 
