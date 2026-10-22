@@ -267,6 +267,41 @@
   color-scheme: light;
 }
 
+/* Briefje: een blaadje ruitjespapier, ingevuld met balpen en een markeerstift erbij. */
+[data-theme="briefje"] {
+  --bg: #fbfaf5;
+  --bg-2: #f6f4ea;
+  --surface: #ffffff;
+  --surface-2: #f2f4fa;
+  --ink: #2a2a33;
+  --ink-soft: #565868;
+  --line: #dfe3ef;
+  --line-strong: #3a4a9a;
+  --accent: #ffe45c;
+  --accent-strong: #3a4a9a;
+  --accent-ink: #2a2a33;
+  --accent-soft: #fff4b0;
+  --user: #2a3d9e;
+  --given: #2a2a33;
+  --sel: #ffe866;
+  --sel-ink: #1d2a6e;
+  --peer: #f3f5fc;
+  --same: #fff5b8;
+  --same-ring: transparent;
+  --hint: #ef7d52;
+  --wrong: #c2272d;
+  --wrong-bg: #fde0dc;
+  --heart: #d2384f;
+  --heart-fill: #fbe2f2;
+  --heart-edge: #f7d2e6;
+  --heart-ink: #a3233b;
+  --heart-solved: #d2384f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(42 61 158 / 6%), 0 8px 24px rgb(42 61 158 / 7%);
+  --decor: linear-gradient(rgb(58 74 154 / 7%) 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, rgb(58 74 154 / 7%) 1px, transparent 1px) 0 0 / 22px 22px;
+  color-scheme: light;
+}
+
 /* ---------- Seizoensthema's (te ontgrendelen) ---------- */
 
 [data-theme="lente"] {

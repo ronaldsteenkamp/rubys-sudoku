@@ -41,6 +41,11 @@ export const THEMES = [
     celebrate: ['🏐', '🙌', '⭐', '💛'],
     swatch: { bg: '#fffaea', surface: '#ffffff', accent: '#ffcc00', digit: '#1d4fa3' },
   },
+  {
+    id: 'briefje', name: 'Briefje', scheme: 'light',
+    celebrate: ['💙', '✏️', '💛', '💌'],
+    swatch: { bg: '#fbfaf5', surface: '#ffffff', accent: '#ffe45c', digit: '#2a3d9e' },
+  },
   // ---------- Seizoenen ----------
   {
     id: 'lente', name: 'Lente', scheme: 'light', season: 'lente', unlock: { solves: 3 },
