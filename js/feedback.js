@@ -1,7 +1,11 @@
-// Zachte geluidjes (Web Audio, geen bestanden nodig) en haptische feedback.
+// Geluidjes (Web Audio, geen bestanden nodig) en haptische feedback.
+// Twee geluidsstijlen: 'zacht' (piepjes, hieronder) en 'gitaar' (getokkelde snaren, zie guitar.js).
+
+import { createGuitar, ALL_STRINGS } from './guitar.js';
 
 let ctx = null;
-let enabled = { sound: true, haptics: true };
+let guitar = null;
+let enabled = { sound: 'zacht', haptics: true };
 
 export function configure(settings) {
   enabled = { sound: settings.sound, haptics: settings.haptics };
@@ -70,11 +74,27 @@ function iosTick() {
 
 export const hasHaptics = canVibrate || isIOS;
 
-export function feedback(kind) {
-  if (enabled.sound) {
-    try { SOUNDS[kind]?.(); } catch { /* geen geluid, geen probleem */ }
+// De gitaar pas bij de eerste tik maken (iOS start geluid alleen na een tik).
+function playGuitar(kind, opts) {
+  const a = audio();
+  if (!a) return;
+  if (!guitar) {
+    guitar = createGuitar(a);
+    // De andere klanken alvast maken, in rustige momenten, zodat geen tik hoeft te wachten.
+    const idle = globalThis.requestIdleCallback ? (fn) => requestIdleCallback(fn, { timeout: 500 }) : (fn) => setTimeout(fn, 40);
+    setTimeout(() => guitar.warm(ALL_STRINGS, idle), 400);
   }
-  if (enabled.haptics) {
+  guitar.play(kind, opts);
+}
+
+// `opts.digit`: welk cijfer het is (bij Gitaar heeft elk cijfer een eigen toon).
+export function feedback(kind, opts = {}) {
+  try {
+    if (enabled.sound === 'zacht') SOUNDS[kind]?.();
+    else if (enabled.sound === 'gitaar') playGuitar(kind, opts);
+  } catch { /* geen geluid, geen probleem */ }
+  // 'unlock' en 'preview' zijn alleen geluid; de trilling blijft zoals hij was.
+  if (enabled.haptics && kind !== 'unlock' && kind !== 'preview') {
     try {
       if (canVibrate) navigator.vibrate(PATTERNS[kind] ?? 6);
       else if (isIOS && kind !== 'note') iosTick();

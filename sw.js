@@ -1,7 +1,7 @@
 // Service worker: de app werkt volledig offline na het eerste bezoek.
 // Verhoog VERSION bij elke release, dan haalt iedereen de nieuwe bestanden op.
 // Een nieuwe versie wacht netjes tot Ruby op "verversen" tikt (zie ui.js).
-const VERSION = 'v13';
+const VERSION = 'v15';
 const CACHE = `rubys-sudoku-${VERSION}`;
 const NETWORK_TIMEOUT = 3000;
 
@@ -21,6 +21,7 @@ const SHELL = [
   'js/messages.js',
   'js/themes.js',
   'js/feedback.js',
+  'js/guitar.js',
   'js/worker.js',
   'fonts/fraunces-latin.woff2',
   'fonts/nunito-latin.woff2',

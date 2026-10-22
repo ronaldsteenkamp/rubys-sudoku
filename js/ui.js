@@ -601,7 +601,7 @@ function inputDigit(d, { note = false } = {}) {
     return;
   }
   if (notesMode || note) {
-    if (game.toggleNote(selected, d).changed) feedback('note');
+    if (game.toggleNote(selected, d).changed) feedback('note', { digit: d });
     checkMarks.delete(selected);
     afterChange();
     return;
@@ -612,9 +612,9 @@ function inputDigit(d, { note = false } = {}) {
   if (r.removed) feedback('erase');
   else {
     popCell = selected;
-    if (r.wrong && settings.errors === 'direct') { feedback('wrong'); announce('Dit cijfer klopt niet'); }
-    else if (game.counts()[d] === 9 && !r.solved) feedback('done');
-    else feedback('place');
+    if (r.wrong && settings.errors === 'direct') { feedback('wrong', { digit: d }); announce('Dit cijfer klopt niet'); }
+    else if (game.counts()[d] === 9 && !r.solved) feedback('done', { digit: d });
+    else feedback('place', { digit: d });
   }
   afterChange();
   if (r.solved) onSolved();
@@ -639,7 +639,7 @@ function doRedo() {
   if (!game || paused) return;
   closeHint(false);
   const ch = game.redo();
-  if (ch) { selected = ch[0].cell; feedback('place'); }
+  if (ch) { selected = ch[0].cell; feedback('place', { digit: ch[0].to.v }); }
   afterChange();
   if (game.solved) onSolved();
 }
@@ -781,7 +781,7 @@ function applyHintAction(a) {
     if (a.eliminations?.length) game.removeNotes(a.eliminations);
     game.setDigit(a.cell, a.digit, { autoNotes: settings.autoNotes });
     popCell = a.cell;
-    feedback('place');
+    feedback('place', { digit: a.digit });
   }
   checkMarks.delete(a.cell);
   saveGame();
@@ -800,11 +800,12 @@ $('#hint-close').addEventListener('click', () => closeHint());
 
 // ---------- Opgelost! ----------
 
-function celebrate(special) {
+// `jersey`: de 33e puzzel in Volleybal, dan dwarrelen er ballen en haar rugnummer.
+function celebrate(special, jersey = false) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box = $('#confetti');
   box.innerHTML = '';
-  const set = special ? ['❤️', '💛', '💗', '💕'] : themeById(document.documentElement.dataset.theme).celebrate;
+  const set = special ? ['❤️', '💛', '💗', '💕'] : jersey ? ['🏐', '33'] : themeById(document.documentElement.dataset.theme).celebrate;
   const hand = handwritten();
   for (let k = 0; k < 28; k++) {
     const s = document.createElement('span');
@@ -812,7 +813,10 @@ function celebrate(special) {
     if (hand) {
       s.className = `hand-art hart-${(k % 2) + 1}`;
       s.style.color = k % 4 < 2 ? 'var(--heart)' : 'var(--user)';
-    } else s.textContent = set[k % set.length];
+    } else {
+      s.textContent = set[k % set.length];
+      if (s.textContent === '33') s.className = 'jersey-33';
+    }
     s.style.left = `${Math.random() * 100}%`;
     s.style.setProperty('--s', `${18 + Math.random() * 22}px`);
     s.style.setProperty('--d', `${3.2 + Math.random() * 2.5}s`);
@@ -860,7 +864,9 @@ function onSolved() {
     board.classList.add('solved-glow');
     setTimeout(() => board.classList.remove('solved-glow'), 1500);
   }
-  celebrate(Boolean(g.special));
+  // Rugnummer 33 net vrij in Volleybal: een eigen feestje (een speciale puzzel gaat voor).
+  const jersey = !g.special && fresh.some((m) => m.id === 'rugnummer33') && document.documentElement.dataset.theme === 'volleybal';
+  celebrate(Boolean(g.special), jersey);
 
   // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
   const special = g.special ? M.specialById(g.special) : null;
@@ -877,7 +883,7 @@ function onSolved() {
   if (hand && !g.special) $('#solved-title').innerHTML = '<span class="hand-art goed-zo" role="img" aria-label="Goed zo!"></span>';
   else $('#solved-title').textContent = g.special ? 'Het is je gelukt!' : 'Opgelost!';
   if (hand) document.querySelector('.solved-emoji').innerHTML = '<span class="hand-art hart-2 solved-heart"></span>';
-  else document.querySelector('.solved-emoji').textContent = g.special ? '💛' : '🎉';
+  else document.querySelector('.solved-emoji').textContent = g.special ? '💛' : jersey ? '🏐' : '🎉';
   const scribble = hand && store.scribbleDue(store.loadScribbleDay(), day);
   if (scribble) store.saveScribbleDay(day);
   $('#solved-scribble').hidden = !scribble;
@@ -896,6 +902,7 @@ function onSolved() {
     const d = openDialog('solved-dialog');
     d.addEventListener('close', async () => {
       for (const m of fresh) {
+        feedback('unlock');
         await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
       }
       for (const id of freshThemes) await offerTheme(id);
@@ -1015,7 +1022,8 @@ function renderSettings() {
     ...SEASON_THEMES.map((t) => (own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedSeason(t))),
   ].join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
-  for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'sound', 'haptics']) {
+  for (const r of document.querySelectorAll('input[name="sound"]')) r.checked = r.value === settings.sound;
+  for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
   }
   $('#haptics-row').hidden = !hasHaptics;
@@ -1030,7 +1038,8 @@ $('#settings-dialog').addEventListener('change', (e) => {
   configureFeedback(settings);
   if (name === 'theme') { applyTheme(); renderHome(); } // render() volgt hieronder
   if (name === 'errors') checkMarks = new Set();
-  if (name === 'sound' && checked) feedback('place');
+  // Even laten horen hoe het klinkt: bij Gitaar een kort akkoord.
+  if (name === 'sound') feedback(value === 'gitaar' ? 'preview' : 'place');
   renderTimer();
   render();
 });

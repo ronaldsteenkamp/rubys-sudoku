@@ -96,7 +96,7 @@ test('oude statistieken zonder dagtijden worden netjes aangevuld', () => {
 });
 
 test('back-up: heen en terug levert dezelfde gegevens op', () => {
-  S.saveSettings({ ...S.DEFAULT_SETTINGS, theme: 'lelie', sound: false });
+  S.saveSettings({ ...S.DEFAULT_SETTINGS, theme: 'lelie', sound: 'gitaar' });
   const st = S.emptyStats();
   S.recordSolve(st, { levelId: 'koffie', elapsed: 1234, hints: 0, daily: '2026-10-21' }, '2026-10-21');
   S.saveStats(st);
@@ -112,7 +112,7 @@ test('back-up: heen en terug levert dezelfde gegevens op', () => {
   globalThis.localStorage = new MemoryStorage();
   assert.equal(S.importBackup(backup).ok, true);
   assert.equal(S.loadSettings().theme, 'lelie');
-  assert.equal(S.loadSettings().sound, false);
+  assert.equal(S.loadSettings().sound, 'gitaar');
   assert.deepEqual(S.loadStats(), st);
   assert.deepEqual(S.loadUnlocked(), ['eerste', 'dag1']);
   assert.deepEqual(S.loadRecentNotes(), ['lief']);
@@ -184,4 +184,21 @@ test('krabbeltje in Briefje: één keer per dag, en het gaat mee in de back-up',
   assert.equal(S.loadScribbleDay(), null);
   assert.equal(S.importBackup({ ...backup, data: { ...backup.data, scribbleDay: 42 } }).ok, true);
   assert.equal(S.loadScribbleDay(), null);
+});
+
+test('geluid: de oude schakelaar wordt een geluidsstijl, ook in een oude back-up', () => {
+  assert.equal(S.loadSettings().sound, 'zacht', 'standaard');
+  for (const [old, now] of [[true, 'zacht'], [false, 'uit'], ['gitaar', 'gitaar'], ['trompet', 'zacht'], [7, 'zacht']]) {
+    globalThis.localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme: 'lelie', sound: old }));
+    assert.equal(S.loadSettings().sound, now, String(old));
+    assert.equal(S.loadSettings().theme, 'lelie');
+  }
+  // Een back-up van vóór de geluidsstijlen.
+  const b = S.makeBackup({ settings: { theme: 'zonnig', sound: false }, stats: S.emptyStats(), unlocked: [], recentNotes: [], game: null });
+  assert.equal(S.validateBackup(b).data.settings.sound, 'uit');
+  const b2 = S.makeBackup({ settings: { theme: 'zonnig', sound: true }, stats: S.emptyStats(), unlocked: [], recentNotes: [], game: null });
+  assert.equal(S.validateBackup(b2).data.settings.sound, 'zacht');
+  const b3 = S.makeBackup({ settings: { theme: 'zonnig', sound: 'gitaar' }, stats: S.emptyStats(), unlocked: [], recentNotes: [], game: null });
+  assert.equal(S.importBackup(b3).ok, true);
+  assert.equal(S.loadSettings().sound, 'gitaar');
 });
