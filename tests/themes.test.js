@@ -240,3 +240,42 @@ test('oude statistieken krijgen lege seizoensgegevens, kapotte worden hersteld',
   assert.deepEqual(bad.unlockedThemes, []);
   assert.deepEqual(migrateStats({ unlockedThemes: ['herfst', 7, 'onzin'] }).unlockedThemes, ['herfst']);
 });
+
+// ---------- Dagthema's: Volleybal met de accentkleuren van een ander thema ----------
+
+const accentSets = {};
+for (const [, id, body] of css.matchAll(/html\[data-accent="([\w-]+)"\]\s*\{([^}]*)\}/g)) {
+  accentSets[id] = Object.fromEntries([...body.matchAll(/--([\w-]+):\s*([^;]+);/g)].map(([, k, v]) => [k, v.trim()]));
+}
+const mixed = (() => {
+  const body = css.match(/html\[data-accent\]\s*\{([^}]*)\}/)[1];
+  return Object.fromEntries([...body.matchAll(/--([\w-]+):\s*color-mix\(in srgb, var\(--accent\) (\d+)%, var\(--surface\)\);/g)].map(([, k, p]) => [k, Number(p) / 100]));
+})();
+// color-mix(in srgb, a p%, b): per kanaal gewoon mengen.
+const mix = (a, b, p) => `#${rgb(a).map((v, i) => Math.round(v * p + rgb(b)[i] * (1 - p)).toString(16).padStart(2, '0')).join('')}`;
+const combined = (base, accent) => {
+  const v = { ...vars[base], ...accentSets[accent] };
+  for (const [k, p] of Object.entries(mixed)) v[k] = mix(v.accent, v.surface, p);
+  return v;
+};
+
+test('dagthema: elk thema heeft een accentset met dezelfde kleuren als zijn eigen blok', () => {
+  assert.deepEqual(Object.keys(mixed).sort(), ['accent-soft', 'peer', 'same']);
+  for (const t of THEMES) {
+    const set = accentSets[t.id];
+    assert.ok(set, `geen html[data-accent="${t.id}"]`);
+    for (const k of ['accent', 'accent-strong', 'accent-ink', 'sel', 'sel-ink']) assert.equal(set[k], vars[t.id][k], `${t.id} --${k}`);
+  }
+});
+
+test('dagthema: Volleybal met elk ander accent blijft leesbaar (4.5:1)', () => {
+  const fails = [];
+  for (const t of THEMES) {
+    const v = combined('volleybal', t.id);
+    for (const [fg, bg] of [...PAIRS, ...CALENDAR_TEXT]) {
+      const c = contrast(v[fg], v[bg]);
+      if (!(c >= 4.5)) fails.push(`volleybal + ${t.id}: --${fg} op --${bg} = ${c.toFixed(2)}`);
+    }
+  }
+  assert.deepEqual(fails, []);
+});

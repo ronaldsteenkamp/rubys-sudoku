@@ -113,6 +113,8 @@ export function checkThemeUnlocks(stats, date = new Date()) {
   const { theme, current, target } = seasonProgress(stats, date);
   if (unlocked.includes(theme.id) || current < target) return [];
   stats.unlockedThemes = [...unlocked, theme.id];
+  // De dag van vrijspelen: dan is het die dag meteen dat thema (zie themeForDay).
+  stats.themeUnlockDates = { ...(stats.themeUnlockDates || {}), [theme.id]: dayKey(date) };
   return [theme.id];
 }
 
@@ -132,4 +134,91 @@ export function resolveTheme(setting, date = new Date(), unlocked = []) {
   const t = themeById(setting);
   if (t.season && !unlocked.includes(t.id)) return DEFAULT_THEME;
   return t.id;
+}
+
+// ---------- Dagthema's ----------
+//
+// Op sommige dagen kiest de app het thema, niet Ruby. Haar eigen keuze
+// (settings.theme) blijft gewoon bewaard: de volgende dag is alles weer zoals
+// zij het had. Voorrang, van hoog naar laag:
+//   1. een wedstrijddag (js/matches.js): Volleybal. Valt er die dag ook iets
+//      van hieronder, dan Volleybal met de accentkleuren van dat andere thema;
+//   2. persoonlijke dagen en feestdagen (DAY_THEMES, met de speciale dagen uit
+//      messages.js), oudejaarsavond en vakanties (VACATIONS);
+//   3. seizoenen: de dag dat ze een seizoen vrijspeelt, en elk jaar daarna de
+//      eerste dag van dat seizoen;
+//   4. anders haar eigen keuze.
+
+// Vakanties: van en tot (allebei meegerekend) als 'JJJJ-MM-DD', met een thema-id.
+// Bijvoorbeeld:
+//   { van: '2027-05-01', tot: '2027-05-08', thema: 'gran-canaria' },
+export const VACATIONS = [];
+
+// Welk thema bij welke speciale dag (de soorten uit SPECIAL_DAYS in
+// messages.js). Een functie krijgt de vrijgespeelde seizoenen mee.
+const winterOr = (fallback) => (unlocked) => (unlocked.includes('winter') ? 'winter' : fallback);
+export const DAY_THEMES = {
+  jubileum: 'liefde',
+  halfjaar: 'liefde',
+  honderd: 'liefde',
+  valentijn: 'liefde',
+  verjaardag: 'zonnig',
+  'app-verjaardag': 'briefje',
+  kerst: winterOr('sterren'),
+  'tweede-kerstdag': winterOr('sterren'),
+  sinterklaas: winterOr('sterren'),
+  oudjaar: 'sterren', // 31 december; staat niet tussen de speciale dagen
+  nieuwjaar: 'sterren',
+  halloween: 'nacht',
+  pasen: (unlocked) => (unlocked.includes('lente') ? 'lente' : 'zonnig'),
+  koningsdag: 'zonnig',
+};
+
+// De eerste dag van elk seizoen (dezelfde indeling als seasonOf).
+const SEASON_STARTS = { lente: '03-01', zomer: '06-01', herfst: '09-01', winter: '12-01' };
+
+const pad = (n) => String(n).padStart(2, '0');
+export const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+// Het thema van een persoonlijke dag, feestdag of vakantie, of null.
+function holidayTheme(date, key, unlocked, specials, vacations) {
+  const kinds = [...specials, ...(key.endsWith('-12-31') ? ['oudjaar'] : [])];
+  for (const kind of kinds) {
+    const rule = DAY_THEMES[kind];
+    if (rule) return { theme: typeof rule === 'function' ? rule(unlocked) : rule, reason: 'dag', kind };
+  }
+  const trip = vacations.find((v) => v.van <= key && key <= v.tot && THEMES.some((t) => t.id === v.thema));
+  return trip ? { theme: trip.thema, reason: 'vakantie', kind: 'vakantie' } : null;
+}
+
+// Het seizoensthema van vandaag, of null. `unlockDates`: { winter: '2026-12-30' };
+// een vrijgespeeld seizoen zonder datum (oude opslag) telt als "vóór vandaag".
+function seasonTheme(date, key, unlocked, unlockDates) {
+  const fresh = SEASON_THEMES.find((t) => unlocked.includes(t.id) && unlockDates[t.id] === key);
+  if (fresh) return { theme: fresh.id, reason: 'vrijgespeeld', kind: fresh.season };
+  const first = SEASON_THEMES.find((t) => key.slice(5) === SEASON_STARTS[t.season]);
+  if (first && unlocked.includes(first.id) && !(unlockDates[first.id] >= key)) return { theme: first.id, reason: 'seizoen', kind: first.season };
+  return null;
+}
+
+// Het dagthema voor `date`, of null (dan geldt haar eigen keuze).
+// Geeft { theme, accent, reason, kind }: `accent` is een ander thema waarvan de
+// accentkleuren over het thema heen komen (alleen op een wedstrijddag), `reason`
+// is 'wedstrijd', 'dag', 'vakantie', 'vrijgespeeld' of 'seizoen', en `kind` de
+// soort dag (bijv. 'halloween'). `specials` zijn de soorten speciale dag op
+// `date` (specialKindsOn in messages.js), `matches` het wedstrijdschema.
+export function themeForDay(date = new Date(), { unlocked = [], unlockDates = {}, matches = [], specials = [], vacations = VACATIONS } = {}) {
+  const key = dayKey(date);
+  const other = holidayTheme(date, key, unlocked, specials, vacations) || seasonTheme(date, key, unlocked, unlockDates);
+  if (matches.some((m) => m.date === key)) {
+    const accent = other && other.theme !== 'volleybal' ? other.theme : null;
+    return { theme: 'volleybal', accent, reason: 'wedstrijd', kind: other?.kind ?? null };
+  }
+  return other ? { ...other, accent: null } : null;
+}
+
+// Het thema dat ze nu ziet: het dagthema, of anders haar eigen keuze.
+export function themeToday(setting, date, opts = {}) {
+  const day = themeForDay(date, opts);
+  return day ? { ...day, own: false } : { theme: resolveTheme(setting, date, opts.unlocked), accent: null, own: true };
 }

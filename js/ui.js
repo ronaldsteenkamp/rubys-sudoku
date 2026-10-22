@@ -2,14 +2,14 @@
 
 import { Game } from './game.js';
 import { LEVELS, levelById, dateKey, dailyLevelFor, SHAPES, SHAPE_CELLS, shapeColor } from './generator.js';
-import { currentMatch } from './matches.js';
+import { currentMatch, MATCHES } from './matches.js';
 import { sleepActive, SLEEP_VOLUME } from './sleep.js';
 import { wrapped, wrappedYearOn, wrappedYears } from './wrapped.js';
 import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { FIXED_THEMES, SEASON_THEMES, SEASON_AUTO, themeById, resolveTheme, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, seasonOf, seasonProgress } from './themes.js';
+import { FIXED_THEMES, SEASON_THEMES, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, seasonOf, seasonProgress } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -65,7 +65,12 @@ function applySleep() {
   }
   applyFeedback();
 }
-setInterval(applySleep, 30000);
+setInterval(() => {
+  applySleep();
+  // Om middernacht kan het dagthema wisselen (ook als de app openstaat).
+  const t = currentTheme();
+  if (t.theme !== shownTheme.theme || t.accent !== shownTheme.accent) applyTheme();
+}, 30000);
 let stats = store.loadStats();
 let unlocked = store.loadUnlocked();
 let game = Game.fromJSON(store.loadGame());
@@ -161,9 +166,27 @@ function themePreview(id) {
 // Briefje: wat Ruby zelf invult staat er in zijn handschrift (hand/*.svg, zie style.css).
 const handwritten = () => document.documentElement.dataset.theme === 'briefje';
 
+// Het thema van nu: op een dagthema-dag kiest de app (zie themeForDay in
+// themes.js), anders haar eigen keuze. settings.theme verandert daarbij nooit.
+// Met ?dagthema=uit (om te testen, bijv. voor screenshots per thema) geldt altijd haar eigen keuze.
+const dayThemesOff = params.get('dagthema') === 'uit';
+function currentTheme(now = today()) {
+  if (dayThemesOff) return { theme: resolveTheme(settings.theme, now, stats.unlockedThemes), accent: null, own: true };
+  return themeToday(settings.theme, now, { unlocked: stats.unlockedThemes, unlockDates: stats.themeUnlockDates, matches: MATCHES, specials: M.specialKindsOn(now) });
+}
+let shownTheme = currentTheme();
+
 function applyTheme() {
-  const t = resolveTheme(settings.theme, today(), stats.unlockedThemes);
-  document.documentElement.dataset.theme = t;
+  const now = today();
+  shownTheme = currentTheme(now);
+  const { theme: t, accent } = shownTheme;
+  const html = document.documentElement;
+  html.dataset.theme = t;
+  // Op een wedstrijddag die ook een andere bijzondere dag is: Volleybal met de accentkleuren van die dag.
+  if (accent) html.dataset.accent = accent;
+  else delete html.dataset.accent;
+  delete html.dataset.themePending;
+  store.saveThemeToday(dayKey(now), t, accent);
   // Licht of donker: de kleuren van de figuurpuzzels (zie .board[data-color]) volgen dat.
   document.documentElement.dataset.scheme = themeById(t).scheme;
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
@@ -998,6 +1021,13 @@ $('#hint-close').addEventListener('click', () => closeHint());
 
 // ---------- Opgelost! ----------
 
+// Op een gecombineerd dagthema (wedstrijd + een andere bijzondere dag) de
+// feest-emoji's van die andere dag of dat andere thema.
+function dayCelebrate() {
+  if (!shownTheme.accent) return null;
+  return M.specialDay(today())?.celebrate || themeById(shownTheme.accent).celebrate;
+}
+
 // `special`: de feest-emoji's van een speciale dag (of null).
 // `jersey`: de 33e puzzel in Volleybal, dan dwarrelen er ballen en haar rugnummer.
 // `handHearts`: in Briefje zijn getekende hartjes (niet bij een speciale dag zonder hart).
@@ -1005,7 +1035,7 @@ function celebrate(special, jersey = false, handHearts = true) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box = $('#confetti');
   box.innerHTML = '';
-  const set = special || (jersey ? ['🏐', '33'] : themeById(document.documentElement.dataset.theme).celebrate);
+  const set = special || (jersey ? ['🏐', '33'] : dayCelebrate() || themeById(document.documentElement.dataset.theme).celebrate);
   const hand = handwritten() && handHearts;
   // In de slaapstand rustiger: minder deeltjes, en langzamer.
   const calm = sleeping();
@@ -1047,6 +1077,8 @@ function onSolved() {
     recordSeasonSolve(stats, today());
     freshThemes = checkThemeUnlocks(stats, today());
   }
+  // Vrijgespeeld: vandaag meteen dat seizoen (een dagthema, zie themeForDay).
+  if (freshThemes.length) applyTheme();
   // Pas de puzzel opruimen als de statistieken echt bewaard zijn; anders staat
   // hij er na een herstart nog en telt hij alsnog mee.
   if (saved(store.saveStats(stats))) store.clearGame();
@@ -1222,8 +1254,9 @@ for (const d of document.querySelectorAll('dialog')) {
 
 // Eén keuze in de thema-kiezer: een radioknop met voorproefje.
 function themeChoice({ id, name, previews, hint = '' }) {
-  return `<label class="theme-opt">
-      <input type="radio" name="theme" value="${id}" ${settings.theme === id ? 'checked' : ''}>
+  // Op een dagthema-dag niet te kiezen; haar eigen keuze blijft wel aangevinkt.
+  return `<label class="theme-opt${shownTheme.own ? '' : ' fixed'}">
+      <input type="radio" name="theme" value="${id}" ${settings.theme === id ? 'checked' : ''} ${shownTheme.own ? '' : 'disabled'}>
       <span class="theme-card"><i class="theme-preview" aria-hidden="true">${previews.map(themePreview).join('')}</i>
         <span class="theme-name">${escapeHtml(name)}</span>${hint ? `<small class="theme-hint">${escapeHtml(hint)}</small>` : ''}</span></label>`;
 }
@@ -1241,7 +1274,19 @@ function lockedSeason(t) {
         <span class="theme-name">${escapeHtml(t.name)}</span><small class="theme-hint" aria-hidden="true">${escapeHtml(hint)}</small></span></button>`;
 }
 
+// "Vandaag kies ik je thema: Volleybal 🏐 Morgen mag je weer zelf."
+function dayThemeInfo() {
+  const { theme, accent, kind } = shownTheme;
+  const base = themeById(theme);
+  if (!accent) return { name: base.name, emoji: M.THEME_EMOJI[theme] || '' };
+  const icon = M.specialDay(today())?.icon || M.THEME_EMOJI[accent] || '';
+  return { name: `${base.name} met ${themeById(accent).name}`, emoji: `${M.THEME_EMOJI[theme]}${kind === 'oudjaar' ? '🎆' : icon}` };
+}
+
 function renderSettings() {
+  const note = $('#day-theme-note');
+  note.hidden = shownTheme.own;
+  note.textContent = shownTheme.own ? '' : M.dayThemeLine(today(), dayThemeInfo());
   $('#theme-options').innerHTML = FIXED_THEMES.map((t) => themeChoice({ ...t, previews: [t.id] })).join('');
   const own = stats.unlockedThemes;
   const seasonNow = resolveTheme('seizoen', today(), own);

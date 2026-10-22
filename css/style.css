@@ -448,7 +448,35 @@
   color-scheme: light;
 }
 
+/* ---------- Dagthema: accentkleuren van een ander thema (zie themeForDay) ---------- */
+/* Op een wedstrijddag die ook een andere bijzondere dag is, krijgt Volleybal de
+   accentkleuren van het thema van die dag (html[data-accent]). Per thema dezelfde
+   waarden als in zijn eigen blok hierboven (een test controleert dat); de zachte
+   tinten worden gemengd met het oppervlak van het basisthema, zodat ze altijd passen. */
+html[data-accent] {
+  --accent-soft: color-mix(in srgb, var(--accent) 28%, var(--surface));
+  --peer: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  --same: color-mix(in srgb, var(--accent) 38%, var(--surface));
+  --same-ring: transparent;
+}
+html[data-accent="zonnig"] { --accent: #f5c02e; --accent-strong: #e0a400; --accent-ink: #3a2e1f; --sel: #f5c02e; --sel-ink: #3a2e1f; }
+html[data-accent="nacht"] { --accent: #f5c451; --accent-strong: #ffd772; --accent-ink: #1d1a12; --sel: #f5c451; --sel-ink: #1d1a12; }
+html[data-accent="gran-canaria"] { --accent: #f29b74; --accent-strong: #e2774c; --accent-ink: #2a1a10; --sel: #74c4c6; --sel-ink: #183c45; }
+html[data-accent="lelie"] { --accent: #eab3c4; --accent-strong: #d98aa3; --accent-ink: #2f2228; --sel: #eab3c4; --sel-ink: #2f2228; }
+html[data-accent="liefde"] { --accent: #e2557a; --accent-strong: #c93a63; --accent-ink: #3a0f1d; --sel: #e8668a; --sel-ink: #2e0a16; }
+html[data-accent="sterren"] { --accent: #ffd977; --accent-strong: #ffe39b; --accent-ink: #1a1630; --sel: #ffd977; --sel-ink: #1a1630; }
+html[data-accent="volleybal"] { --accent: #ffcc00; --accent-strong: #e6b400; --accent-ink: #10265c; --sel: #1d4fa3; --sel-ink: #ffffff; }
+html[data-accent="briefje"] { --accent: #ffe45c; --accent-strong: #3a4a9a; --accent-ink: #2a2a33; --sel: #ffe866; --sel-ink: #1d2a6e; }
+html[data-accent="lente"] { --accent: #f2a7bf; --accent-strong: #e07f9f; --accent-ink: #3a1f28; --sel: #a8d585; --sel-ink: #1d2e14; }
+html[data-accent="zomer"] { --accent: #f0607a; --accent-strong: #d94661; --accent-ink: #2d0d14; --sel: #7cc47f; --sel-ink: #10260f; }
+html[data-accent="herfst"] { --accent: #c8662b; --accent-strong: #ad5320; --accent-ink: #1f0f05; --sel: #d9783d; --sel-ink: #1f0f05; }
+html[data-accent="winter"] { --accent: #7fb0dc; --accent-strong: #5b95c9; --accent-ink: #10213a; --sel: #7fb0dc; --sel-ink: #10213a; }
+
 /* ---------- Basis ---------- */
+/* Tot ui.js het thema van vandaag heeft gezet (zie js/theme-early.js): even
+   onzichtbaar, en na 1,2 seconde hoe dan ook zichtbaar. */
+html[data-theme-pending] body { visibility: hidden; animation: theme-reveal 0s 1.2s forwards; }
+@keyframes theme-reveal { to { visibility: visible; } }
 
 *,
 *::before,
@@ -1071,6 +1099,11 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .theme-opt input { position: absolute; opacity: 0; }
 .theme-group-title { margin: 4px 0 6px; font: 800 0.78rem/1.2 "Nunito", sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .theme-group-title + .theme-options { margin-bottom: 8px; }
+/* Dagthema: vandaag kiest de app. De keuzes zijn even niet te kiezen; haar eigen keuze blijft aangevinkt. */
+.day-theme-note { margin: 2px 0 10px; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); font-weight: 700; line-height: 1.4; }
+.theme-opt.fixed { cursor: default; }
+.theme-opt.fixed .theme-card { opacity: 0.55; }
+.theme-opt.fixed input:checked + .theme-card { opacity: 0.9; }
 .theme-card {
   flex: 1;
   display: flex;

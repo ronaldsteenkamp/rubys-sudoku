@@ -864,3 +864,23 @@ export const PAUSE_LINES = [
   'Pauze! Tijd om een hond te aaien 🐶',
   'Koffiepauze ☕',
 ];
+
+// ---------- Dagthema's ----------
+
+// Een emoji per thema, voor de regel boven de themakiezer op een dagthema-dag.
+export const THEME_EMOJI = {
+  zonnig: '☀️', nacht: '🌙', sterren: '⭐', liefde: '❤️', lelie: '🌸', 'gran-canaria': '🌴',
+  volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
+};
+
+// Bovenaan de themakiezer als de app vandaag het thema kiest. `name` is het
+// thema (bij een wedstrijd op een andere bijzondere dag bijv. "Volleybal met
+// Nacht"), `emoji` de emoji's erbij. Vast per dag.
+export const DAY_THEME_LINES = [
+  ({ name, emoji }) => `Vandaag kies ik je thema: ${name} ${emoji} Morgen mag je weer zelf.`,
+  ({ name, emoji }) => `Vandaag heb ik je thema al uitgezocht: ${name} ${emoji} Morgen is de keuze weer aan jou.`,
+  ({ name, emoji }) => `Even niet kiezen vandaag: het is ${name} ${emoji} Morgen mag je weer, beloofd.`,
+  ({ name, emoji }) => `Speciaal voor vandaag: ${name} ${emoji} Jouw eigen thema wacht gewoon tot morgen.`,
+  ({ name, emoji }) => `Vandaag trakteer ik op ${name} ${emoji} Morgen kies je weer helemaal zelf 💛`,
+];
+export const dayThemeLine = (date, info) => DAY_THEME_LINES[(date.getFullYear() * 400 + (date.getMonth() + 1) * 31 + date.getDate()) % DAY_THEME_LINES.length](info);

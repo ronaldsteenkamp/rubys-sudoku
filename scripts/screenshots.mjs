@@ -58,7 +58,10 @@ const browser = await chromium.launch();
 await mkdir(out, { recursive: true });
 const shots = [];
 
-async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference', dailyDone = false, extraStats = {} }) {
+// De dagthema's staan uit (anders kiest de app op bijv. haar verjaardag of een
+// wedstrijddag zelf het thema), behalve met dayTheme: true.
+async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference', dailyDone = false, extraStats = {}, dayTheme = false }) {
+  if (!dayTheme) query += `${query.includes('?') ? '&' : '?'}dagthema=uit`;
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: scheme, reducedMotion, isMobile: true, hasTouch: true, userAgent: IPHONE_UA });
   // Met ?vandaag= gebruikt de app een aparte testopslag.
   const prefix = query.includes('vandaag=') ? 'rubys-sudoku-test:' : 'rubys-sudoku:';
@@ -304,6 +307,42 @@ if (!only) {
   const first = [['2026-10-21', 'koffie', 330, 0, 3, null, 21], ['2026-10-22', 'koffie', 312, 0, 1, null, 22], ['2026-10-22', 'nadenken', 845, 1, 2, null, 23],
     ['2026-11-07', 'zondag', 260, 0, 1, null, 20], ['2026-12-25', 'zondag', 290, 0, 0, 'kerst-2026', 11]];
   await wrappedShots('briefje', 'light', '?vandaag=2026-12-31T23:30', { log: first }, '2026');
+}
+
+// Dagthema's: elke dag waarop de app het thema kiest (met haar eigen keuze
+// Lelie), de themakiezer die dan dicht zit, en Volleybal met elk ander accent.
+const DAY_THEME_DAYS = [
+  ['wedstrijd', '2026-11-14', {}], ['wedstrijd-halloween', '2026-10-31', {}], ['jubileum', '2027-09-29', {}],
+  ['halfjaar', '2027-03-29', {}], ['honderd', '2027-01-07', {}], ['valentijn', '2027-02-14', {}],
+  ['verjaardag', '2027-10-12', {}], ['app-verjaardag', '2027-10-21', {}], ['kerst-sterren', '2026-12-25', { unlockedThemes: [] }],
+  ['kerst-winter', '2026-12-25', { unlockedThemes: ['winter'] }], ['sinterklaas', '2026-12-05', { unlockedThemes: [] }],
+  ['oudjaar', '2026-12-31', {}], ['nieuwjaar', '2027-01-01', {}], ['halloween', '2027-10-31', {}],
+  ['pasen-zonnig', '2027-03-28', { unlockedThemes: [] }], ['pasen-lente', '2027-03-28', { unlockedThemes: ['lente'] }],
+  ['koningsdag', '2027-04-27', {}], ['eerste-winterdag', '2027-12-01', { unlockedThemes: ['winter'] }],
+  ['vrijspeeldag-herfst', '2027-10-05', { unlockedThemes: ['herfst'], themeUnlockDates: { herfst: '2027-10-05' } }],
+];
+if (!only) {
+  for (const [name, day, extraStats] of DAY_THEME_DAYS) {
+    const p = await page({ theme: 'lelie', scheme: 'light', query: `?vandaag=${day}`, extraStats, dayTheme: true });
+    await shot(p, `dagthema-${name}`, 'dagthemas');
+    if (name === 'wedstrijd-halloween' || name === 'verjaardag') {
+      await p.click('[data-open="settings-dialog"]');
+      await p.waitForTimeout(400);
+      await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, `dagthema-kiezer-${name}.png`) });
+      shots.push({ file: `dagthema-kiezer-${name}.png`, group: 'dagthemas', name: `kiezer dicht (${name})` });
+    }
+    await p.context().close();
+  }
+  // Volleybal met elk accent (zo ziet een wedstrijd op zo'n dag eruit), met een bord.
+  for (const t of ALL_THEMES) {
+    const p = await page({ theme: 'volleybal', scheme: 'light', game });
+    await p.evaluate((a) => { document.documentElement.dataset.accent = a; }, t.id);
+    await openPlay(p, selectCell);
+    await p.evaluate((a) => { document.documentElement.dataset.accent = a; }, t.id);
+    await p.waitForTimeout(200);
+    await shot(p, `dagthema-volleybal-${t.id}`, 'accenten');
+    await p.context().close();
+  }
 }
 
 // Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.

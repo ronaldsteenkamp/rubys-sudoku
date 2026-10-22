@@ -9,7 +9,8 @@ after(async () => { await shutdown(); server.close(); });
 
 for (const [colorScheme, want] of [['light', 'zonnig'], ['dark', 'nacht']]) {
   test(`wie 'Automatisch' had, houdt op een ${colorScheme === 'dark' ? 'donker' : 'licht'} toestel het thema dat ze zag (${want})`, async () => {
-    const page = await open(base, { colorScheme, storage: { settings: { theme: 'auto' }, stats: { unlockedThemes: ['herfst'], levels: {} } } });
+    // Op een gewone dag (geen wedstrijd of feestdag, dan kiest de app het thema).
+    const page = await open(base, { colorScheme, clock: new Date(2026, 10, 3, 12), storage: { settings: { theme: 'auto' }, stats: { unlockedThemes: ['herfst'], levels: {} } } });
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), want);
     assert.equal((await stored(page, 'settings')).theme, want);
     await page.click('[data-open="settings-dialog"]');

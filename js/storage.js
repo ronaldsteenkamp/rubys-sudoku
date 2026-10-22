@@ -37,6 +37,12 @@ function remove(key) {
   try { globalThis.localStorage?.removeItem(PREFIX + key); } catch { /* niks aan te doen */ }
 }
 
+// ---------- Thema van vandaag (voor js/theme-early.js) ----------
+
+// Het thema dat de app vandaag liet zien. js/theme-early.js zet het meteen bij
+// het laden, nog vóór de rest van de app er is: zo flitst er geen ander thema.
+export const saveThemeToday = (day, theme, accent) => write('theme-today', { day, theme, accent: accent || null });
+
 // ---------- Instellingen ----------
 
 export const DEFAULT_SETTINGS = {
@@ -100,6 +106,7 @@ export function emptyStats() {
     specialDone: [],
     seasonSolves: {}, // { 'herfst-2026': 2 } opgeloste puzzels per seizoen
     unlockedThemes: [], // ontgrendelde seizoensthema's, bijv. ['herfst']
+    themeUnlockDates: {}, // { herfst: '2026-10-24' } de dag van vrijspelen (voor de dagthema's)
     log: [], // logboek van opgeloste puzzels, zie hieronder
     matches: {}, // per wedstrijddatum: { uitslag, warmup, herstel, pep }, zie hieronder
     wrapped: {}, // per jaar het laatst berekende Ruby Wrapped, zie hieronder
@@ -282,6 +289,9 @@ export function migrateStats(raw) {
     }
   }
   s.unlockedThemes = Array.isArray(r.unlockedThemes) ? r.unlockedThemes.filter((t) => SEASON_IDS.includes(t)) : [];
+  // Oude opslag heeft geen datums: zo'n seizoen telt als "vóór vandaag" vrijgespeeld.
+  s.themeUnlockDates = Object.fromEntries(Object.entries(isObj(r.themeUnlockDates) ? r.themeUnlockDates : {})
+    .filter(([id, d]) => s.unlockedThemes.includes(id) && isDay(d)));
   // Het logboek: kapotte regels eruit, op datum gesorteerd. Zonder logboek
   // (oude opslag of back-up) maken we er een van de bekende dagpuzzels.
   s.matches = cleanMatches(r.matches);
