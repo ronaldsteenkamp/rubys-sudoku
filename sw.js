@@ -1,9 +1,11 @@
 // Service worker: de app werkt volledig offline na het eerste bezoek.
-// Verhoog VERSION bij elke release, dan haalt iedereen de nieuwe bestanden op.
+// Een release maak je met `npm run release`: dat verhoogt VERSION en zet de
+// SHELL-HASH hieronder. De tests falen als de app-bestanden veranderd zijn
+// zonder nieuwe release, zodat een update nooit vergeten wordt.
 // Een nieuwe versie wacht netjes tot Ruby op "verversen" tikt (zie ui.js).
-const VERSION = 'v15';
+const VERSION = 'v16';
+// SHELL-HASH: f7c55244ec60c0d3
 const CACHE = `rubys-sudoku-${VERSION}`;
-const NETWORK_TIMEOUT = 3000;
 
 const SHELL = [
   './',
@@ -70,43 +72,20 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-const cacheable = (res) => res && res.ok && res.type === 'basic';
-
-// Pagina zelf: eerst het netwerk (zo zie je updates), maar na ~3 seconden
-// of zonder internet gewoon de bewaarde versie.
-function networkFirst(request) {
-  return new Promise((resolve) => {
-    let done = false;
-    const fallback = () => caches.match('index.html').then((hit) => hit || caches.match('./'));
-    const finish = (p) => { if (!done) { done = true; resolve(p); } };
-    const timer = setTimeout(() => fallback().then((hit) => { if (hit) finish(hit); }), NETWORK_TIMEOUT);
-    fetch(request)
-      .then((res) => {
-        clearTimeout(timer);
-        if (cacheable(res)) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put('index.html', copy));
-        }
-        finish(res);
-      })
-      .catch(() => {
-        clearTimeout(timer);
-        fallback().then((hit) => finish(hit || Response.error()));
-      });
-  });
+// Alles komt uit de cache van déze versie: nieuwe bestanden komen alleen
+// binnen met een nieuwe VERSION (een nieuwe service worker), en die wacht tot
+// Ruby op het kaartje tikt. Zo draait er nooit een mengsel van oud en nieuw.
+// Alleen als iets niet in de cache staat, vragen we het netwerk.
+function fromCache(request, key = request) {
+  return caches.open(CACHE)
+    .then((c) => c.match(key, { ignoreSearch: true }))
+    .then((hit) => hit || fetch(request));
 }
 
-// Overige app-bestanden: meteen uit de cache, en op de achtergrond verversen.
-function staleWhileRevalidate(event) {
-  const { request } = event;
-  return caches.open(CACHE).then(async (cache) => {
-    const hit = await cache.match(request);
-    const fresh = fetch(request)
-      .then((res) => { if (cacheable(res)) cache.put(request, res.clone()); return res; })
-      .catch(() => hit || Response.error());
-    if (hit) { event.waitUntil(fresh.catch(() => {})); return hit; }
-    return fresh;
-  });
+// Een andere pagina binnen de app-map (bijvoorbeeld scripts/gitaar.html):
+// gewoon van het netwerk, en nooit in de plaats van de app bewaren.
+function otherPage(request) {
+  return fetch(request).catch(() => caches.match('index.html', { cacheName: CACHE }).then((hit) => hit || Response.error()));
 }
 
 self.addEventListener('fetch', (event) => {
@@ -116,6 +95,8 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== location.origin) return;
 
   const scope = new URL(self.registration.scope);
-  const isPage = request.mode === 'navigate' || url.pathname === scope.pathname || url.pathname === `${scope.pathname}index.html`;
-  event.respondWith(isPage ? networkFirst(request) : staleWhileRevalidate(event));
+  const isApp = url.pathname === scope.pathname || url.pathname === `${scope.pathname}index.html`;
+  if (isApp) event.respondWith(fromCache(request, 'index.html'));
+  else if (request.mode === 'navigate') event.respondWith(otherPage(request));
+  else event.respondWith(fromCache(request));
 });

@@ -8,7 +8,8 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 
 export const ROOT = new URL('..', import.meta.url).pathname;
 
-// `respond(path)` kan een eigen antwoord geven ({ status, body }), bijvoorbeeld een storing nadoen.
+// `respond(path)` kan een eigen antwoord geven ({ status, body }), bijvoorbeeld een
+// storing nadoen, of 'offline' om de verbinding te verbreken (geen internet).
 export async function serve({ root = ROOT, prefix = '/rubys-sudoku/', respond = () => null } = {}) {
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, 'http://x');
@@ -17,6 +18,7 @@ export async function serve({ root = ROOT, prefix = '/rubys-sudoku/', respond = 
     if (path === '.' || path === '') path = 'index.html';
     else if (path.endsWith('/')) path += 'index.html';
     const own = respond(path);
+    if (own === 'offline') { req.socket.destroy(); return; }
     if (own) { res.writeHead(own.status, { 'content-type': 'text/html' }); res.end(own.body || ''); return; }
     try {
       const body = await readFile(join(root, path));

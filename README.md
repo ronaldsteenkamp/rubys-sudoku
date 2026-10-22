@@ -47,6 +47,7 @@ sw.js                 service worker (offline)
 manifest.webmanifest  PWA-manifest
 icons/                app-iconen
 tests/                unit tests (node --test)
+e2e/                  browsertests met Playwright (npm run test:e2e)
 scripts/              hulpscripts voor de puzzelvoorraad en de iconen
 ```
 
@@ -72,7 +73,13 @@ Vereist Node 20 of nieuwer, zonder dependencies:
 npm test
 ```
 
-De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd is) en de persoonlijke teksten.
+De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
+
+Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub en een update die pas na een tik binnenkomt.
+
+```bash
+npm run test:e2e
+```
 
 ## Snelheid
 
@@ -97,7 +104,7 @@ node scripts/build-bank.mjs 120
 
 **Op Ruby's iPhone:** open die link in **Safari**, tik op het deelicoontje en kies **Zet op beginscherm**. Daarna start hij als een echte app, ook zonder internet.
 
-**Een update uitbrengen:** verhoog `VERSION` bovenin `sw.js` (bijvoorbeeld `v8`) en push. De app haalt de nieuwe versie op de achtergrond op en toont op het startscherm het kaartje *Er is iets nieuws voor je 💛*. Pas als Ruby daarop tikt, wordt er ververst; midden in een puzzel gebeurt dat dus nooit. Nieuwe bestanden zet je ook in de `SHELL`-lijst in `sw.js`.
+**Een update uitbrengen:** draai `npm run release` en push (met `sw.js`). Dat verhoogt `VERSION` bovenin `sw.js` en zet er een vingerafdruk van alle app-bestanden bij; `npm test` faalt zolang je dat vergeet. De app haalt de nieuwe versie op de achtergrond op en toont op het startscherm het kaartje *Er is iets nieuws voor je 💛*. Tot Ruby daarop tikt, draait ze helemaal de oude versie; daarna helemaal de nieuwe, dus nooit een mengsel en nooit midden in een puzzel. Nieuwe bestanden zet je ook in de `SHELL`-lijst in `sw.js` (ook daar waarschuwt `npm test` voor).
 
 De tests draaien bij elke push en pull request automatisch via GitHub Actions (`.github/workflows/test.yml`).
 
