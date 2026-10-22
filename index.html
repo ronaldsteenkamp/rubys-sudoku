@@ -2,6 +2,7 @@
 <html lang="nl" data-theme="zonnig">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Ruby's Sudoku</title>
   <meta name="description" content="Een rustige sudoku, speciaal gemaakt voor Ruby.">
@@ -127,6 +128,7 @@
         <label><input type="radio" name="errors" value="verzoek"><span>Op verzoek</span></label>
         <label><input type="radio" name="errors" value="uit"><span>Uit</span></label>
       </div>
+      <p id="errors-explain" class="muted small setting-explain" aria-live="polite"></p>
     </fieldset>
     <fieldset class="setting">
       <legend>Geluid</legend>
@@ -149,6 +151,7 @@
       <div class="menu-list">
         <button type="button" class="menu-item" id="backup-save"><span aria-hidden="true" data-icon="backupSave"></span> Bewaar een back-up</button>
         <button type="button" class="menu-item" id="backup-restore"><span aria-hidden="true" data-icon="backupRestore"></span> Zet een back-up terug</button>
+        <button type="button" class="menu-item" id="backup-undo" hidden><span aria-hidden="true" data-icon="reset"></span> Terug naar de stand van vóór het terugzetten</button>
       </div>
       <input type="file" id="backup-file" accept="application/json,.json" hidden>
     </fieldset>

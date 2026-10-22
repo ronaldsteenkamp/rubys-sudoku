@@ -132,6 +132,7 @@ test('back-up: ongeldige bestanden worden geweigerd en overschrijven niets', () 
     { ...good, data: { ...good.data, stats: { totalSolved: 'veel' } } },
     { ...good, data: { ...good.data, unlocked: [1, 2] } },
     { ...good, data: { ...good.data, game: { v: 1, givens: [1, 2, 3] } } },
+    { ...good, data: { ...good.data, game: { v: 1, givens: new Array(81).fill(0) } } }, // zonder oplossing
   ];
   for (const b of bad) {
     const res = S.importBackup(b);
@@ -201,4 +202,129 @@ test('geluid: de oude schakelaar wordt een geluidsstijl, ook in een oude back-up
   const b3 = S.makeBackup({ settings: { theme: 'zonnig', sound: 'gitaar' }, stats: S.emptyStats(), unlocked: [], recentNotes: [], game: null });
   assert.equal(S.importBackup(b3).ok, true);
   assert.equal(S.loadSettings().sound, 'gitaar');
+});
+
+const validGame = () => ({ v: 1, givens: new Array(81).fill(0), solution: new Array(81).fill(1), levelId: 'zondag' });
+
+test('een kapotte puzzel in de opslag telt als geen puzzel en wordt opgeruimd', () => {
+  globalThis.localStorage.setItem('rubys-sudoku:game', JSON.stringify({ v: 1, givens: new Array(81).fill(0) }));
+  assert.equal(S.loadGame(), null);
+  assert.equal(globalThis.localStorage.getItem('rubys-sudoku:game'), null);
+  S.saveGame(validGame());
+  assert.deepEqual(S.loadGame(), validGame());
+});
+
+test('kapotte JSON wordt bewaard onder -kapot in plaats van later overschreven', () => {
+  globalThis.localStorage.setItem('rubys-sudoku:stats', '{"totalSolved":12,');
+  assert.equal(S.loadStats().totalSolved, 0);
+  assert.equal(globalThis.localStorage.getItem('rubys-sudoku:stats-kapot'), '{"totalSolved":12,');
+  S.saveStats(S.emptyStats());
+  assert.equal(globalThis.localStorage.getItem('rubys-sudoku:stats-kapot'), '{"totalSolved":12,');
+});
+
+test('statistieken: elk veld wordt een net getal of een nette datum (ook tegen HTML in een back-up)', () => {
+  const s = S.migrateStats({
+    totalSolved: '<img src=x onerror=alert(1)>', streak: '5', bestStreak: -3, dailySolved: 2.7, noHintSolved: null,
+    lastSolvedDay: 'morgen', dailyDone: ['2026-10-01', 7, '<b>'], specialDone: [1],
+    dailyTimes: { '2026-10-01': 1000, '2026-10-02': 'snel' }, seasonSolves: { 'herfst-2026': 2, x: '<i>' },
+    levels: { zondag: 5, koffie: { played: '<img>', solved: 3, best: 'snel', totalTime: 9000 }, __proto__: { played: 1 } },
+    unlockedThemes: ['herfst', 'nep'],
+  });
+  assert.equal(s.totalSolved, 0);
+  assert.equal(s.streak, 0);
+  assert.equal(s.bestStreak, 0);
+  assert.equal(s.dailySolved, 2);
+  assert.equal(s.noHintSolved, 0);
+  assert.equal(s.lastSolvedDay, null);
+  assert.deepEqual(s.dailyDone, ['2026-10-01']);
+  assert.deepEqual(s.specialDone, []);
+  assert.deepEqual(s.dailyTimes, { '2026-10-01': 1000 });
+  assert.deepEqual(s.seasonSolves, { 'herfst-2026': 2 });
+  assert.deepEqual(s.levels, { koffie: { played: 0, solved: 3, best: null, totalTime: 9000 } });
+  assert.deepEqual(s.unlockedThemes, ['herfst']);
+  // Een niveau dat geen object was, laat het starten van dat niveau niet meer vastlopen.
+  assert.doesNotThrow(() => S.recordStart(s, 'zondag'));
+});
+
+test('berichtjes in de opslag zijn altijd een lijst met teksten', () => {
+  globalThis.localStorage.setItem('rubys-sudoku:unlocked', JSON.stringify({ eerste: true }));
+  assert.deepEqual(S.loadUnlocked(), []);
+  globalThis.localStorage.setItem('rubys-sudoku:recent-notes', JSON.stringify(['lief', 3]));
+  assert.deepEqual(S.loadRecentNotes(), ['lief']);
+});
+
+test('instellingen met een verkeerd type vallen terug op standaard', () => {
+  globalThis.localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme: 5, errors: 'uit', autoNotes: 'ja' }));
+  const s = S.loadSettings();
+  assert.equal(s.theme, 'auto');
+  assert.equal(s.errors, 'uit');
+  assert.equal(s.autoNotes, true);
+});
+
+test('terugzetten bewaart de stand van daarvoor, en dat is weer terug te draaien', () => {
+  S.saveStats({ ...S.emptyStats(), totalSolved: 150, bestStreak: 40 });
+  S.saveUnlocked(['eerste', 'honderd']);
+  const old = S.makeBackup({ settings: S.DEFAULT_SETTINGS, stats: { ...S.emptyStats(), totalSolved: 2 }, unlocked: [], recentNotes: [], game: null });
+  assert.equal(S.loadPreviousBackup(), null);
+  assert.equal(S.importBackup(old).ok, true);
+  assert.equal(S.loadStats().totalSolved, 2);
+  assert.equal(S.loadPreviousBackup().data.stats.totalSolved, 150);
+
+  assert.equal(S.restorePrevious().ok, true);
+  assert.equal(S.loadStats().totalSolved, 150);
+  assert.equal(S.loadStats().bestStreak, 40);
+  assert.deepEqual(S.loadUnlocked(), ['eerste', 'honderd']);
+  // En weer andersom: heen en weer kan.
+  assert.equal(S.loadPreviousBackup().data.stats.totalSolved, 2);
+});
+
+test('foutenlogboek: alleen de laatste 20, en ze gaan mee in de back-up', () => {
+  for (let i = 0; i < 25; i++) S.logError(`fout ${i}`, new Date(2026, 9, 22));
+  const errors = S.loadErrors();
+  assert.equal(errors.length, 20);
+  assert.match(errors.at(-1), /fout 24$/);
+  assert.equal(S.exportBackup().data.errors.length, 20);
+  // Bij terugzetten doen ze niets.
+  assert.equal(S.validateBackup(S.exportBackup()).ok, true);
+});
+
+test('dagpuzzel van gisteravond die na middernacht af is, houdt de reeks heel', () => {
+  const st = { ...S.emptyStats(), streak: 5, bestStreak: 5, lastSolvedDay: '2026-10-21' };
+  // Begonnen op 22 oktober om 23:58, opgelost op 23 oktober om 00:03.
+  S.recordSolve(st, { levelId: 'koffie', elapsed: 1, hints: 0, daily: '2026-10-22', started: '2026-10-22' }, '2026-10-23');
+  assert.equal(st.streak, 7, '22 en 23 oktober tellen allebei');
+  assert.equal(st.lastSolvedDay, '2026-10-23');
+  assert.ok(st.dailyDone.includes('2026-10-22'));
+  // Ook een gewone puzzel die gisteren begon.
+  const st2 = { ...S.emptyStats(), streak: 2, lastSolvedDay: '2026-10-21' };
+  S.recordSolve(st2, { levelId: 'zondag', elapsed: 1, hints: 0, started: '2026-10-22' }, '2026-10-23');
+  assert.equal(st2.streak, 4);
+});
+
+test('de reeks gaat nooit achteruit en loopt niet vast op een datum in de toekomst', () => {
+  const st = { ...S.emptyStats(), streak: 4, bestStreak: 4, lastSolvedDay: '2026-10-22' };
+  // Een puzzel die al dagen geleden begon, verandert niets aan wat al geteld is.
+  S.recordSolve(st, { levelId: 'zondag', elapsed: 1, hints: 0, started: '2026-10-10' }, '2026-10-22');
+  assert.equal(st.streak, 4);
+  // De klok stond even vooruit (laatste dag in de toekomst): de reeks blijft staan en telt gewoon door.
+  const fut = { ...S.emptyStats(), streak: 3, bestStreak: 3, lastSolvedDay: '2027-09-29' };
+  assert.equal(S.currentStreak(fut, '2026-10-22'), 3);
+  S.recordSolve(fut, { levelId: 'zondag', elapsed: 1, hints: 0 }, '2026-10-22');
+  assert.equal(fut.lastSolvedDay, '2026-10-22');
+  assert.equal(fut.streak, 3);
+  S.recordSolve(fut, { levelId: 'zondag', elapsed: 1, hints: 0 }, '2026-10-23');
+  assert.equal(fut.streak, 4);
+});
+
+test('met een testdatum gaat alles naar een aparte opslag', () => {
+  S.saveStats({ ...S.emptyStats(), totalSolved: 12 });
+  S.useTestStorage();
+  try {
+    assert.equal(S.loadStats().totalSolved, 0);
+    S.saveStats({ ...S.emptyStats(), totalSolved: 1 });
+    assert.equal(JSON.parse(globalThis.localStorage.getItem('rubys-sudoku:stats')).totalSolved, 12);
+    assert.equal(JSON.parse(globalThis.localStorage.getItem('rubys-sudoku-test:stats')).totalSolved, 1);
+  } finally {
+    S.useTestStorage(false);
+  }
 });

@@ -24,6 +24,10 @@ function today() {
   return now;
 }
 
+// Met een testdatum krijgt de app een eigen opslag, zodat Ruby's echte voortgang onaangeroerd blijft.
+const testDate = params.has('vandaag');
+if (testDate) store.useTestStorage();
+
 // ---------- Status ----------
 
 let settings = store.loadSettings();
@@ -91,9 +95,24 @@ function toast(text, ms = 2600) {
 
 const announce = (text) => { $('#sr-status').textContent = text; };
 
-function saveGame() {
-  if (game && !game.solved) store.saveGame(game.toJSON());
+// Lukt opslaan niet (volle of geblokkeerde opslag), dan zeggen we dat één keer,
+// in plaats van stilletjes voortgang kwijt te raken.
+let warnedNotSaved = false;
+function saved(ok) {
+  if (!ok && !warnedNotSaved) {
+    warnedNotSaved = true;
+    toast('Ik kan je voortgang nu even niet bewaren. Maak voor de zekerheid een back-up 💛', 6000);
+  }
+  return ok;
 }
+
+function saveGame() {
+  if (game && !game.solved) saved(store.saveGame(game.toJSON()));
+}
+
+// Fouten onthouden we (de laatste 20); ze gaan mee in een back-up, zodat je kunt zien wat er misging.
+window.addEventListener('error', (e) => store.logError(e.message || 'fout'));
+window.addEventListener('unhandledrejection', (e) => store.logError(e.reason?.stack || e.reason || 'promise'));
 
 // ---------- Thema ----------
 
@@ -117,30 +136,34 @@ darkQuery.addEventListener?.('change', applyTheme);
 
 // ---------- Puzzels ophalen (Web Worker, met vangnet op de hoofdthread) ----------
 
-let worker;
+// Twee workers: 'nu' voor een puzzel waar Ruby op wacht, en 'voorraad' die op
+// de achtergrond rustig (met veel tijd) de volgende puzzels klaarzet. Zo hoeft
+// een tik nooit te wachten op het vullen van de voorraad.
+const workers = {};
 let reqId = 0;
 const pending = new Map();
 
-function getWorker() {
-  if (worker !== undefined) return worker;
+function getWorker(lane) {
+  if (lane in workers) return workers[lane];
+  let w = null;
   try {
-    worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
-    worker.onmessage = ({ data }) => {
+    w = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+    w.onmessage = ({ data }) => {
       const p = pending.get(data.id);
       if (!p) return;
       pending.delete(data.id);
       clearTimeout(p.timer);
       if (data.error) p.reject(new Error(data.error)); else p.resolve(data.puzzle);
     };
-    worker.onerror = () => {
-      worker = null;
-      for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('worker')); }
-      pending.clear();
+    w.onerror = () => {
+      workers[lane] = null;
+      for (const [id, p] of pending) if (p.lane === lane) { clearTimeout(p.timer); p.reject(new Error('worker')); pending.delete(id); }
     };
   } catch {
-    worker = null;
+    w = null;
   }
-  return worker;
+  workers[lane] = w;
+  return w;
 }
 
 async function generateHere(kind, args) {
@@ -150,18 +173,24 @@ async function generateHere(kind, args) {
   return g.generate(args);
 }
 
-function requestPuzzle(kind, args) {
-  const w = getWorker();
-  if (!w) return generateHere(kind, args);
-  return new Promise((resolve, reject) => {
+// Zonder `background` rekenen we bij problemen met de worker zelf verder (Ruby wacht);
+// op de achtergrond niet, want dat zou de app laten haperen.
+function requestPuzzle(kind, args, { background = false } = {}) {
+  const lane = background ? 'voorraad' : 'nu';
+  const w = getWorker(lane);
+  if (!w) return background ? Promise.reject(new Error('geen worker')) : generateHere(kind, args);
+  const job = new Promise((resolve, reject) => {
     const id = ++reqId;
-    const timer = setTimeout(() => { pending.delete(id); reject(new Error('timeout')); }, 8000);
-    pending.set(id, { resolve, reject, timer });
+    const timer = setTimeout(() => { pending.delete(id); reject(new Error('timeout')); }, background ? 60000 : 8000);
+    pending.set(id, { resolve, reject, timer, lane });
     w.postMessage({ id, kind, args });
-  }).catch(() => generateHere(kind, args));
+  });
+  return background ? job : job.catch(() => generateHere(kind, args));
 }
 
-// Per niveau ligt er alvast een puzzel klaar, zodat starten meteen gaat.
+// Per niveau ligt er alvast een puzzel klaar, zodat starten meteen gaat. Die
+// maken we op de achtergrond met ruim de tijd (5 s), zodat ook een trage iPhone
+// een verse puzzel vindt in plaats van er een uit de voorraad (bank.js) te pakken.
 let stashBusy = false;
 async function fillStash() {
   if (stashBusy) return;
@@ -169,7 +198,7 @@ async function fillStash() {
   try {
     for (const l of LEVELS) {
       if (store.loadStash()[l.id]) continue;
-      const p = await requestPuzzle('level', { levelId: l.id, timeBudget: 400 });
+      const p = await requestPuzzle('level', { levelId: l.id, timeBudget: 5000 }, { background: true });
       const s = store.loadStash();
       s[l.id] = p;
       store.saveStash(s);
@@ -244,8 +273,13 @@ function showMessage({ icon = '💛', title = '', text = '', ok = 'Oké' }) {
 
 const BRAND_HTML = $('.brand').innerHTML;
 
+// Wat het startscherm het laatst liet zien (dag en dagdeel); zie 'visibilitychange'.
+let homeMoment = '';
+const momentOf = (date) => `${dateKey(date)} ${M.partOfDay(date)}`;
+
 function renderHome() {
   const now = today();
+  homeMoment = momentOf(now);
   // In Briefje staan de naam van de app en het hartje er in zijn handschrift.
   const hand = handwritten();
   $('.brand').innerHTML = hand
@@ -263,13 +297,16 @@ function renderHome() {
   specialSlot.innerHTML = '';
   if (special) {
     const done = stats.specialDone.includes(special.id);
+    // Al aan begonnen? Dan gaat ze gewoon verder, zonder dat het hart vervangen wordt.
+    const busy = !done && game && !game.solved && game.special === special.id;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'card special';
     btn.innerHTML = `<span class="card-kicker">Speciaal voor vandaag</span>
       <span class="card-title">${escapeHtml(special.title)}</span>
-      <span class="card-meta">${done ? 'Opgelost 💛 Tik om je berichtje nog eens te lezen' : 'Een puzzel met een verrassing'}</span>`;
+      <span class="card-meta">${done ? 'Opgelost 💛 Tik om je berichtje nog eens te lezen' : busy ? 'Verder 💛' : 'Een puzzel met een verrassing'}</span>`;
     btn.addEventListener('click', async () => {
+      if (game && !game.solved && game.special === special.id) { enterPlay(); return; }
       if (done) { showMessage({ icon: '💌', title: special.title, text: M.specialById(special.id)?.solvedText || special.solvedText }); return; }
       await showMessage({ icon: special.kind === 'verjaardag' ? '🎂' : '💛', title: special.title, text: special.text, ok: 'Laat maar zien!' });
       startGame({ kind: 'heart', special });
@@ -281,7 +318,8 @@ function renderHome() {
   const cont = $('#continue-slot');
   cont.innerHTML = '';
   // De dagpuzzel zelf heeft al een "Verder"-knop in z'n eigen kaart.
-  if (game && !game.solved && game.daily !== dateKey(now)) {
+  // Net zo voor de speciale puzzel van vandaag.
+  if (game && !game.solved && game.daily !== dateKey(now) && !(special && game.special === special.id)) {
     const lvl = levelById(game.levelId);
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -374,7 +412,7 @@ async function startGame({ kind, levelId, special }) {
       daily: p.daily || null, special: special?.id || null, shape: p.shape || null,
     });
     store.recordStart(stats, game.levelId);
-    store.saveStats(stats);
+    saved(store.saveStats(stats));
     saveGame();
     selected = null;
     focusDigit = null;
@@ -580,7 +618,8 @@ function render() {
   const nb = $('#tool-notes');
   nb.setAttribute('aria-pressed', String(notesMode));
   nb.querySelector('.tool-state').textContent = notesMode ? 'aan' : 'uit';
-  $('#check-btn').hidden = settings.errors !== 'verzoek';
+  // In 'direct' ziet ze fouten al meteen; anders kan ze altijd zelf laten controleren.
+  $('#check-btn').hidden = settings.errors === 'direct';
 }
 
 // ---------- Invoer ----------
@@ -606,7 +645,8 @@ function inputDigit(d, { note = false } = {}) {
     afterChange();
     return;
   }
-  const r = game.setDigit(selected, d, { autoNotes: settings.autoNotes });
+  // Een fout telt alleen mee als ze hem te zien krijgt (direct, of later bij een controle of hint).
+  const r = game.setDigit(selected, d, { autoNotes: settings.autoNotes, countMistake: settings.errors === 'direct' });
   if (!r.changed) return;
   checkMarks.delete(selected);
   if (r.removed) feedback('erase');
@@ -618,6 +658,17 @@ function inputDigit(d, { note = false } = {}) {
   }
   afterChange();
   if (r.solved) onSolved();
+  else if (!r.removed && game.isFull()) almostThere();
+}
+
+// Alles staat vol, maar er klopt nog iets niet: dat zeggen we zacht, in elke
+// foutcontrole-stand. Anders zit ze naar een vol bord te kijken zonder feestje.
+function almostThere() {
+  const how = settings.errors === 'direct'
+    ? 'Kijk nog even naar de rode cijfers'
+    : 'Tik op ⋯ en kies Controleer mijn puzzel, of vraag een hint';
+  toast(`Bijna! Alles staat vol, maar er klopt nog iets niet. ${how} 💛`, 6000);
+  announce('Alles staat vol, maar er klopt nog iets niet.');
 }
 
 function doErase() {
@@ -730,6 +781,9 @@ $('#pause-dialog').addEventListener('close', () => {
 document.addEventListener('visibilitychange', () => {
   lastTick = performance.now();
   if (document.visibilityState === 'hidden') saveGame();
+  // Een app op het beginscherm blijft vaak dagen open. Is het intussen een
+  // nieuwe dag (of een ander dagdeel), dan het startscherm opnieuw tekenen.
+  else if (!$('#home').hidden && momentOf(today()) !== homeMoment) { applyTheme(); renderHome(); }
 });
 window.addEventListener('pagehide', saveGame);
 
@@ -752,6 +806,9 @@ function renderHint() {
   const card = $('#hint-card');
   card.hidden = !hint;
   if (!hint) return;
+  // De kaart groeit vanaf het gereedschap naar beneden, tot de onderkant van het scherm.
+  const controls = $('.controls').getBoundingClientRect();
+  card.style.setProperty('--hint-max', `${Math.max(controls.height, window.innerHeight - controls.top - 8)}px`);
   const stage = hint.stages[hintStage];
   $('#hint-tech').textContent = hintStage === 0 ? '💡 Hint' : `💡 ${hint.technique}`;
   $('#hint-step').textContent = `stap ${hintStage + 1} van 3`;
@@ -775,7 +832,11 @@ function advanceHint() {
 
 function applyHintAction(a) {
   selected = a.cell;
-  if (a.type === 'erase') game.erase(a.cell);
+  if (a.type === 'erase') {
+    game.erase(a.cell);
+    // Zonder directe foutcontrole is dit het moment dat ze de fout te zien krijgt.
+    if (settings.errors !== 'direct') game.mistakes++;
+  }
   else if (a.type === 'note') game.addNote(a.cell, a.digit);
   else if (a.type === 'place') {
     if (a.eliminations?.length) game.removeNotes(a.eliminations);
@@ -835,16 +896,18 @@ function onSolved() {
   const g = game;
   selected = null;
   render();
-  store.clearGame();
   const day = dateKey(today());
-  const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special }, day);
+  const started = dateKey(new Date(g.startedAt));
+  const { newBest, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started }, day);
   // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
   let freshThemes = [];
   if (counted) {
     recordSeasonSolve(stats, today());
     freshThemes = checkThemeUnlocks(stats, today());
   }
-  store.saveStats(stats);
+  // Pas de puzzel opruimen als de statistieken echt bewaard zijn; anders staat
+  // hij er na een herstart nog en telt hij alsnog mee.
+  if (saved(store.saveStats(stats))) store.clearGame();
   requestPersist();
   const fresh = M.newMilestones(stats, unlocked);
   unlocked = [...unlocked, ...fresh.map((m) => m.id)];
@@ -943,6 +1006,8 @@ $('#check-btn').addEventListener('click', () => {
   checkMarks = new Set();
   for (let i = 0; i < 81; i++) if (!game.isGiven(i) && game.isWrong(i)) checkMarks.add(i);
   const n = checkMarks.size;
+  game.mistakes += n;
+  saveGame();
   if (!n) {
     toast(`Alles klopt tot nu toe${M.maybeNick(Math.random, 0.7)} 💛`);
     for (const el of $('#board').children) if (el.classList.contains('user')) el.classList.add('check-ok');
@@ -1022,13 +1087,22 @@ function renderSettings() {
     ...SEASON_THEMES.map((t) => (own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedSeason(t))),
   ].join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
+  explainErrors();
   for (const r of document.querySelectorAll('input[name="sound"]')) r.checked = r.value === settings.sound;
   for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
   }
   $('#haptics-row').hidden = !hasHaptics;
   $('#install-setting').hidden = !canInstall();
+  $('#backup-undo').hidden = !store.loadPreviousBackup();
 }
+
+const ERRORS_EXPLAIN = {
+  direct: 'Een cijfer dat niet klopt, wordt meteen rood.',
+  verzoek: 'Je ziet pas wat er niet klopt als je erom vraagt: tik tijdens het spelen op ⋯ en kies Controleer mijn puzzel.',
+  uit: 'Geen controle onderweg. Wil je toch even kijken, dan kan dat via ⋯ › Controleer mijn puzzel.',
+};
+const explainErrors = () => { $('#errors-explain').textContent = ERRORS_EXPLAIN[settings.errors] || ''; };
 
 $('#settings-dialog').addEventListener('change', (e) => {
   const { name, value, checked, type } = e.target;
@@ -1037,7 +1111,7 @@ $('#settings-dialog').addEventListener('change', (e) => {
   store.saveSettings(settings);
   configureFeedback(settings);
   if (name === 'theme') { applyTheme(); renderHome(); } // render() volgt hieronder
-  if (name === 'errors') checkMarks = new Set();
+  if (name === 'errors') { checkMarks = new Set(); explainErrors(); }
   // Even laten horen hoe het klinkt: bij Gitaar een kort akkoord.
   if (name === 'sound') feedback(value === 'gitaar' ? 'preview' : 'place');
   renderTimer();
@@ -1104,10 +1178,15 @@ async function restoreBackup(file) {
   }
   const created = new Date(parsed.created);
   const when = Number.isNaN(created.getTime()) ? '' : ` van ${created.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-  const n = res.data.stats.totalSolved;
-  const ok = await confirmDialog('Back-up terugzetten?',
-    `Deze back-up${when} heeft ${n} ${n === 1 ? 'opgeloste puzzel' : 'opgeloste puzzels'}. Wat er nu op dit toestel staat, wordt daardoor vervangen.`,
-    'Ja, terugzetten', 'Nee');
+  const b = res.data.stats;
+  const puzzles = (n) => `${n} ${n === 1 ? 'opgeloste puzzel' : 'opgeloste puzzels'}`;
+  const streaks = (s) => `langste reeks ${s.bestStreak}`;
+  // Heeft de back-up minder dan wat er nu staat? Dan zeggen we dat extra duidelijk.
+  const less = b.totalSolved < stats.totalSolved || b.bestStreak < stats.bestStreak;
+  const ok = await confirmDialog(less ? 'Let op: deze back-up heeft minder' : 'Back-up terugzetten?',
+    `Nu op dit toestel: ${puzzles(stats.totalSolved)}, ${streaks(stats)}. In de back-up${when}: ${puzzles(b.totalSolved)}, ${streaks(b)}. `
+      + 'Wat er nu staat, wordt vervangen. Je kunt dat daarna nog één keer terugdraaien bij Instellingen.',
+    less ? 'Toch terugzetten' : 'Ja, terugzetten', 'Nee');
   if (!ok) return;
   if (!store.importBackup(parsed).ok) { toast('Dat lukte niet. Er is niks veranderd 💛', 4000); return; }
   reloadState();
@@ -1115,12 +1194,27 @@ async function restoreBackup(file) {
   toast('Je voortgang is terug 💛');
 }
 
+async function undoRestore() {
+  closeDialog('settings-dialog');
+  const prev = store.loadPreviousBackup();
+  if (!prev) return;
+  const n = prev.data.stats.totalSolved;
+  const ok = await confirmDialog('Terug naar hoe het was?',
+    `Dan staat alles weer zoals vlak vóór het terugzetten (${n} ${n === 1 ? 'opgeloste puzzel' : 'opgeloste puzzels'}).`,
+    'Ja, terug', 'Nee');
+  if (!ok) return;
+  if (!store.restorePrevious().ok) { toast('Dat lukte niet. Er is niks veranderd 💛', 4000); return; }
+  reloadState();
+  toast('Alles staat weer zoals het was 💛');
+}
+
 $('#backup-save').addEventListener('click', () => { saveBackup().catch(() => toast('Dat lukte even niet. Probeer je het nog eens?')); });
 $('#backup-restore').addEventListener('click', () => { $('#backup-file').value = ''; $('#backup-file').click(); });
 $('#backup-file').addEventListener('change', (e) => {
   const file = e.target.files?.[0];
-  if (file) restoreBackup(file);
+  if (file) restoreBackup(file).catch(() => toast('Dat lukte niet. Er is niks veranderd 💛', 4000));
 });
+$('#backup-undo').addEventListener('click', () => { undoRestore().catch(() => toast('Dat lukte niet. Er is niks veranderd 💛', 4000)); });
 
 // ---------- Statistieken & berichtjes ----------
 
@@ -1309,6 +1403,12 @@ $('#daily-card').addEventListener('click', () => {
 
 applyTheme();
 configureFeedback(settings);
+if (testDate) {
+  const badge = document.createElement('div');
+  badge.className = 'test-badge';
+  badge.textContent = `Testdatum ${dateKey(today())} · aparte opslag`;
+  document.body.append(badge);
+}
 try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch { /* oudere browsers */ }
 buildBoard();
 renderHome();

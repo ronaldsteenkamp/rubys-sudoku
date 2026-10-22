@@ -2,15 +2,24 @@
 // geblokkeerde opslag werkt de app gewoon door, alleen zonder geheugen.
 
 import { SEASON_THEMES } from './themes.js';
+import { isValidGameData } from './game.js';
 
-const PREFIX = 'rubys-sudoku:';
+let PREFIX = 'rubys-sudoku:';
+
+// Met ?vandaag= (een testdatum) gebruikt de app een aparte opslag, zodat
+// testen nooit Ruby's echte reeks, statistieken of verrassingen raakt.
+export function useTestStorage(on = true) { PREFIX = on ? 'rubys-sudoku-test:' : 'rubys-sudoku:'; }
 const SEASON_IDS = SEASON_THEMES.map((t) => t.id);
 
 function read(key, fallback) {
+  let raw = null;
   try {
-    const raw = globalThis.localStorage?.getItem(PREFIX + key);
+    raw = globalThis.localStorage?.getItem(PREFIX + key);
     return raw ? JSON.parse(raw) : fallback;
   } catch {
+    // Kapotte JSON niet weggooien: de volgende keer opslaan zou hem overschrijven.
+    // Een kopie onder '<key>-kapot' is nog te redden (bijvoorbeeld voor de statistieken).
+    if (raw) try { globalThis.localStorage.setItem(`${PREFIX}${key}-kapot`, raw); } catch { /* dan niet */ }
     return fallback;
   }
 }
@@ -48,16 +57,28 @@ function migrateSound(sound) {
   return SOUND_STYLES.includes(sound) ? sound : DEFAULT_SETTINGS.sound;
 }
 
-export function loadSettings() {
-  const s = { ...DEFAULT_SETTINGS, ...read('settings', {}) };
-  s.sound = migrateSound(s.sound);
+// Alleen bekende instellingen, met het juiste type; de rest valt terug op standaard.
+function cleanSettings(raw) {
+  const s = { ...DEFAULT_SETTINGS };
+  if (!isObj(raw)) return s;
+  for (const [k, def] of Object.entries(DEFAULT_SETTINGS)) if (typeof raw[k] === typeof def) s[k] = raw[k];
+  // Ook instellingen van vóór de geluidsstijlen (sound: true/false) komen goed over.
+  if ('sound' in raw) s.sound = migrateSound(raw.sound);
   return s;
 }
+
+export const loadSettings = () => cleanSettings(read('settings', {}));
 export const saveSettings = (s) => write('settings', s);
 
 // ---------- Lopende puzzel ----------
 
-export const loadGame = () => read('game', null);
+// Een opgeslagen puzzel die niet klopt, telt als geen puzzel (en wordt opgeruimd).
+export function loadGame() {
+  const g = read('game', null);
+  if (g === null || isValidGameData(g)) return g;
+  remove('game');
+  return null;
+}
 export const saveGame = (g) => write('game', g);
 export const clearGame = () => remove('game');
 
@@ -80,17 +101,48 @@ export function emptyStats() {
   };
 }
 
-// Maakt oude (of half kapotte) statistieken weer compleet. Oude dagpuzzels
-// hebben nog geen tijd; die blijven gewoon in dailyDone staan.
+const isObj = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
+const isStrings = (v) => Array.isArray(v) && v.every((x) => typeof x === 'string');
+const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
+const count = (n) => (Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0);
+const time = (n) => (Number.isFinite(n) && n >= 0 ? n : null);
+const isKey = (k) => /^[a-z0-9-]{1,30}$/.test(k);
+
+// Een object met alleen nette sleutels en getallen (tijden, aantallen).
+function numberMap(raw, fix) {
+  const out = {};
+  if (!isObj(raw)) return out;
+  for (const [k, v] of Object.entries(raw)) {
+    const n = fix(v);
+    if (isKey(k) && n != null) out[k] = n;
+  }
+  return out;
+}
+
+// Maakt oude (of half kapotte, of met de hand aangepaste) statistieken weer
+// compleet en netjes: elk getal is echt een getal, elke datum echt een datum.
+// Oude dagpuzzels hebben nog geen tijd; die blijven gewoon in dailyDone staan.
 export function migrateStats(raw) {
-  const s = { ...emptyStats(), ...(raw && typeof raw === 'object' ? raw : {}) };
-  for (const k of ['dailyDone', 'specialDone']) if (!Array.isArray(s[k])) s[k] = [];
-  for (const k of ['levels', 'dailyTimes', 'seasonSolves']) if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {};
-  s.unlockedThemes = Array.isArray(s.unlockedThemes) ? s.unlockedThemes.filter((t) => SEASON_IDS.includes(t)) : [];
+  const r = isObj(raw) ? raw : {};
+  const s = emptyStats();
+  for (const k of ['totalSolved', 'dailySolved', 'noHintSolved', 'streak', 'bestStreak']) s[k] = count(r[k]);
+  s.lastSolvedDay = isDay(r.lastSolvedDay) ? r.lastSolvedDay : null;
+  s.dailyDone = Array.isArray(r.dailyDone) ? r.dailyDone.filter(isDay) : [];
+  s.specialDone = isStrings(r.specialDone) ? r.specialDone : [];
+  s.dailyTimes = numberMap(r.dailyTimes, time);
+  s.seasonSolves = numberMap(r.seasonSolves, (n) => (Number.isFinite(n) && n >= 0 ? count(n) : null));
+  if (isObj(r.levels)) {
+    for (const [id, l] of Object.entries(r.levels)) {
+      if (!isKey(id) || !isObj(l)) continue;
+      s.levels[id] = { played: count(l.played), solved: count(l.solved), best: time(l.best), totalTime: time(l.totalTime) ?? 0 };
+    }
+  }
+  s.unlockedThemes = Array.isArray(r.unlockedThemes) ? r.unlockedThemes.filter((t) => SEASON_IDS.includes(t)) : [];
   return s;
 }
 
 export const loadStats = () => migrateStats(read('stats', {}));
+// Geeft false als het opslaan niet lukte (bijvoorbeeld een volle opslag).
 export const saveStats = (s) => write('stats', s);
 
 const dayDiff = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 86400000);
@@ -101,9 +153,19 @@ export function recordStart(stats, levelId) {
   return stats;
 }
 
+// Telt een dag mee voor de reeks. De reeks gaat alleen vooruit: een dag die
+// eerder ligt dan de laatst getelde dag verandert niets.
+function markPlayed(stats, day) {
+  const last = stats.lastSolvedDay;
+  if (last && day <= last) return;
+  stats.streak = last && dayDiff(last, day) === 1 ? stats.streak + 1 : 1;
+  stats.lastSolvedDay = day;
+}
+
 // Werkt de statistieken bij na een opgeloste puzzel. `today` = 'JJJJ-MM-DD'.
-// Een dagpuzzel die al eens is opgelost telt niet nog een keer mee.
-export function recordSolve(stats, { levelId, elapsed, hints, daily, special }, today) {
+// `started` is de dag waarop de puzzel begon. Een dagpuzzel die al eens is
+// opgelost telt niet nog een keer mee.
+export function recordSolve(stats, { levelId, elapsed, hints, daily, special, started }, today) {
   if (daily && stats.dailyDone.includes(daily)) return { stats, newBest: false, counted: false };
   const l = stats.levels[levelId] || (stats.levels[levelId] = { played: 1, solved: 0, best: null, totalTime: 0 });
   l.solved++;
@@ -120,12 +182,12 @@ export function recordSolve(stats, { levelId, elapsed, hints, daily, special }, 
   }
   if (special && !stats.specialDone.includes(special)) stats.specialDone = [...stats.specialDone, special];
 
-  // Streak: dagen achter elkaar met minstens één opgeloste puzzel.
-  if (stats.lastSolvedDay !== today) {
-    const gap = stats.lastSolvedDay ? dayDiff(stats.lastSolvedDay, today) : null;
-    stats.streak = gap === 1 ? stats.streak + 1 : 1;
-    stats.lastSolvedDay = today;
-  }
+  // Streak: dagen achter elkaar met minstens één opgeloste puzzel. Ook de dag
+  // van de dagpuzzel en de dag waarop ze begon tellen mee: een puzzel van
+  // gisteravond die pas na middernacht af is, houdt de reeks dus heel.
+  // Ligt de laatste dag in de toekomst (klok verzet), dan rekenen we vanaf vandaag.
+  if (stats.lastSolvedDay && stats.lastSolvedDay > today) stats.lastSolvedDay = today;
+  for (const day of [...new Set([started, daily, today].filter((d) => isDay(d) && d <= today))].sort()) markPlayed(stats, day);
   stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
   return { stats, newBest, counted: true };
 }
@@ -138,9 +200,10 @@ export function currentStreak(stats, today) {
 
 // ---------- Mijlpalen & berichtjes ----------
 
-export const loadUnlocked = () => read('unlocked', []);
+const strings = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []);
+export const loadUnlocked = () => strings(read('unlocked', []));
 export const saveUnlocked = (u) => write('unlocked', u);
-export const loadRecentNotes = () => read('recent-notes', []);
+export const loadRecentNotes = () => strings(read('recent-notes', []));
 export const saveRecentNotes = (n) => write('recent-notes', n.slice(-8));
 
 // ---------- Krabbeltje in Briefje (één keer per dag) ----------
@@ -167,23 +230,21 @@ export const BACKUP_APP = 'rubys-sudoku';
 export const BACKUP_VERSION = 1;
 
 // Bouwt een back-up-object uit de losse onderdelen (puur, makkelijk te testen).
-export function makeBackup({ settings, stats, unlocked, recentNotes, game, scribbleDay = null }, date = new Date()) {
+export function makeBackup({ settings, stats, unlocked, recentNotes, game, scribbleDay = null, errors = [] }, date = new Date()) {
   return {
     app: BACKUP_APP,
     version: BACKUP_VERSION,
     created: date.toISOString(),
-    data: { settings, stats, unlocked, recentNotes, game: game ?? null, scribbleDay },
+    // `errors` is alleen om mee te kijken; bij terugzetten doet het niets.
+    data: { settings, stats, unlocked, recentNotes, game: game ?? null, scribbleDay, errors },
   };
 }
 
 // Alles wat nu in de opslag staat, als back-up.
 export const exportBackup = (date) => makeBackup({
   settings: loadSettings(), stats: loadStats(), unlocked: loadUnlocked(), recentNotes: loadRecentNotes(), game: loadGame(),
-  scribbleDay: loadScribbleDay(),
+  scribbleDay: loadScribbleDay(), errors: loadErrors(),
 }, date);
-
-const isObj = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
-const isStrings = (v) => Array.isArray(v) && v.every((x) => typeof x === 'string');
 
 // Controleert een ingelezen back-up. Geeft { ok: true, data } met nette,
 // aangevulde gegevens terug, of { ok: false, reason } zonder iets aan te raken.
@@ -195,26 +256,23 @@ export function validateBackup(obj) {
   if (typeof d.stats.totalSolved !== 'number' || !isObj(d.stats.levels)) return { ok: false, reason: 'statistieken kloppen niet' };
   if (!isStrings(d.unlocked ?? []) || !isStrings(d.recentNotes ?? [])) return { ok: false, reason: 'berichtjes kloppen niet' };
   const g = d.game ?? null;
-  if (g !== null && (!isObj(g) || g.v !== 1 || !Array.isArray(g.givens) || g.givens.length !== 81)) return { ok: false, reason: 'puzzel klopt niet' };
+  if (g !== null && !isValidGameData(g)) return { ok: false, reason: 'puzzel klopt niet' };
 
   // Oudere back-ups kennen het krabbeltje nog niet; iets anders dan een datum telt als 'nooit'.
   const scribbleDay = typeof d.scribbleDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.scribbleDay) ? d.scribbleDay : null;
 
-  // Alleen bekende instellingen, met het juiste type.
-  const settings = { ...DEFAULT_SETTINGS };
-  for (const [k, def] of Object.entries(DEFAULT_SETTINGS)) if (typeof d.settings[k] === typeof def) settings[k] = d.settings[k];
-  // Ook een back-up van vóór de geluidsstijlen (sound: true/false) komt goed over.
-  if ('sound' in d.settings) settings.sound = migrateSound(d.settings.sound);
   return {
     ok: true,
-    data: { settings, stats: migrateStats(d.stats), unlocked: d.unlocked ?? [], recentNotes: d.recentNotes ?? [], game: g, scribbleDay },
+    data: { settings: cleanSettings(d.settings), stats: migrateStats(d.stats), unlocked: d.unlocked ?? [], recentNotes: d.recentNotes ?? [], game: g, scribbleDay },
   };
 }
 
 // Zet een gecontroleerde back-up terug. Ongeldige invoer laat alles ongemoeid.
-export function importBackup(obj) {
+// De stand van daarvoor bewaren we eerst, zodat terugzetten altijd terug te draaien is.
+export function importBackup(obj, { keepPrevious = true } = {}) {
   const res = validateBackup(obj);
   if (!res.ok) return res;
+  if (keepPrevious) write('voor-terugzetten', exportBackup());
   const { settings, stats, unlocked, recentNotes, game, scribbleDay } = res.data;
   saveSettings(settings);
   saveStats(stats);
@@ -223,4 +281,26 @@ export function importBackup(obj) {
   if (game) saveGame(game); else clearGame();
   if (scribbleDay) saveScribbleDay(scribbleDay); else remove('scribble');
   return res;
+}
+
+// De stand van vlak vóór het laatste terugzetten (of null).
+export function loadPreviousBackup() {
+  const b = read('voor-terugzetten', null);
+  return validateBackup(b).ok ? b : null;
+}
+
+// Zet de stand van vóór het terugzetten weer terug; de stand van nu wordt dan
+// op zijn beurt de 'vorige', zodat je heen en weer kunt.
+export function restorePrevious() {
+  const prev = loadPreviousBackup();
+  if (!prev) return { ok: false, reason: 'geen vorige stand' };
+  return importBackup(prev);
+}
+
+// ---------- Foutenlogboek ----------
+
+// De laatste paar fouten, zodat er via een back-up te zien is wat er op het toestel misging.
+export const loadErrors = () => strings(read('fouten', []));
+export function logError(text, date = new Date()) {
+  write('fouten', [...loadErrors(), `${date.toISOString()} ${String(text).slice(0, 300)}`].slice(-20));
 }

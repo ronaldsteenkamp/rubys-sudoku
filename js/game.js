@@ -4,6 +4,24 @@
 import { PEERS, bit, digitsOf } from './solver.js';
 import { computeCandidates } from './techniques.js';
 
+const isCells = (a, max) => Array.isArray(a) && a.length === 81 && a.every((x) => Number.isInteger(x) && x >= 0 && x <= max);
+const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
+const isCount = (n) => Number.isFinite(n) && n >= 0;
+// Dezelfde ids als LEVELS in generator.js (die halen we hier niet binnen, dan komt de hele voorraad mee).
+const LEVEL_IDS = ['zondag', 'koffie', 'nadenken', 'ruby'];
+
+// Klopt een opgeslagen puzzel (uit localStorage of een back-up) echt? Een
+// puzzel zonder geldige oplossing zou de app bij elke start laten vastlopen.
+export function isValidGameData(data) {
+  if (!data || typeof data !== 'object' || data.v !== 1) return false;
+  const { givens, solution, values, notes } = data;
+  if (!isCells(givens, 9) || !isCells(solution, 9) || solution.includes(0)) return false;
+  if (givens.some((v, i) => v && v !== solution[i])) return false;
+  if (values !== undefined && (!isCells(values, 9) || givens.some((v, i) => v && values[i] !== v))) return false;
+  if (notes !== undefined && !isCells(notes, 511)) return false;
+  return true;
+}
+
 export class Game {
   constructor({ givens, solution, levelId = 'zondag', daily = null, special = null, shape = null, id = null }) {
     this.id = id || `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
@@ -27,6 +45,7 @@ export class Game {
   isGiven(i) { return this.givens[i] !== 0; }
   isWrong(i) { return this.values[i] !== 0 && this.values[i] !== this.solution[i]; }
   isSolved() { return this.values.every((v, i) => v === this.solution[i]); }
+  isFull() { return this.values.every(Boolean); }
 
   // Vakjes in rij/kolom/blok met hetzelfde cijfer: echte regelovertredingen.
   conflicts(i) {
@@ -56,7 +75,8 @@ export class Game {
   #state(i) { return { v: this.values[i], n: this.notes[i] }; }
 
   // Zet een cijfer. Nogmaals hetzelfde cijfer kiezen haalt het weer weg.
-  setDigit(i, d, { autoNotes = true } = {}) {
+  // `countMistake: false` als ze de fout (nog) niet te zien krijgt.
+  setDigit(i, d, { autoNotes = true, countMistake = true } = {}) {
     if (this.isGiven(i) || this.solved) return { changed: false };
     const removing = this.values[i] === d;
     const changes = [{ cell: i, from: this.#state(i), to: { v: removing ? 0 : d, n: 0 } }];
@@ -67,7 +87,7 @@ export class Game {
     }
     const changed = this.#commit(changes);
     const wrong = changed && !removing && d !== this.solution[i];
-    if (wrong) this.mistakes++;
+    if (wrong && countMistake) this.mistakes++;
     if (changed && !removing && this.isSolved()) this.solved = true;
     return { changed, wrong, removed: removing, solved: this.solved };
   }
@@ -141,11 +161,20 @@ export class Game {
     return { v: 1, id, givens, solution, levelId, daily, special, shape, values, notes, elapsed, mistakes, hints, solved, startedAt };
   }
 
+  // Geeft null bij alles wat niet klopt, zodat een kapotte opslag nooit de app laat vastlopen.
   static fromJSON(data) {
-    if (!data || data.v !== 1 || data.givens?.length !== 81) return null;
-    const g = new Game(data);
-    for (const k of ['values', 'notes']) if (data[k]?.length === 81) g[k] = data[k].slice();
-    for (const k of ['elapsed', 'mistakes', 'hints', 'startedAt']) if (typeof data[k] === 'number') g[k] = data[k];
+    if (!isValidGameData(data)) return null;
+    const g = new Game({
+      givens: data.givens,
+      solution: data.solution,
+      levelId: LEVEL_IDS.includes(data.levelId) ? data.levelId : 'zondag',
+      daily: isDay(data.daily) ? data.daily : null,
+      special: typeof data.special === 'string' && /^(jubileum|verjaardag)-\d{4}$/.test(data.special) ? data.special : null,
+      shape: data.shape === 'heart' ? 'heart' : null,
+      id: typeof data.id === 'string' && data.id.length < 40 ? data.id : null,
+    });
+    for (const k of ['values', 'notes']) if (data[k]) g[k] = data[k].slice();
+    for (const k of ['elapsed', 'mistakes', 'hints', 'startedAt']) if (isCount(data[k])) g[k] = data[k];
     g.solved = Boolean(data.solved);
     return g;
   }

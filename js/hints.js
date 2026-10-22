@@ -73,11 +73,14 @@ function explain(s) {
   }
 }
 
-function placementOutro(place, viaElimination, rng) {
+// Na een eliminatie zeggen we wat er echt gebeurde: óf het vakje heeft nog maar
+// één kandidaat, óf het cijfer kan in die rij, kolom of dat blok nog maar op één plek.
+function placementOutro(placing, viaElimination, rng) {
   const cheer = pick(['Goed zo! ✨', 'Zie je wel, je kunt het 💛', 'Hop, die staat!', 'Mooi zo 🌼'], rng);
-  return viaElimination
-    ? `Daardoor blijft voor dit vakje alleen de ${place.digit} over. ${cheer}`
-    : `Hier hoort een ${place.digit}. ${cheer}`;
+  const { digit } = placing.place;
+  if (!viaElimination) return `Hier hoort een ${digit}. ${cheer}`;
+  if (placing.technique === 'hidden-single') return `Daardoor kan de ${digit} in ${unitName(placing.units[0])} nog maar op één plek: hier. ${cheer}`;
+  return `Daardoor blijft voor dit vakje alleen de ${digit} over. ${cheer}`;
 }
 
 const regionCells = (units) => [...new Set(units.flatMap((u) => UNITS[u]))];
@@ -141,22 +144,27 @@ export function getHint(game, rng = Math.random) {
           cells: placing.technique === 'naked-single' ? [placing.place.cell] : [],
           digit: placing.technique === 'hidden-single' ? placing.place.digit : null,
         },
-        { text: placementOutro(placing.place, false, rng), units: [], cells: [placing.place.cell] },
+        { text: placementOutro(placing, false, rng), units: [], cells: [placing.place.cell] },
       ],
       action: { type: 'place', ...placing.place },
     };
   }
 
   if (placing && chain.length) {
-    // De moeilijkste stap uit de keten is de "les"; de rest gebeurt op de achtergrond.
-    const main = chain.reduce((a, b) => (b.level > a.level ? b : a));
-    const extra = chain.length > 1 ? ' (Met nog een klein tussenstapje.)' : '';
+    // De laatste stap uit de keten is de "les": vóór die stap viel er nog niets
+    // in te vullen (findStep probeert altijd eerst de singles), erna wel. Die
+    // stap maakte het cijfer dus mogelijk. Eerdere stappen noemen we eerlijk.
+    const main = chain[chain.length - 1];
+    const before = chain.length - 1;
+    const extra = before ? ` (Daarvoor ${before === 1 ? 'was er nog één andere stap' : `waren er nog ${before} andere stappen`} nodig; die neem ik je uit handen.)` : '';
     const elims = chain.flatMap((s) => s.eliminations);
+    // Waar ze moet kijken: de les, plus de rij, kolom of het blok van het vakje dat het wordt.
+    const look = [...new Set([...main.units.slice(0, 2), placing.units[0]])];
     return {
       kind: 'step',
       technique: TECHNIQUES[main.technique].name,
       stages: [
-        { text: lookHere(main.units.slice(0, 2), rng), units: main.units.slice(0, 2), cells: [] },
+        { text: lookHere(look, rng), units: look, cells: [] },
         {
           text: `${TECHNIQUES[main.technique].name}! ${explain(main)}${extra}`,
           units: main.units,
@@ -164,7 +172,7 @@ export function getHint(game, rng = Math.random) {
           digit: main.digits.length === 1 ? main.digits[0] : null,
           strike: main.eliminations,
         },
-        { text: placementOutro(placing.place, true, rng), units: [], cells: [placing.place.cell] },
+        { text: placementOutro(placing, true, rng), units: [], cells: [placing.place.cell] },
       ],
       action: { type: 'place', ...placing.place, eliminations: elims },
     };

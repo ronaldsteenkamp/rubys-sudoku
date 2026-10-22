@@ -47,6 +47,7 @@ sw.js                 service worker (offline)
 manifest.webmanifest  PWA-manifest
 icons/                app-iconen
 tests/                unit tests (node --test)
+e2e/                  browsertests met Playwright (npm run test:e2e)
 scripts/              hulpscripts voor de puzzelvoorraad en de iconen
 ```
 
@@ -60,7 +61,7 @@ npx serve .            # of: python3 -m http.server 8080
 
 Open daarna http://localhost:3000 (of :8080).
 
-**Speciale dagen testen:** voeg `?vandaag=2027-09-29` (jubileum) of `?vandaag=2027-10-12` (verjaardag) aan de URL toe.
+**Speciale dagen testen:** voeg `?vandaag=2027-09-29` (jubileum) of `?vandaag=2027-10-12` (verjaardag) aan de URL toe. Met een testdatum gebruikt de app een eigen, aparte opslag (onderin staat dan *Testdatum … · aparte opslag*). Testen raakt dus nooit de echte reeks, statistieken of verrassingen, ook niet op Ruby's toestel.
 
 **Seizoensthema's testen:** `?vandaag=` bepaalt ook het seizoen. Los bijvoorbeeld op `?vandaag=2026-12-30` drie puzzels op (Zondagochtend gaat het snelst): na de derde verschijnt *Nieuw thema: Winter*. Dat kan ook verspreid over `?vandaag=2026-12-31` en `?vandaag=2027-01-02`, want december tot en met februari is één winter.
 
@@ -72,11 +73,17 @@ Vereist Node 20 of nieuwer, zonder dependencies:
 npm test
 ```
 
-De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd is) en de persoonlijke teksten.
+De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
+
+Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub en een update die pas na een tik binnenkomt.
+
+```bash
+npm run test:e2e
+```
 
 ## Snelheid
 
-Generatie draait in een Web Worker. Voor de twee zwaarste niveaus zijn passende puzzels zeldzaam bij willekeurig weghalen. Daarom krijgt de generator een tijdslimiet (400 ms). Lukt het niet binnen die tijd, dan pakt hij een puzzel uit `js/bank.js` en husselt die onherkenbaar door elkaar: cijfers hernummeren, spiegelen en rijen wisselen. De moeilijkheid blijft daarbij precies gelijk. Daarnaast ligt er per niveau altijd al een puzzel klaar, zodat starten direct gaat.
+Generatie draait in een Web Worker. Per niveau ligt er altijd al een puzzel klaar, zodat starten direct gaat; die voorraad vult een tweede worker op de achtergrond, met ruim de tijd (5 s). Voor de twee zwaarste niveaus zijn passende puzzels zeldzaam bij willekeurig weghalen. Moet er meteen een puzzel komen, dan krijgt de generator een tijdslimiet (400 ms). Lukt het niet binnen die tijd, dan pakt hij een puzzel uit `js/bank.js` en husselt die onherkenbaar door elkaar: cijfers hernummeren, rijen en kolommen binnen hun band wisselen en kantelen. De moeilijkheid blijft daarbij precies gelijk. De dagpuzzel neemt de voorraad op volgorde door, zodat dezelfde puzzel pas na ruim een jaar terugkomt. Zondagochtend en Koffie erbij hebben geen voorraad nodig: daar zoekt de generator gewoon door tot het niveau klopt.
 
 De voorraad opnieuw maken (duurt een halve minuut):
 
@@ -97,7 +104,7 @@ node scripts/build-bank.mjs 120
 
 **Op Ruby's iPhone:** open die link in **Safari**, tik op het deelicoontje en kies **Zet op beginscherm**. Daarna start hij als een echte app, ook zonder internet.
 
-**Een update uitbrengen:** verhoog `VERSION` bovenin `sw.js` (bijvoorbeeld `v8`) en push. De app haalt de nieuwe versie op de achtergrond op en toont op het startscherm het kaartje *Er is iets nieuws voor je 💛*. Pas als Ruby daarop tikt, wordt er ververst; midden in een puzzel gebeurt dat dus nooit. Nieuwe bestanden zet je ook in de `SHELL`-lijst in `sw.js`.
+**Een update uitbrengen:** draai `npm run release` en push (met `sw.js`). Dat verhoogt `VERSION` bovenin `sw.js` en zet er een vingerafdruk van alle app-bestanden bij; `npm test` faalt zolang je dat vergeet. De app haalt de nieuwe versie op de achtergrond op en toont op het startscherm het kaartje *Er is iets nieuws voor je 💛*. Tot Ruby daarop tikt, draait ze helemaal de oude versie; daarna helemaal de nieuwe, dus nooit een mengsel en nooit midden in een puzzel. Nieuwe bestanden zet je ook in de `SHELL`-lijst in `sw.js` (ook daar waarschuwt `npm test` voor).
 
 De tests draaien bij elke push en pull request automatisch via GitHub Actions (`.github/workflows/test.yml`).
 

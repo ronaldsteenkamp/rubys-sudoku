@@ -3,12 +3,12 @@
 // Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren]   (vereist Playwright + Chromium)
 // Met --themas alleen die thema's (start, spel en hartjespuzzel) plus een overzicht per thema.
 // De plaatjes komen in screenshots/ (staat niet in git), met per scherm een overzicht.
-import { createServer } from 'node:http';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { extname, join, normalize } from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { generate, generateHeart } from '../js/generator.js';
 import { THEMES as ALL_THEMES } from '../js/themes.js';
+import { serve } from './static-server.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const out = join(root, 'screenshots');
@@ -16,19 +16,7 @@ const allSizes = process.argv.includes('--maten');
 const only = process.argv.find((a) => a.startsWith('--themas='))?.slice(9).split(',');
 
 // ---------- Kleine webserver ----------
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
-const server = createServer(async (req, res) => {
-  const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^\/+/, '') || 'index.html';
-  try {
-    const body = await readFile(join(root, path));
-    res.writeHead(200, { 'content-type': TYPES[extname(path)] || 'application/octet-stream' });
-    res.end(body);
-  } catch {
-    res.writeHead(404); res.end();
-  }
-});
-await new Promise((r) => server.listen(0, r));
-const base = `http://localhost:${server.address().port}/`;
+const { server, base } = await serve({ prefix: '/' });
 
 // ---------- Vaste spelsituaties ----------
 const bit = (d) => 1 << (d - 1);
@@ -72,19 +60,21 @@ const shots = [];
 
 async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '', reducedMotion = 'no-preference', dailyDone = false, extraStats = {} }) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: scheme, reducedMotion, isMobile: true, hasTouch: true, userAgent: IPHONE_UA });
-  await ctx.addInitScript(({ theme, stats, game, dailyDone, extraStats }) => {
+  // Met ?vandaag= gebruikt de app een aparte testopslag.
+  const prefix = query.includes('vandaag=') ? 'rubys-sudoku-test:' : 'rubys-sudoku:';
+  await ctx.addInitScript(({ theme, stats, game, dailyDone, extraStats, prefix }) => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
     const today = new Date();
     const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    localStorage.setItem('rubys-sudoku:settings', JSON.stringify({ theme }));
+    localStorage.setItem(prefix + 'settings', JSON.stringify({ theme }));
     const done = dailyDone ? { dailyDone: [key], dailyTimes: { [key]: 372000 } } : {};
     // Seizoensthema's staan vrij, anders zou het thema terugvallen op zonnig.
     const seasons = { unlockedThemes: ['lente', 'zomer', 'herfst', 'winter'] };
-    localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ ...stats, ...done, ...seasons, ...extraStats, lastSolvedDay: key }));
-    localStorage.setItem('rubys-sudoku:unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
-    if (game) localStorage.setItem('rubys-sudoku:game', JSON.stringify(game));
-  }, { theme, stats, game, dailyDone, extraStats });
+    localStorage.setItem(prefix + 'stats', JSON.stringify({ ...stats, ...done, ...seasons, ...extraStats, lastSolvedDay: key }));
+    localStorage.setItem(prefix + 'unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
+    if (game) localStorage.setItem(prefix + 'game', JSON.stringify(game));
+  }, { theme, stats, game, dailyDone, extraStats, prefix });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.error('paginafout:', e.message));
   await p.goto(base + query);
@@ -100,7 +90,8 @@ async function shot(p, name, group, fullPage = false) {
 }
 
 async function openPlay(p, select) {
-  await p.click('.card.continue');
+  // Het hart van vandaag ga je verder via de speciale kaart zelf, de rest via "Verder puzzelen".
+  await p.click((await p.locator('.card.continue').count()) ? '.card.continue' : '.card.special');
   await p.waitForSelector('#play:not([hidden])');
   if (select != null) await p.click(`.cell[data-i="${select}"]`);
   await p.waitForTimeout(400);
