@@ -192,39 +192,84 @@ export function generateRecovery(matchDate) {
 
 export const generateMatchPuzzle = (matchDate, kind) => (kind === 'warmup' ? generateWarmup(matchDate) : generateRecovery(matchDate));
 
-// ---------- Hartjespuzzel (jubileum & verjaardag) ----------
+// ---------- Figuurpuzzels (speciale dagen) ----------
 
-const HEART_ROWS = [
-  '.XX...XX.',
-  'XXXX.XXXX',
-  'XXXXXXXXX',
-  'XXXXXXXXX',
-  'XXXXXXXXX',
-  '.XXXXXXX.',
-  '..XXXXX..',
-  '...XXX...',
-  '....X....',
-];
-export const HEART_MASK = HEART_ROWS.join('').split('').map((ch) => ch === 'X');
+// Elke figuur: 9 regels van 9 tekens: 'X' = in de figuur, 'O' = ook in de figuur,
+// maar een accent in een donkerdere tint (de pijl, het lint, de naden van een
+// bal, het gezicht van de pompoen), '.' = erbuiten. `symmetric`: links
+// en rechts gespiegeld, dan halen we ook gespiegeld cijfers weg (dat oogt rustig).
+// `color`: de kleurfamilie in style.css (zie .board[data-color]); `heart` voor
+// de harten, die de hartkleuren van het thema gebruiken.
+// `given: 'left'`: de linkerhelft staat vol cijfers en rechts alleen de omtrek
+// (het halve hart: "de andere helft ben ik").
+// Eisen (zie tests/generator.test.js): minstens 40 vakjes, en binnen een band
+// of stapel hooguit één rij of kolom zonder vakjes, anders kan de puzzel nooit
+// maar één oplossing hebben.
+export const SHAPES = {
+  heart: { name: 'hart', symmetric: true, color: 'heart', rows: [
+    '.XX...XX.', 'XXXX.XXXX', 'XXXXXXXXX', 'XXXXXXXXX', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '...XXX...', '....X....'] },
+  'half-heart': { name: 'half hart', symmetric: false, color: 'heart', given: 'left', rows: [
+    '.XX...XX.', 'XXXX.XXXX', 'XXXXXXXXX', 'XXXXXXXXX', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '...XXX...', '....X....'] },
+  'heart-arrow': { name: 'hart met pijl', symmetric: false, color: 'heart', rows: [
+    '.XX...XXO', 'XXXX.XXOX', 'XXXXXXOXX', 'XXXXXOXXX', 'XXXXOXXXX', '.XXOXXXX.', '..OXXXX..', '.O.XXX...', 'OO..X....'] },
+  balloon: { name: 'ballon', symmetric: false, color: 'blue', rows: [
+    '..XXXXX..', '.XOOXXXX.', 'XOXXXXXXX', 'XXXXXXXXX', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '....O....', '...O.....'] },
+  gift: { name: 'cadeautje', symmetric: true, color: 'lilac', rows: [
+    '.OO...OO.', 'O..OOO..O', 'XXXXOXXXX', 'XXXXOXXXX', 'XXXXOXXXX', 'OOOOOOOOO', 'XXXXOXXXX', 'XXXXOXXXX', 'XXXXOXXXX'] },
+  volleyball: { name: 'volleybal', symmetric: true, color: 'gold', rows: [
+    '..XXOXX..', '.XXXOXXX.', 'XXXXOXXXX', 'XXXOXOXXX', 'XXOXXXOXX', 'XOXXXXXOX', 'OXXXXXXXO', '.XXXXXXX.', '..XXXXX..'] },
+  egg: { name: 'paasei', symmetric: true, color: 'lilac', rows: [
+    '...XXX...', '..XXXXX..', '.XXXXXXX.', '.XXXXXXX.', 'OXOXOXOXO', 'XOXOXOXOX', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..'] },
+  crown: { name: 'kroon', symmetric: true, color: 'orange', rows: [
+    '.........', 'O...O...O', 'XX.XXX.XX', 'XXXXXXXXX', 'XOXXOXXOX', 'XXXXXXXXX', 'XXXXXXXXX', '.OOOOOOO.', '.........'] },
+  pumpkin: { name: 'pompoen', symmetric: false, color: 'orange', rows: [
+    '....OO...', '.XXXXXXX.', 'XXXXXXXXX', 'XOOXXXOOX', 'XXXXXXXXX', 'XOXXXXXOX', 'XXOOOOOXX', 'XXXXXXXXX', '.XXXXXXX.'] },
+  'letter-r': { name: 'chocoladeletter R', symmetric: false, color: 'brown', rows: [
+    'XXXXXXX..', 'XXXXXXXX.', 'XX....XX.', 'XX....XX.', 'XXXXXXXX.', 'XXXXXXX..', 'XX...XXX.', 'XX....XXX', 'XX.....XX'] },
+  tree: { name: 'kerstboom', symmetric: false, color: 'green', rows: [
+    '....O....', '...XXX...', '..XOXXX..', '.XXXXXOX.', '..XXOXX..', '.XOXXXXX.', 'XXXXXOXXX', '...OOO...', '...OOO...'] },
+  star: { name: 'ster', symmetric: true, color: 'gold', rows: [
+    '....X....', '...XXX...', '...XXX...', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '.XXXXXXX.', '.XXX.XXX.', 'XX.....XX'] },
+  fireworks: { name: 'vuurwerk', symmetric: true, color: 'gold', rows: [
+    'O..XXX..O', '.O.XXX.O.', '..XXXXX..', 'XXXXOXXXX', 'XXXOOOXXX', 'XXXXOXXXX', '..XXXXX..', '.O.XXX.O.', 'O..XXX..O'] },
+};
 
-const inHeart = (r, c) => r >= 0 && r < 9 && c >= 0 && c < 9 && HEART_MASK[r * 9 + c];
-export const HEART_OUTLINE = HEART_MASK.map((m, i) => m &&
-  [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dr, dc]) => !inHeart(Math.floor(i / 9) + dr, (i % 9) + dc)));
+// Masker (in de figuur), omtrek (in de figuur, met een buur erbuiten) en
+// accentvakjes per figuur.
+function shapeCells(rows) {
+  const chars = rows.join('').split('');
+  const mask = chars.map((ch) => ch !== '.');
+  const accent = chars.map((ch) => ch === 'O');
+  const inside = (r, c) => r >= 0 && r < 9 && c >= 0 && c < 9 && mask[r * 9 + c];
+  const outline = mask.map((m, i) => m && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dr, dc]) => !inside(Math.floor(i / 9) + dr, (i % 9) + dc)));
+  return { mask, outline, accent, hasAccent: accent.some(Boolean) };
+}
+export const SHAPE_CELLS = Object.fromEntries(Object.entries(SHAPES).map(([k, v]) => [k, shapeCells(v.rows)]));
+export const HEART_MASK = SHAPE_CELLS.heart.mask;
+export const HEART_OUTLINE = SHAPE_CELLS.heart.outline;
+export const shapeColor = (name) => SHAPES[name]?.color || 'heart';
 
-// Alle gegeven cijfers liggen binnen het hart; de omtrek blijft altijd staan,
-// binnenin halen we (gespiegeld) weg zolang het uniek en logisch oplosbaar blijft.
-export function generateHeart(seed, cap = 3, tries = 12) {
+// Een figuurpuzzel: alle gegeven cijfers liggen in de figuur en de omtrek blijft
+// altijd staan; binnenin halen we weg (bij een symmetrische figuur gespiegeld)
+// zolang de puzzel uniek en logisch oplosbaar blijft. Van een paar kandidaten
+// houden we de rustigste (minste cijfers). Deterministisch per seed.
+export function generateShape(name, seed, cap = 3, tries = 12) {
+  const shape = SHAPES[name];
+  if (!shape) throw new Error(`Onbekende figuur: ${name}`);
+  const { mask, outline } = SHAPE_CELLS[name];
+  const allowed = mask.map((m, i) => m && (outline[i] || shape.given !== 'left' || i % 9 <= 4));
+  // Bij het halve hart blijft de linkerhelft helemaal vol staan: daar halen we niets weg.
+  const interior = shape.given === 'left' ? []
+    : [...Array(81).keys()].filter((i) => allowed[i] && !outline[i] && (!shape.symmetric || i % 9 <= 4));
   const rng = mulberry32(seed);
-  const interior = [...Array(81).keys()].filter((i) => HEART_MASK[i] && !HEART_OUTLINE[i] && i % 9 <= 4);
   let best = null;
-  // Een paar kandidaten proberen en de rustigste (minste cijfers binnenin) houden.
   for (let n = 0, found = 0; n < 500 && found < tries; n++) {
     const solution = randomSolvedGrid(rng);
-    const g = solution.map((v, i) => (HEART_MASK[i] ? v : 0));
+    const g = solution.map((v, i) => (allowed[i] ? v : 0));
     if (countSolutions(g, 2) !== 1 || !logicalSolve(g, cap).solved) continue;
     found++;
     for (const i of shuffle(interior, rng)) {
-      const j = Math.floor(i / 9) * 9 + 8 - (i % 9);
+      const j = shape.symmetric ? Math.floor(i / 9) * 9 + 8 - (i % 9) : i;
       const a = g[i], b = g[j];
       g[i] = 0; g[j] = 0;
       if (countSolutions(g, 2) !== 1 || !logicalSolve(g, cap).solved) { g[i] = a; g[j] = b; }
@@ -232,11 +277,14 @@ export function generateHeart(seed, cap = 3, tries = 12) {
     const clues = g.filter(Boolean).length;
     if (!best || clues < best.clues) best = { g, solution, clues };
   }
-  if (!best) throw new Error('Geen hartjespuzzel gevonden');
+  if (!best) throw new Error(`Geen puzzel gevonden voor ${name}`);
   const r = logicalSolve(best.g, cap);
   return {
     levelId: r.level >= 3 ? 'nadenken' : r.level === 2 ? 'koffie' : 'zondag',
-    seed, source: 'heart', givens: best.g, solution: best.solution, clues: best.clues,
-    rating: r.level, techniques: Object.keys(r.used), shape: 'heart',
+    seed, source: 'shape', givens: best.g, solution: best.solution, clues: best.clues,
+    rating: r.level, techniques: Object.keys(r.used), shape: name,
   };
 }
+
+// Het hart van jubileum en verjaardag (precies zoals voorheen).
+export const generateHeart = (seed, cap = 3, tries = 12) => ({ ...generateShape('heart', seed, cap, tries), source: 'heart' });

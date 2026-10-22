@@ -245,6 +245,9 @@ export function subtitle(date = new Date(), rng = Math.random) {
 // ---------- Speciale dagen ----------
 
 const sameDay = (date, { month, day }) => date.getMonth() + 1 === month && date.getDate() === day;
+const pad2 = (n) => String(n).padStart(2, '0');
+const keyOfDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const noon = (y, m, d) => new Date(y, m - 1, d, 12);
 
 export function daysTogether(date = new Date()) {
   const start = new Date(ANNIVERSARY.year, ANNIVERSARY.month - 1, ANNIVERSARY.day);
@@ -252,44 +255,188 @@ export function daysTogether(date = new Date()) {
   return Math.round((today - start) / 86400000);
 }
 
-// Geeft een object terug als vandaag een speciale dag is, anders null.
-export function specialDay(date = new Date()) {
-  if (sameDay(date, ANNIVERSARY)) {
-    const years = date.getFullYear() - ANNIVERSARY.year;
-    return {
-      id: `jubileum-${date.getFullYear()}`,
-      kind: 'jubileum',
-      title: years > 0 ? `${years} jaar samen 💛` : 'Vandaag begon het 💛',
-      text: years > 0
-        ? `Vandaag zijn we precies ${years === 1 ? 'één jaar' : `${years} jaar`} samen. Elk jaar met jou is mijn favoriete puzzel. Deze is speciaal voor jou gemaakt, kijk maar goed naar de vorm 😉`
-        : 'Vandaag begon ons verhaal. Deze puzzel is speciaal voor jou gemaakt, kijk maar goed naar de vorm 😉',
-      solvedText: years > 0
-        ? `Gelukkig ${years === 1 ? 'eenjarig' : `${years}-jarig`} jubileum, lieverd. Op nog heel veel jaren, puzzels en preitaartjes samen. Ik hou van je. 💛`
-        : 'Ik ben zo blij dat jij er bent. Ik hou van je. 💛',
-      seed: 290900 + date.getFullYear(),
-    };
-  }
-  if (sameDay(date, BIRTHDAY)) {
-    const age = date.getFullYear() - BIRTHDAY.year;
-    return {
-      id: `verjaardag-${date.getFullYear()}`,
-      kind: 'verjaardag',
-      title: `Gefeliciteerd, ${age} jaar! 🎂`,
-      text: `Hiep hiep hoera, ${nickname()}! Vandaag ben je ${age}. Ik heb een puzzel voor je met een verrassing erin. Kijk maar naar de vorm 😉`,
-      solvedText: `Van harte gefeliciteerd met je ${age}e verjaardag, mooiste meisje dat er is. Ik hoop dat je dag net zo zonnig is als jij 🎉💛`,
-      seed: 121000 + date.getFullYear(),
-    };
-  }
-  return null;
+// Hele maanden samen, geteld vanaf de maand van het jubileum.
+export const monthsTogether = (date) => (date.getFullYear() - ANNIVERSARY.year) * 12 + (date.getMonth() + 1 - ANNIVERSARY.month);
+
+// De dag waarop Ruby deze app kreeg (de app-verjaardag is elk jaar daarna).
+export const APP_GIFT = { year: 2026, month: 10, day: 21 };
+
+// De laatste thuiswedstrijd van het seizoen. Wordt het schema in matches.js
+// later aangevuld (een nieuw seizoen), pas deze dan ook aan; een test
+// controleert dat hij de laatste thuiswedstrijd in het schema is.
+export const LAST_HOME_MATCH = { date: '2027-04-17', time: '17:00', opponent: 'LSV DS 3' };
+
+// Eerste paasdag volgens het algoritme van Meeus/Butcher (gregoriaanse kalender).
+export function easter(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+  return noon(year, month, day);
 }
 
-// Zoekt een speciale dag terug aan de hand van z'n id (bijv. 'verjaardag-2027'),
-// zodat een hartjespuzzel die na middernacht af is toch het goede berichtje krijgt.
-export function specialById(id) {
-  const m = /^(jubileum|verjaardag)-(\d{4})$/.exec(id || '');
-  if (!m) return null;
-  const { month, day } = m[1] === 'jubileum' ? ANNIVERSARY : BIRTHDAY;
-  return specialDay(new Date(Number(m[2]), month - 1, day, 12));
+// Koningsdag is 27 april, behalve als dat een zondag is: dan de zaterdag ervoor.
+export function kingsDay(year) {
+  const d = noon(year, 4, 27);
+  return d.getDay() === 0 ? noon(year, 4, 26) : d;
+}
+
+// Iets vasts per jaar (na een herstart hetzelfde, volgend jaar iets anders).
+const byYear = (list, year, salt = 0) => list[(((year + salt) % list.length) + list.length) % list.length];
+const idSeed = (id) => [...id].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0, 2166136261);
+const HALVES = ['een half', 'anderhalf', 'tweeënhalf', 'drieënhalf', 'vierenhalf', 'vijfenhalf', 'zesenhalf', 'zevenenhalf', 'achtenhalf', 'negenenhalf'];
+const months = (m) => (m === 1 ? '1 maand' : `${m} maanden`);
+const yearsText = (n) => (n === 1 ? 'een jaar' : `${n} jaar`);
+
+// Lieve zinnetjes voor de maandversary (elke 29e), vast per maand.
+export const MONTHSARY_LINES = [
+  ({ m, n }) => `Alweer ${m} samen, ${n}. Elke maand een beetje meer 💛`,
+  ({ m }) => `Vandaag ${m} samen. Ik ben nog steeds net zo blij als op dag één 😊`,
+  ({ m }) => `${m} samen, en je bent nog steeds mijn favoriete puzzel 🧩`,
+  ({ m }) => `Weer een 29e! ${m} met jou voelen als een zondagochtend ☀️`,
+  ({ m }) => `${m} samen. Zin in koffie? Ik trakteer ☕`,
+  ({ m, n }) => `Fijne maandversary, ${n}: ${m} vol lachen en preitaart 🥧`,
+  ({ m }) => `${m} samen, en ik word nog steeds blij als ik je zie 💛`,
+  ({ m }) => `Kijk eens wat de kalender zegt: ${m} samen 📅💛`,
+  ({ m }) => `${m} samen! De honden kwispelen mee 🐶`,
+  ({ m }) => `Vandaag ${m} samen. Dikke knuffel van mij 🤗`,
+  ({ m }) => `${m} geleden begon ons verhaal. Ik lees graag verder 📖`,
+  ({ m }) => `Alweer ${m}. Op naar de volgende 🌷`,
+  ({ m, n }) => `${m} samen, ${n}. Jij maakt elke maand mooier ✨`,
+];
+
+// Alle speciale dagen, in volgorde van voorrang: valt er meer op één dag, dan
+// wint de bovenste. Per soort: `on(jaar)` geeft de datum in dat jaar (of null),
+// `shape` is de figuurpuzzel (null = alleen een kaartje), `celebrate` de
+// emoji's bij het oplossen. Teksten krijgen { year, nick, days, stats, ... }
+// mee en worden per jaar vast gekozen. Een dag toevoegen = één regel erbij.
+// De id is `<soort>-<jaar>`, of `<soort>-<JJJJ-MM-DD>` bij de maandversary.
+const LOVE = ['❤️', '💛', '💗', '💕'];
+export const SPECIAL_DAYS = [
+  { kind: 'jubileum', label: 'ons jubileum 💛', icon: '💛', shape: 'heart', celebrate: LOVE,
+    on: (y) => noon(y, ANNIVERSARY.month, ANNIVERSARY.day), seed: ({ year }) => 290900 + year,
+    title: ({ years }) => (years > 0 ? `${years} jaar samen 💛` : 'Vandaag begon het 💛'),
+    text: ({ years }) => (years > 0
+      ? `Vandaag zijn we precies ${years === 1 ? 'één jaar' : `${years} jaar`} samen. Elk jaar met jou is mijn favoriete puzzel. Deze is speciaal voor jou gemaakt, kijk maar goed naar de vorm 😉`
+      : 'Vandaag begon ons verhaal. Deze puzzel is speciaal voor jou gemaakt, kijk maar goed naar de vorm 😉'),
+    solved: [({ years }) => (years > 0
+      ? `Gelukkig ${years === 1 ? 'eenjarig' : `${years}-jarig`} jubileum, lieverd. Op nog heel veel jaren, puzzels en preitaartjes samen. Ik hou van je. 💛`
+      : 'Ik ben zo blij dat jij er bent. Ik hou van je. 💛')] },
+  { kind: 'verjaardag', label: 'je verjaardag 🎂', icon: '🎂', shape: 'heart', celebrate: LOVE,
+    on: (y) => noon(y, BIRTHDAY.month, BIRTHDAY.day), seed: ({ year }) => 121000 + year,
+    title: ({ age }) => `Gefeliciteerd, ${age} jaar! 🎂`,
+    text: ({ age, nick }) => `Hiep hiep hoera, ${nick}! Vandaag ben je ${age}. Ik heb een puzzel voor je met een verrassing erin. Kijk maar naar de vorm 😉`,
+    solved: [({ age }) => `Van harte gefeliciteerd met je ${age}e verjaardag, mooiste meisje dat er is. Ik hoop dat je dag net zo zonnig is als jij 🎉💛`] },
+  { kind: 'halfjaar', label: 'een half jaar samen 💞', icon: '💞', shape: 'half-heart', celebrate: ['💞', '💛', '💗', '✨'],
+    on: (y) => (y > ANNIVERSARY.year ? noon(y, ((ANNIVERSARY.month + 5) % 12) + 1, ANNIVERSARY.day) : null),
+    title: ({ half }) => `${half.charAt(0).toUpperCase()}${half.slice(1)} jaar samen 💞`,
+    text: ({ half, nick }) => `Vandaag zijn we ${half} jaar samen, ${nick}. Kijk goed naar dit hart: de ene helft staat al vol. De andere helft ben ik 💞`,
+    solved: [
+      ({ half }) => `Zie je? Samen is het een heel hart. ${half.charAt(0).toUpperCase()}${half.slice(1)} jaar, en ik wil er nog heel veel 💞`,
+      ({ half, nick }) => `Twee helften, één hart. Dank je voor ${half} jaar, ${nick} 💛`,
+      () => 'Het hart is weer heel. Net als ik, sinds jij er bent 💞'] },
+  { kind: 'honderd', label: '100 dagen samen 🎈', icon: '🎈', shape: 'balloon', celebrate: ['🎈', '💯', '💛', '🎉'],
+    on: (y) => { const d = new Date(ANNIVERSARY.year, ANNIVERSARY.month - 1, ANNIVERSARY.day + 100, 12); return d.getFullYear() === y ? d : null; },
+    title: () => '100 dagen samen 🎈',
+    text: ({ nick }) => `Vandaag zijn we precies 100 dagen samen, ${nick}! Honderd dagen vol koffie, puzzels en jou. Daarom een ballon, gewoon omdat het kan 🎈`,
+    solved: [() => 'Honderd dagen, en ik ben nog lang niet uitgepuzzeld. Op de volgende honderd 🎈', () => 'Honderd keer wakker worden en aan jou denken. Op nog veel meer 💛'] },
+  { kind: 'app-verjaardag', label: 'de verjaardag van je app 🎁', icon: '🎁', shape: 'gift', celebrate: ['🎁', '🎉', '💛', '🧩'],
+    on: (y) => (y > APP_GIFT.year ? noon(y, APP_GIFT.month, APP_GIFT.day) : null),
+    title: ({ appYears }) => `${appYears} jaar Ruby's Sudoku 🎁`,
+    text: ({ appYears, stats }) => `${stats ? `${appYears} jaar Ruby's Sudoku: ${plural(stats.totalSolved, 'puzzel', 'puzzels')}, langste reeks ${plural(stats.bestStreak, 'dag', 'dagen')} 🔥 ` : ''}Vandaag ${yearsText(appYears)} geleden kreeg je deze app. Tijd voor een cadeautje terug 🎁`,
+    solved: [({ nick }) => `Gefeliciteerd met je app-verjaardag, ${nick}! Op nog een jaar vol puzzels 🎁`, ({ appYears }) => `${yearsText(appYears).charAt(0).toUpperCase()}${yearsText(appYears).slice(1)} puzzelen, en je wordt alleen maar slimmer (en liever). Dank je dat je speelt 💛`] },
+  { kind: 'thuiswedstrijd', label: 'de laatste thuiswedstrijd 🏐', icon: '🏐', shape: 'volleyball', celebrate: ['🏐', '📣', '💛', '⭐'], replacesWarmup: true,
+    on: (y) => { const [yy, m, d] = LAST_HOME_MATCH.date.split('-').map(Number); return yy === y ? noon(yy, m, d) : null; },
+    title: () => 'Laatste thuiswedstrijd 🏐',
+    text: ({ days }) => `Vandaag om ${LAST_HOME_MATCH.time} de laatste thuiswedstrijd van het seizoen, tegen ${shortOpponent(LAST_HOME_MATCH)}. Nog één keer in jullie eigen zaal, nummer 33. Ik ben zo trots op je${days === 200 ? '. En leuk toeval: vandaag zijn we precies 200 dagen samen 💛' : ' 💛'}`,
+    solved: [() => 'Opgewarmd voor de laatste thuiswedstrijd. Dag thuiszaal, tot volgend seizoen 👋🏐', () => 'Nummer 33, de thuiszaal gaat je missen. Ik zit (in gedachten) op de tribune 📣'] },
+  { kind: 'valentijn', label: 'Valentijnsdag 💘', icon: '💘', shape: 'heart-arrow', celebrate: ['💘', '❤️', '💌', '🌹'],
+    on: (y) => noon(y, 2, 14), title: () => 'Fijne Valentijnsdag 💘',
+    text: ({ nick, year }) => byYear([`Voor mijn valentijn, ${nick}: een hart met een pijl erdoor. Raak, want ik ben allang om 💘`, 'Valentijnsdag! Cupido heeft gemikt en precies jou geraakt. Of eigenlijk mij 💘'], year),
+    solved: [() => 'Raak! Ik hou van je, valentijn 💘', () => 'Mijn hart had je al, nu ook deze puzzel 💘'] },
+  { kind: 'pasen', label: 'Pasen 🐣', icon: '🐣', shape: 'egg', celebrate: ['🐣', '🥚', '🌷', '🐰'],
+    on: (y) => easter(y), title: () => 'Vrolijk Pasen 🐣',
+    text: ({ nick, year }) => byYear([`Vrolijk Pasen, ${nick}! De paashaas heeft een ei verstopt, maar dan van cijfers 🥚`, 'Paaszondag! Geen eieren zoeken vandaag, alleen cijfers. Deze vind je vast 🐣'], year),
+    solved: [() => 'Gevonden! Jij bent de beste eierzoeker 🥚', () => 'Ei-genlijk wist ik al dat je hem zou oplossen 🐣'] },
+  { kind: 'koningsdag', label: 'Koningsdag 👑', icon: '👑', shape: 'crown', celebrate: ['🧡', '👑', '🎉'],
+    on: (y) => kingsDay(y), title: () => 'Fijne Koningsdag 👑',
+    text: ({ nick, year }) => byYear([`Oranje boven, ${nick}! Vandaag ben jij de koningin van de sudoku 👑`, 'Koningsdag! Geen vrijmarkt nodig: deze kroon krijg je gratis, als je hem oplost 🧡'], year),
+    solved: [() => 'Koninklijk opgelost! Hoera voor de puzzelkoningin 🧡👑', () => 'Lang leve jij! 🎉👑'] },
+  { kind: 'halloween', label: 'Halloween 🎃', icon: '🎃', shape: 'pumpkin', celebrate: ['🎃', '👻', '🍬', '🦇'],
+    on: (y) => noon(y, 10, 31), title: () => 'Fijne Halloween 🎃',
+    text: ({ nick, year }) => byYear([`Boe! Een pompoen vol cijfers, ${nick}. Griezelig? Nee hoor, gewoon lief 🎃`, 'Halloween! Ik heb een pompoen uitgehold en er een sudoku in verstopt. Niet schrikken 👻'], year),
+    solved: [() => 'Je hebt de pompoen helemaal opgelost. Snoepje verdiend 🍬', () => 'Zelfs spookjes vinden jou slim 👻💛'] },
+  { kind: 'sinterklaas', label: 'Sinterklaas 🎁', icon: '🎁', shape: 'letter-r', celebrate: ['🎁', '🍫', '🐴', '⭐'],
+    on: (y) => noon(y, 12, 5), title: () => 'Sinterklaasavond 🎁',
+    text: ({ year }) => byYear([
+      'Sint keek in zijn grote boek en las daar dit:\ndat Ruby elke dag weer met een sudoku zit.\nZo slim en zo lief verdient een beloning,\ndus krijgt ze een R van chocola, als een kroning.\n— de Sint 🎁',
+      'Piet vond in de schoorsteen een briefje, heel klein:\n‘Wat zou Ruby blij met een sudoku zijn!’\nDus schreef de Sint terug, met zijn pen van goud:\neen letter van chocola, voor iemand van wie men houdt.\n— de Sint 🎁'], year),
+    solved: [() => 'De letter is af. Smakelijk eten, zegt de Sint 🍫', () => 'Goed gedaan! Sint en Piet zijn trots op je 🎁'] },
+  { kind: 'kerst', label: 'Kerst 🎄', icon: '🎄', shape: 'tree', celebrate: ['🎄', '⭐', '🎁', '❄️'],
+    on: (y) => noon(y, 12, 25), title: () => 'Vrolijk kerstfeest 🎄',
+    text: ({ nick, year }) => byYear([`Vrolijk kerstfeest, ${nick}! Onder deze boom ligt geen cadeautje, maar een puzzel. En een knuffel van mij 🎄`, 'Het is kerst! Lichtjes aan, warme chocomel erbij, en dan deze boom versieren met cijfers 🎄✨'], year),
+    solved: [() => 'De boom staat er prachtig bij. Fijne kerst, lieverd 🎄💛', () => 'Mooiste kerstboom ooit. Net zoals jij het mooiste cadeau bent 🎁'] },
+  { kind: 'tweede-kerstdag', label: 'Tweede kerstdag ⭐', icon: '⭐', shape: 'star', celebrate: ['⭐', '✨', '🎄', '💛'],
+    on: (y) => noon(y, 12, 26), title: () => 'Tweede kerstdag ⭐',
+    text: ({ nick, year }) => byYear([`Nog een beetje kerst over: een ster voor jou, ${nick} ⭐`, 'Tweede kerstdag: restjes eten en een ster oplossen ⭐'], year),
+    solved: [() => 'Jij bent mijn ster ⭐', () => 'Stralend opgelost ✨'] },
+  { kind: 'nieuwjaar', label: 'Nieuwjaar 🎆', icon: '🎆', shape: 'fireworks', celebrate: ['🎆', '🥂', '✨', '🎉'],
+    on: (y) => noon(y, 1, 1), title: ({ year }) => `Gelukkig ${year} 🎆`,
+    text: ({ nick, year }) => byYear([`Gelukkig ${year}, ${nick}! Het eerste vuurwerk van het jaar is van cijfers. Op een jaar vol puzzels en ons 🎆`, `Welkom, ${year}! Ik weet nu al dat het een mooi jaar wordt, want jij zit erin 🎆`], year),
+    solved: [({ year }) => `De eerste puzzel van ${year} zit erin! 🥂`, ({ year }) => `${year} begint goed. Proost op jou 🥂✨`] },
+  // Elke 29e (in februari zonder 29e de laatste dag). Geen puzzel, alleen een kaartje.
+  { kind: 'maandversary', label: 'de maandversary 💛', icon: '💛', shape: null, celebrate: LOVE, perDay: true,
+    matches: (d) => {
+      const lastOfFeb = d.getMonth() === 1 && new Date(d.getFullYear(), 2, 0).getDate() === d.getDate();
+      return (d.getDate() === ANNIVERSARY.day || (lastOfFeb && d.getDate() < ANNIVERSARY.day)) && monthsTogether(d) >= 1;
+    },
+    title: ({ months: m }) => `${months(m)} samen 💛`,
+    text: ({ months: m, nick }) => MONTHSARY_LINES[m % MONTHSARY_LINES.length]({ m: months(m), n: nick }),
+    solved: [] },
+];
+
+const specialKind = (kind) => SPECIAL_DAYS.find((s) => s.kind === kind);
+
+// Bouwt het object voor een speciale dag op `date` (die al klopt voor deze soort).
+function buildSpecial(def, date, stats = null) {
+  const year = date.getFullYear();
+  const id = `${def.kind}-${def.perDay ? keyOfDate(date) : year}`;
+  const c = {
+    date, year, stats, days: daysTogether(date), months: monthsTogether(date),
+    nick: byYear(GREETING_NICKNAMES, year, def.kind.length),
+    years: year - ANNIVERSARY.year, age: year - BIRTHDAY.year, appYears: year - APP_GIFT.year,
+    half: HALVES[Math.round((monthsTogether(date) - 6) / 12)] ?? `${Math.round((monthsTogether(date) - 6) / 12)}½`,
+  };
+  const solved = def.solved.length ? byYear(def.solved, year)(c) : '';
+  return {
+    id, kind: def.kind, label: def.label, icon: def.icon, shape: def.shape, celebrate: def.celebrate,
+    replacesWarmup: Boolean(def.replacesWarmup),
+    title: def.title(c), text: def.text(c), solvedText: solved,
+    seed: def.seed ? def.seed(c) : idSeed(id),
+  };
+}
+
+const isOn = (def, date) => (def.perDay ? def.matches(date) : (() => { const d = def.on(date.getFullYear()); return Boolean(d) && sameDay(date, { month: d.getMonth() + 1, day: d.getDate() }); })());
+
+// Alle soorten speciale dag op `date`, in volgorde van voorrang (voor de tests).
+export const specialKindsOn = (date) => SPECIAL_DAYS.filter((def) => isOn(def, date)).map((def) => def.kind);
+
+// Geeft de speciale dag van vandaag terug (de bovenste bij samenvallen), of null.
+// `stats` is nodig voor de teksten van de app-verjaardag.
+export function specialDay(date = new Date(), stats = null) {
+  const def = SPECIAL_DAYS.find((d) => isOn(d, date));
+  return def ? buildSpecial(def, date, stats) : null;
+}
+
+// Zoekt een speciale dag terug aan de hand van z'n id (bijv. 'verjaardag-2027'
+// of 'maandversary-2026-11-29'), zodat een puzzel die na middernacht af is toch
+// het goede berichtje krijgt.
+export function specialById(id, stats = null) {
+  const m = /^([a-z]+(?:-[a-z]+)*)-(\d{4})(?:-(\d{2})-(\d{2}))?$/.exec(id || '');
+  const def = m && specialKind(m[1]);
+  if (!def || Boolean(def.perDay) !== Boolean(m[3])) return null;
+  const date = def.perDay ? noon(Number(m[2]), Number(m[3]), Number(m[4])) : def.on(Number(m[2]));
+  return date && isOn(def, date) ? buildSpecial(def, date, stats) : null;
 }
 
 // ---------- Mijlpalen met geheime berichtjes ----------
@@ -464,7 +611,7 @@ export const CALENDAR_RECORD_NOTES = ['Hier zette je een nieuw record 🏅', 'Re
 export const calendarRecordNote = (day) => CALENDAR_RECORD_NOTES[Number(day.slice(-2)) % CALENDAR_RECORD_NOTES.length];
 
 // Waar een speciale puzzel bij hoorde, voor de kalender.
-export const specialLabel = (id) => (specialById(id)?.kind === 'verjaardag' ? 'je verjaardag 🎂' : 'ons jubileum 💛');
+export const specialLabel = (id) => specialById(id)?.label ?? 'een speciale dag 💛';
 
 // ---------- Wedstrijddag (Donitas DS 14, zie matches.js) ----------
 
@@ -533,6 +680,7 @@ export const duringLine = (match) => byDate(DURING_LINES, match.date);
 // Warming-up: op het kaartje als hij gedaan is, en op het opgelost-scherm.
 export const WARMUP_READY = 'Een korte warming-up voor je hoofd 🧠';
 export const WARMUP_DONE = 'Warming-up gedaan ✓ Hersens staan aan, nu de benen nog 💪';
+export const WARMUP_BY_SPECIAL = 'Je warming-up van vandaag is de volleybal hierboven 🏐';
 export const WARMUP_NOTES = [
   'Hersens zijn warm, nu de armen nog 💪',
   'Opgewarmd! Je hoofd is er klaar voor, nu de rest van je ook 🏐',

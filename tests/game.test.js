@@ -123,7 +123,7 @@ test('een kapotte of gemanipuleerde opgeslagen puzzel wordt geweigerd in plaats 
   for (const b of broken) assert.doesNotThrow(() => assert.equal(Game.fromJSON(b), null));
 
   // Onbekende extra's worden netjes opgeruimd, de puzzel zelf blijft.
-  const g = Game.fromJSON({ ...good, levelId: '__proto__', daily: '<b>', special: 'iets', shape: 'ster', elapsed: -5, hints: 'veel' });
+  const g = Game.fromJSON({ ...good, levelId: '__proto__', daily: '<b>', special: 'iets', shape: '<svg>', elapsed: -5, hints: 'veel' });
   assert.equal(g.levelId, 'zondag');
   assert.equal(g.daily, null);
   assert.equal(g.special, null);

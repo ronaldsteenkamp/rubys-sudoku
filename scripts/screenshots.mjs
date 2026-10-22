@@ -6,7 +6,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
-import { generate, generateHeart } from '../js/generator.js';
+import { generate, generateHeart, generateShape, SHAPES } from '../js/generator.js';
 import { THEMES as ALL_THEMES } from '../js/themes.js';
 import { serve } from './static-server.mjs';
 
@@ -213,6 +213,39 @@ for (const [state, query, extraStats] of only ? [] : MATCH_STATES) {
   const p = await page({ theme: 'zonnig', scheme: 'light', viewport: SIZES.se, query, extraStats });
   await shot(p, `wedstrijd-${state}-se`, 'wedstrijd');
   await p.context().close();
+}
+
+// Figuurpuzzels: elke figuur als bord (ongeveer een derde ingevuld), in een paar thema's.
+const FIGURE_THEMES = only ? THEMES : [['zonnig', 'light'], ['nacht', 'dark'], ['briefje', 'light']];
+for (const name of Object.keys(SHAPES)) {
+  const f = generateShape(name, 1);
+  const values = f.givens.slice();
+  let k = 0;
+  for (let i = 0; i < 81; i++) if (!values[i] && k++ % 3 === 0) values[i] = f.solution[i];
+  const g = { v: 1, id: `figuur-${name}`, givens: f.givens, solution: f.solution, levelId: f.levelId, daily: null, special: null, shape: name,
+    values, notes: new Array(81).fill(0), elapsed: 95000, mistakes: 0, hints: 0, solved: false, startedAt: 0 };
+  for (const [theme, scheme] of FIGURE_THEMES) {
+    const p = await page({ theme, scheme, game: g });
+    await openPlay(p, null);
+    await p.waitForTimeout(350);
+    await p.locator('#board').screenshot({ path: join(out, `figuur-${name}-${theme}.png`) });
+    shots.push({ file: `figuur-${name}-${theme}.png`, group: 'figuren', name: `${name} (${theme})` });
+    await p.context().close();
+  }
+}
+
+// Kaartjes van de speciale dagen op het startscherm.
+const SPECIAL_CARDS = [
+  ['halfjaar', '2027-03-29'], ['honderd', '2027-01-07'], ['app-verjaardag', '2027-10-21'], ['thuiswedstrijd', '2027-04-17T09:00'],
+  ['valentijn', '2027-02-14'], ['pasen', '2027-03-28'], ['koningsdag', '2027-04-27'], ['halloween', '2026-10-31T10:00'],
+  ['sinterklaas', '2026-12-05'], ['kerst', '2026-12-25'], ['tweede-kerstdag', '2026-12-26'], ['nieuwjaar', '2027-01-01'], ['maandversary', '2026-11-29'],
+];
+for (const [kind, day] of only ? [] : SPECIAL_CARDS) {
+  for (const [theme, scheme] of FIGURE_THEMES) {
+    const p = await page({ theme, scheme, query: `?vandaag=${day}`, extraStats: { totalSolved: 247, bestStreak: 31 } });
+    await shot(p, `kaartje-${kind}-${theme}`, 'kaartjes');
+    await p.context().close();
+  }
 }
 
 // Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.

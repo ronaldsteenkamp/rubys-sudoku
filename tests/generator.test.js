@@ -126,3 +126,56 @@ test('dagpuzzels uit de voorraad komen pas terug als de hele voorraad geweest is
     }
   }
 });
+
+// ---------- Figuurpuzzels ----------
+
+test('elke figuur: 9 regels van 9, symmetrie klopt, genoeg vakjes en oplosbaar te maken', async () => {
+  const { SHAPES, SHAPE_CELLS } = await import('../js/generator.js');
+  assert.ok(Object.keys(SHAPES).length >= 13);
+  for (const [name, s] of Object.entries(SHAPES)) {
+    assert.equal(s.rows.length, 9, name);
+    for (const r of s.rows) assert.match(r, /^[.XO]{9}$/, name);
+    if (s.symmetric) for (const r of s.rows) assert.equal(r, [...r].reverse().join(''), `${name} is niet symmetrisch`);
+    const { mask } = SHAPE_CELLS[name];
+    assert.ok(mask.filter(Boolean).length >= 40, `${name}: te weinig vakjes`);
+    // Twee lege rijen in één band (of kolommen in één stapel) kun je verwisselen: nooit uniek.
+    for (let b = 0; b < 3; b++) {
+      const emptyRows = [0, 1, 2].filter((k) => !mask.slice((b * 3 + k) * 9, (b * 3 + k) * 9 + 9).some(Boolean));
+      const emptyCols = [0, 1, 2].filter((k) => ![...Array(9).keys()].some((r) => mask[r * 9 + b * 3 + k]));
+      assert.ok(emptyRows.length <= 1 && emptyCols.length <= 1, `${name}: band/stapel ${b}`);
+    }
+  }
+});
+
+test('generateShape: snel, uniek, logisch oplosbaar, alles in de figuur, omtrek vol, en vast per seed', async () => {
+  const { SHAPES, SHAPE_CELLS, generateShape } = await import('../js/generator.js');
+  for (const name of Object.keys(SHAPES)) {
+    const { mask, outline } = SHAPE_CELLS[name];
+    for (const seed of [7, 2027]) {
+      const t = performance.now();
+      const p = generateShape(name, seed);
+      assert.ok(performance.now() - t < 1500, `${name} duurde te lang`);
+      assert.equal(p.shape, name);
+      assert.equal(countSolutions(p.givens, 2), 1, `${name} niet uniek`);
+      assert.ok(logicalSolve(p.givens, 3).solved, `${name} niet logisch oplosbaar`);
+      p.givens.forEach((v, i) => {
+        if (v) assert.ok(mask[i], `${name}: cijfer buiten de figuur`);
+        if (outline[i]) assert.ok(v, `${name}: omtrek niet vol`);
+      });
+      if (seed === 7) assert.deepEqual(generateShape(name, seed).givens, p.givens);
+    }
+  }
+  // Het halve hart: links helemaal vol, rechts binnenin leeg.
+  const half = generateShape('half-heart', 1);
+  const { mask, outline } = SHAPE_CELLS['half-heart'];
+  half.givens.forEach((v, i) => {
+    if (mask[i] && !outline[i]) assert.equal(Boolean(v), i % 9 <= 4, `half hart vakje ${i}`);
+  });
+});
+
+test('generateHeart blijft precies het oude hart (jubileum en verjaardag)', async () => {
+  const { generateHeart, generateShape } = await import('../js/generator.js');
+  const h = generateHeart(290900 + 2027);
+  assert.deepEqual(h.givens, generateShape('heart', 290900 + 2027).givens);
+  assert.equal(h.shape, 'heart');
+});
