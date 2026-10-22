@@ -1,7 +1,7 @@
 // Geluidjes (Web Audio, geen bestanden nodig) en haptische feedback.
 // Twee geluidsstijlen: 'zacht' (piepjes, hieronder) en 'gitaar' (getokkelde snaren, zie guitar.js).
 
-import { createGuitar } from './guitar.js';
+import { createGuitar, ALL_STRINGS } from './guitar.js';
 
 let ctx = null;
 let guitar = null;
@@ -78,7 +78,12 @@ export const hasHaptics = canVibrate || isIOS;
 function playGuitar(kind, opts) {
   const a = audio();
   if (!a) return;
-  guitar ||= createGuitar(a);
+  if (!guitar) {
+    guitar = createGuitar(a);
+    // De andere klanken alvast maken, in rustige momenten, zodat geen tik hoeft te wachten.
+    const idle = globalThis.requestIdleCallback ? (fn) => requestIdleCallback(fn, { timeout: 500 }) : (fn) => setTimeout(fn, 40);
+    setTimeout(() => guitar.warm(ALL_STRINGS, idle), 400);
+  }
   guitar.play(kind, opts);
 }
 
@@ -88,7 +93,8 @@ export function feedback(kind, opts = {}) {
     if (enabled.sound === 'zacht') SOUNDS[kind]?.();
     else if (enabled.sound === 'gitaar') playGuitar(kind, opts);
   } catch { /* geen geluid, geen probleem */ }
-  if (enabled.haptics) {
+  // 'unlock' en 'preview' zijn alleen geluid; de trilling blijft zoals hij was.
+  if (enabled.haptics && kind !== 'unlock' && kind !== 'preview') {
     try {
       if (canVibrate) navigator.vibrate(PATTERNS[kind] ?? 6);
       else if (isIOS && kind !== 'note') iosTick();

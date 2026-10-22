@@ -601,7 +601,7 @@ function inputDigit(d, { note = false } = {}) {
     return;
   }
   if (notesMode || note) {
-    if (game.toggleNote(selected, d).changed) feedback('note');
+    if (game.toggleNote(selected, d).changed) feedback('note', { digit: d });
     checkMarks.delete(selected);
     afterChange();
     return;
@@ -612,9 +612,9 @@ function inputDigit(d, { note = false } = {}) {
   if (r.removed) feedback('erase');
   else {
     popCell = selected;
-    if (r.wrong && settings.errors === 'direct') { feedback('wrong'); announce('Dit cijfer klopt niet'); }
-    else if (game.counts()[d] === 9 && !r.solved) feedback('done');
-    else feedback('place');
+    if (r.wrong && settings.errors === 'direct') { feedback('wrong', { digit: d }); announce('Dit cijfer klopt niet'); }
+    else if (game.counts()[d] === 9 && !r.solved) feedback('done', { digit: d });
+    else feedback('place', { digit: d });
   }
   afterChange();
   if (r.solved) onSolved();
@@ -639,7 +639,7 @@ function doRedo() {
   if (!game || paused) return;
   closeHint(false);
   const ch = game.redo();
-  if (ch) { selected = ch[0].cell; feedback('place'); }
+  if (ch) { selected = ch[0].cell; feedback('place', { digit: ch[0].to.v }); }
   afterChange();
   if (game.solved) onSolved();
 }
@@ -781,7 +781,7 @@ function applyHintAction(a) {
     if (a.eliminations?.length) game.removeNotes(a.eliminations);
     game.setDigit(a.cell, a.digit, { autoNotes: settings.autoNotes });
     popCell = a.cell;
-    feedback('place');
+    feedback('place', { digit: a.digit });
   }
   checkMarks.delete(a.cell);
   saveGame();
@@ -902,6 +902,7 @@ function onSolved() {
     const d = openDialog('solved-dialog');
     d.addEventListener('close', async () => {
       for (const m of fresh) {
+        feedback('unlock');
         await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
       }
       for (const id of freshThemes) await offerTheme(id);

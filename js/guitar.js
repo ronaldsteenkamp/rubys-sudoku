@@ -115,6 +115,20 @@ export const VOICES = {
 // G-majeur op zes snaren (G2 B2 D3 G3 B3 G4), van laag naar hoog zoals bij een downstroke.
 export const G_CHORD = ['G2', 'B2', 'D3', 'G3', 'B3', 'G4'];
 
+// Het melodietje bij een nieuw geheim berichtje: zelf bedacht, in G-pentatonisch. Een motiefje
+// (D E G) dat terugkomt met een hogere top (D E A) en dan thuiskomt op G. [toon, tijd in s]
+export const UNLOCK_TUNE = [['D4', 0], ['E4', 0.14], ['G4', 0.28], ['D4', 0.5], ['E4', 0.64], ['A4', 0.78], ['B4', 1.02], ['G4', 1.26]];
+
+// Alles wat de gitaar kan laten horen, in de volgorde waarin we het alvast maken:
+// eerst de cijfers (die hoor je het vaakst), dan notities, dan de rest.
+export const ALL_STRINGS = [
+  ...SCALE.slice(0, 9).map((n) => [n, 'open']),
+  ...SCALE.slice(0, 9).map((n) => [n, 'mute']),
+  ['G2', 'mute'], ['G5', 'harmonic'],
+  ...G_CHORD.map((n) => [n, 'strum']),
+  ...SCALE.slice(9).map((n) => [n, 'open']),
+];
+
 // Een vast zaadje per toon: dezelfde snaar klinkt steeds hetzelfde.
 const seedOf = (name) => [...name].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619), 2166136261);
 
@@ -134,9 +148,11 @@ export function createGuitar(ctx) {
     }
     return b;
   }
-  // Een snaar in een bepaalde klankkleur ('open', 'mute', 'strum').
+  // Een snaar in een bepaalde klankkleur ('open', 'mute', 'strum'), of een flageolet ('harmonic').
   function string(name, kind = 'open') {
-    return buffer(`${kind}:${name}`, () => pluck(noteFreq(name), { sampleRate: sr, ...VOICES[kind], seed: seedOf(name) }));
+    return buffer(`${kind}:${name}`, () => (kind === 'harmonic'
+      ? harmonic(noteFreq(name), { sampleRate: sr })
+      : pluck(noteFreq(name), { sampleRate: sr, ...VOICES[kind], seed: seedOf(name) })));
   }
 
   // Uitgang: een zachte laagdoorlaat voor een warme toon, en een begrenzer als vangnet.
@@ -163,6 +179,8 @@ export function createGuitar(ctx) {
     return { src, g, t };
   }
 
+  const note = (d) => SCALE[Math.min(Math.max(1, d || 6), 9) - 1];
+
   // Aanslag over de snaren, met wat speling in timing en volume zodat het menselijk klinkt.
   function strum(names, { at = 0, gain = 0.08, spacing = 0.024 } = {}) {
     names.forEach((name, k) => {
@@ -172,6 +190,34 @@ export function createGuitar(ctx) {
   }
 
   const SOUNDS = {
+    // Cijfer zetten: de eigen toon van dat cijfer.
+    place: ({ digit }) => voice(string(note(digit)), { gain: 0.15 }),
+    // Notitie: dezelfde toon, maar gedempt (palm mute).
+    note: ({ digit }) => voice(string(note(digit), 'mute'), { gain: 0.08 }),
+    // Gummen of ongedaan maken: een lage, gedempte snaar.
+    erase: () => voice(string('G2', 'mute'), { gain: 0.12 }),
+    // Fout: de toon van het cijfer zakt na de aanslag een halve toon, zacht.
+    wrong: ({ digit }) => {
+      const v = voice(string(note(digit)), { gain: 0.09 });
+      v.src.playbackRate.setValueAtTime(1, v.t + 0.07);
+      v.src.playbackRate.linearRampToValueAtTime(2 ** (-1 / 12), v.t + 0.32);
+      return v;
+    },
+    // Hint: een flageolet, helder en puur.
+    hint: () => voice(string('G5', 'harmonic'), { gain: 0.07 }),
+    // Cijfer compleet: drie tonen omhoog, met steeds één toon van de toonladder ertussen.
+    done: ({ digit }) => [0, 2, 4].forEach((step, k) => {
+      voice(string(SCALE[Math.min(Math.max(1, digit || 1), 9) - 1 + step]), { at: k * 0.075, gain: 0.11 });
+    }),
+    // Opgelost: een G-akkoord als downstroke, daarna een zachtere upstroke op de bovenste snaren.
+    solved: () => {
+      strum(G_CHORD, { gain: 0.09, spacing: 0.025 });
+      strum(['G4', 'B3', 'G3'], { at: 0.62, gain: 0.05, spacing: 0.018 });
+    },
+    // Nieuw geheim berichtje: een eigen melodietje.
+    unlock: () => UNLOCK_TUNE.forEach(([name, at], k) => {
+      voice(string(name), { at, gain: k === UNLOCK_TUNE.length - 1 ? 0.13 : 0.11 });
+    }),
     // Voorproefje bij het kiezen van Gitaar: één zachte, vlotte aanslag.
     preview: () => strum(G_CHORD, { gain: 0.06, spacing: 0.02 }),
   };
