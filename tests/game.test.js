@@ -24,6 +24,16 @@ test('cijfer zetten, fout herkennen en weer weghalen', () => {
   assert.equal(g.values[1], 0);
 });
 
+test('een fout die ze (nog) niet te zien krijgt, telt niet als fout; een vol bord herkennen', () => {
+  const g = newGame();
+  assert.equal(g.setDigit(1, 1, { countMistake: false }).wrong, true);
+  assert.equal(g.mistakes, 0);
+  assert.equal(g.isFull(), false);
+  for (let i = 0; i < 81; i++) if (!g.values[i]) g.setDigit(i, sol[i]);
+  assert.equal(g.isFull(), true);
+  assert.equal(g.isSolved(), false);
+});
+
 test('notities aan/uit en automatisch wegstrepen', () => {
   const g = newGame();
   g.toggleNote(1, 4); g.toggleNote(1, 6); g.toggleNote(9 * 4 + 4, 4); g.toggleNote(80, 4);

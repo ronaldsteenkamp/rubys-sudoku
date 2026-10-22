@@ -287,13 +287,16 @@ function renderHome() {
   specialSlot.innerHTML = '';
   if (special) {
     const done = stats.specialDone.includes(special.id);
+    // Al aan begonnen? Dan gaat ze gewoon verder, zonder dat het hart vervangen wordt.
+    const busy = !done && game && !game.solved && game.special === special.id;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'card special';
     btn.innerHTML = `<span class="card-kicker">Speciaal voor vandaag</span>
       <span class="card-title">${escapeHtml(special.title)}</span>
-      <span class="card-meta">${done ? 'Opgelost 💛 Tik om je berichtje nog eens te lezen' : 'Een puzzel met een verrassing'}</span>`;
+      <span class="card-meta">${done ? 'Opgelost 💛 Tik om je berichtje nog eens te lezen' : busy ? 'Verder 💛' : 'Een puzzel met een verrassing'}</span>`;
     btn.addEventListener('click', async () => {
+      if (game && !game.solved && game.special === special.id) { enterPlay(); return; }
       if (done) { showMessage({ icon: '💌', title: special.title, text: M.specialById(special.id)?.solvedText || special.solvedText }); return; }
       await showMessage({ icon: special.kind === 'verjaardag' ? '🎂' : '💛', title: special.title, text: special.text, ok: 'Laat maar zien!' });
       startGame({ kind: 'heart', special });
@@ -305,7 +308,8 @@ function renderHome() {
   const cont = $('#continue-slot');
   cont.innerHTML = '';
   // De dagpuzzel zelf heeft al een "Verder"-knop in z'n eigen kaart.
-  if (game && !game.solved && game.daily !== dateKey(now)) {
+  // Net zo voor de speciale puzzel van vandaag.
+  if (game && !game.solved && game.daily !== dateKey(now) && !(special && game.special === special.id)) {
     const lvl = levelById(game.levelId);
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -604,7 +608,8 @@ function render() {
   const nb = $('#tool-notes');
   nb.setAttribute('aria-pressed', String(notesMode));
   nb.querySelector('.tool-state').textContent = notesMode ? 'aan' : 'uit';
-  $('#check-btn').hidden = settings.errors !== 'verzoek';
+  // In 'direct' ziet ze fouten al meteen; anders kan ze altijd zelf laten controleren.
+  $('#check-btn').hidden = settings.errors === 'direct';
 }
 
 // ---------- Invoer ----------
@@ -630,7 +635,8 @@ function inputDigit(d, { note = false } = {}) {
     afterChange();
     return;
   }
-  const r = game.setDigit(selected, d, { autoNotes: settings.autoNotes });
+  // Een fout telt alleen mee als ze hem te zien krijgt (direct, of later bij een controle of hint).
+  const r = game.setDigit(selected, d, { autoNotes: settings.autoNotes, countMistake: settings.errors === 'direct' });
   if (!r.changed) return;
   checkMarks.delete(selected);
   if (r.removed) feedback('erase');
@@ -642,6 +648,17 @@ function inputDigit(d, { note = false } = {}) {
   }
   afterChange();
   if (r.solved) onSolved();
+  else if (!r.removed && game.isFull()) almostThere();
+}
+
+// Alles staat vol, maar er klopt nog iets niet: dat zeggen we zacht, in elke
+// foutcontrole-stand. Anders zit ze naar een vol bord te kijken zonder feestje.
+function almostThere() {
+  const how = settings.errors === 'direct'
+    ? 'Kijk nog even naar de rode cijfers'
+    : 'Tik op ⋯ en kies Controleer mijn puzzel, of vraag een hint';
+  toast(`Bijna! Alles staat vol, maar er klopt nog iets niet. ${how} 💛`, 6000);
+  announce('Alles staat vol, maar er klopt nog iets niet.');
 }
 
 function doErase() {
@@ -779,6 +796,9 @@ function renderHint() {
   const card = $('#hint-card');
   card.hidden = !hint;
   if (!hint) return;
+  // De kaart groeit vanaf het gereedschap naar beneden, tot de onderkant van het scherm.
+  const controls = $('.controls').getBoundingClientRect();
+  card.style.setProperty('--hint-max', `${Math.max(controls.height, window.innerHeight - controls.top - 8)}px`);
   const stage = hint.stages[hintStage];
   $('#hint-tech').textContent = hintStage === 0 ? '💡 Hint' : `💡 ${hint.technique}`;
   $('#hint-step').textContent = `stap ${hintStage + 1} van 3`;
@@ -802,7 +822,11 @@ function advanceHint() {
 
 function applyHintAction(a) {
   selected = a.cell;
-  if (a.type === 'erase') game.erase(a.cell);
+  if (a.type === 'erase') {
+    game.erase(a.cell);
+    // Zonder directe foutcontrole is dit het moment dat ze de fout te zien krijgt.
+    if (settings.errors !== 'direct') game.mistakes++;
+  }
   else if (a.type === 'note') game.addNote(a.cell, a.digit);
   else if (a.type === 'place') {
     if (a.eliminations?.length) game.removeNotes(a.eliminations);
@@ -972,6 +996,8 @@ $('#check-btn').addEventListener('click', () => {
   checkMarks = new Set();
   for (let i = 0; i < 81; i++) if (!game.isGiven(i) && game.isWrong(i)) checkMarks.add(i);
   const n = checkMarks.size;
+  game.mistakes += n;
+  saveGame();
   if (!n) {
     toast(`Alles klopt tot nu toe${M.maybeNick(Math.random, 0.7)} 💛`);
     for (const el of $('#board').children) if (el.classList.contains('user')) el.classList.add('check-ok');
@@ -1051,6 +1077,7 @@ function renderSettings() {
     ...SEASON_THEMES.map((t) => (own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedSeason(t))),
   ].join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
+  explainErrors();
   for (const r of document.querySelectorAll('input[name="sound"]')) r.checked = r.value === settings.sound;
   for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
@@ -1060,6 +1087,13 @@ function renderSettings() {
   $('#backup-undo').hidden = !store.loadPreviousBackup();
 }
 
+const ERRORS_EXPLAIN = {
+  direct: 'Een cijfer dat niet klopt, wordt meteen rood.',
+  verzoek: 'Je ziet pas wat er niet klopt als je erom vraagt: tik tijdens het spelen op ⋯ en kies Controleer mijn puzzel.',
+  uit: 'Geen controle onderweg. Wil je toch even kijken, dan kan dat via ⋯ › Controleer mijn puzzel.',
+};
+const explainErrors = () => { $('#errors-explain').textContent = ERRORS_EXPLAIN[settings.errors] || ''; };
+
 $('#settings-dialog').addEventListener('change', (e) => {
   const { name, value, checked, type } = e.target;
   if (!name) return;
@@ -1067,7 +1101,7 @@ $('#settings-dialog').addEventListener('change', (e) => {
   store.saveSettings(settings);
   configureFeedback(settings);
   if (name === 'theme') { applyTheme(); renderHome(); } // render() volgt hieronder
-  if (name === 'errors') checkMarks = new Set();
+  if (name === 'errors') { checkMarks = new Set(); explainErrors(); }
   // Even laten horen hoe het klinkt: bij Gitaar een kort akkoord.
   if (name === 'sound') feedback(value === 'gitaar' ? 'preview' : 'place');
   renderTimer();

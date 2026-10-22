@@ -67,3 +67,7 @@ export async function fill(page, pick, prefix = PREFIX) {
 
 // Lost de lopende puzzel op via de interface.
 export const solve = (page, prefix) => fill(page, (i, g) => g.solution[i], prefix);
+
+// Wacht tot alle eindige animaties (zoals het inschuiven van een kaart) klaar zijn.
+export const settled = (page) => page.evaluate(() => Promise.all(document.getAnimations()
+  .filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));

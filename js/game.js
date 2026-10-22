@@ -45,6 +45,7 @@ export class Game {
   isGiven(i) { return this.givens[i] !== 0; }
   isWrong(i) { return this.values[i] !== 0 && this.values[i] !== this.solution[i]; }
   isSolved() { return this.values.every((v, i) => v === this.solution[i]); }
+  isFull() { return this.values.every(Boolean); }
 
   // Vakjes in rij/kolom/blok met hetzelfde cijfer: echte regelovertredingen.
   conflicts(i) {
@@ -74,7 +75,8 @@ export class Game {
   #state(i) { return { v: this.values[i], n: this.notes[i] }; }
 
   // Zet een cijfer. Nogmaals hetzelfde cijfer kiezen haalt het weer weg.
-  setDigit(i, d, { autoNotes = true } = {}) {
+  // `countMistake: false` als ze de fout (nog) niet te zien krijgt.
+  setDigit(i, d, { autoNotes = true, countMistake = true } = {}) {
     if (this.isGiven(i) || this.solved) return { changed: false };
     const removing = this.values[i] === d;
     const changes = [{ cell: i, from: this.#state(i), to: { v: removing ? 0 : d, n: 0 } }];
@@ -85,7 +87,7 @@ export class Game {
     }
     const changed = this.#commit(changes);
     const wrong = changed && !removing && d !== this.solution[i];
-    if (wrong) this.mistakes++;
+    if (wrong && countMistake) this.mistakes++;
     if (changed && !removing && this.isSolved()) this.solved = true;
     return { changed, wrong, removed: removing, solved: this.solved };
   }
