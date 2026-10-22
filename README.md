@@ -45,6 +45,8 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
   Teksten liggen per jaar vast (na een herstart dezelfde, volgend jaar soms een andere) en gebruiken haar bijnamen.
 - **Wedstrijddag.** Ruby speelt volleybal bij Donitas DS 14 (rugnummer 33). Op een wedstrijddag staat er een kaartje op het startscherm: vóór de wedstrijd tegenstander, tijd en thuis/uit met een peptalk (steeds een andere) en een korte warming-up-puzzel (±46 gegeven cijfers, alleen eenvoudige technieken). Tijdens de wedstrijd zit de app (in gedachten) langs de lijn. Daarna vraagt hij *Hoe ging het?* (gewonnen, verloren of zeg maar niks; de app weet de uitslag zelf nooit) en volgt een rustige herstelpuzzel met verborgen timer en zachte geluiden. Na een late wedstrijd (na 22:30 afgelopen) blijft dat tot de volgende dag 12:00 staan. Beide puzzels zijn vast per wedstrijd en tellen mee als gewone puzzels (niet als dagpuzzel); in Volleybal dwarrelen er ballen. Na de herstelpuzzel van de laatste wedstrijd van het seizoen komt de mijlpaal *Seizoen uitgespeeld* vrij. Zonder wedstrijd ziet het startscherm er gewoon uit zoals altijd.
 - **Thema's.** Zonnig (geel), Nacht, Gran Canaria, Lelie, Liefde, Sterren, Volleybal en Briefje. Briefje is een blaadje ruitjespapier: wat Ruby zelf invult staat er in het echte handschrift van de maker (de SVG's in `hand/`), net als het logo, de hartjes en het opgelost-scherm. Daarnaast vier seizoensthema's (Lente, Zomer, Herfst, Winter) die vrijkomen als Ruby 3 puzzels oplost binnen dat seizoen, plus de keuze *Seizoen*, die vanzelf meewisselt.
+- **Slaapstand.** Tussen 23:00 en 06:00 (of altijd, of nooit: *Instellingen → Slaapstand*) komt er in 2 seconden een warm, iets gedimd filter over elk thema; cijfers en tekst blijven in elk thema minstens 4,5:1 leesbaar (getest). Geluid op halve sterkte, geen trillen en rustiger feest. Na het oplossen een slaapberichtje (*"Dat was de laatste voor vandaag. Welterusten, slaap lekker 💛"*), geen grote *Nog eentje*-knop maar een klein *Toch nog eentje*, en het scherm mag weer uit. Een record-, speciale-dag- of wedstrijdberichtje gaat voor het slaapberichtje.
+- **Ruby Wrapped.** Van 31 december tot en met 7 januari staat op het startscherm *Jouw jaar in puzzels ✨*: een verhaal in kaarten (tik rechts verder, links terug, of pijltjestoetsen) met haar aantal puzzels en vakjes, favoriete niveau, snelste tijd, langste reeks, puzzeluur, drukste maand, speciale dagen, koppen koffie en tot slot *Op naar <jaar> 💛*, eventueel te delen als plaatje. Kaarten zonder genoeg gegevens worden overgeslagen; het eerste jaar zegt *sinds 21 oktober*. Daarna blijft elk jaar te bekijken onderaan *Statistieken*. Het aantal vakjes is een schatting per niveau; het uur van elke puzzel staat sinds deze versie in het logboek (oudere puzzels tellen niet mee voor het puzzeluur).
 - **PWA.** Een eigen icoon, werkt offline, met zachte geluidjes en trillen (beide uit te zetten).
 
 ## Projectstructuur
@@ -64,6 +66,8 @@ js/messages.js        bijnamen, berichtjes, mijlpalen, speciale dagen ← hier p
 js/matches.js         het wedstrijdschema van Donitas DS 14 ← hier pas je wedstrijden aan
 js/themes.js          de thema's als data, seizoenen en het ontgrendelen
 js/feedback.js        geluidjes en trillen
+js/sleep.js           slaapstand: tijdvenster en filter
+js/wrapped.js         Ruby Wrapped: het jaaroverzicht uit het logboek (puur)
 js/worker.js          genereert puzzels in een Web Worker
 js/ui.js              de interface
 sw.js                 service worker (offline)
@@ -87,6 +91,8 @@ Open daarna http://localhost:3000 (of :8080).
 **Speciale dagen testen:** voeg `?vandaag=` met de datum aan de URL toe: `2027-09-29` (jubileum), `2027-10-12` (verjaardag), `2027-03-29` (half jaar), `2027-01-07` (100 dagen), `2027-10-21` (app-verjaardag), `2027-04-17T09:00` (laatste thuiswedstrijd, met het wedstrijdkaartje), `2027-02-14` (Valentijn), `2027-03-28` (Pasen), `2027-04-27` (Koningsdag), `2026-10-31` (Halloween), `2026-12-05` (Sinterklaas), `2026-12-25` en `2026-12-26` (kerst), `2027-01-01` (Nieuwjaar) en `2026-11-29` (maandversary). Met een testdatum gebruikt de app een eigen, aparte opslag (onderin staat dan *Testdatum … · aparte opslag*). Testen raakt dus nooit de echte reeks, statistieken of verrassingen, ook niet op Ruby's toestel.
 
 **Wedstrijddagen testen:** zet er ook een tijd bij, dan staat de klok stil op dat moment: `?vandaag=2026-11-28T09:30` (vóór de ochtendwedstrijd tegen Kroton, met peptalk en warming-up), `?vandaag=2026-11-28T11:30` (tijdens) en `?vandaag=2026-11-28T14:00` (*Hoe ging het?* en de herstelpuzzel). De late wedstrijd van 22 oktober (21:00) loopt door tot `?vandaag=2026-10-23T11:59`. Ook dit gebruikt de aparte testopslag.
+
+**Slaapstand en Wrapped testen:** `?vandaag=2026-11-02T23:30` (slaapstand), `?vandaag=2026-12-31T20:00` (Wrapped op het startscherm) of `?vandaag=2026-12-31T23:30` (allebei). Ook met de aparte testopslag; daar staat het logboek nog leeg, dus los eerst wat puzzels op.
 
 **Seizoensthema's testen:** `?vandaag=` bepaalt ook het seizoen. Los bijvoorbeeld op `?vandaag=2026-12-30` drie puzzels op (Zondagochtend gaat het snelst): na de derde verschijnt *Nieuw thema: Winter*. Dat kan ook verspreid over `?vandaag=2026-12-31` en `?vandaag=2027-01-02`, want december tot en met februari is één winter.
 

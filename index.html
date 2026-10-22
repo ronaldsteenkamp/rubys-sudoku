@@ -32,6 +32,7 @@
 
       <div id="update-slot"></div>
       <div id="special-slot"></div>
+      <div id="wrapped-slot"></div>
       <div id="match-slot"></div>
       <div id="continue-slot"></div>
 
@@ -132,6 +133,15 @@
       <p id="errors-explain" class="muted small setting-explain" aria-live="polite"></p>
     </fieldset>
     <fieldset class="setting">
+      <legend>Slaapstand</legend>
+      <div class="segmented" id="sleep-options">
+        <label><input type="radio" name="sleep" value="auto"><span>Automatisch</span></label>
+        <label><input type="radio" name="sleep" value="aan"><span>Aan</span></label>
+        <label><input type="radio" name="sleep" value="uit"><span>Uit</span></label>
+      </div>
+      <p class="muted small setting-explain">Warmer en zachter: gedimde kleuren, zachter geluid, geen trillen en een rustig feestje. Automatisch van 23:00 tot 06:00.</p>
+    </fieldset>
+    <fieldset class="setting">
       <legend>Geluid</legend>
       <div class="segmented" id="sound-options">
         <label><input type="radio" name="sound" value="uit"><span>Uit</span></label>
@@ -178,6 +188,16 @@
       <div class="cal-detail" id="cal-detail" aria-live="polite"></div>
     </section>
     <button type="button" class="btn primary wide" data-close>Sluiten</button>
+  </dialog>
+
+  <!-- Ruby Wrapped: schermvullende kaarten om door te tikken -->
+  <dialog id="wrapped-dialog" class="wrapped" aria-label="Ruby Wrapped">
+    <div class="wr-progress" id="wr-progress" aria-hidden="true"></div>
+    <div class="wr-card" id="wr-card" role="group" aria-roledescription="kaart" aria-live="polite"></div>
+    <button type="button" class="wr-tap wr-prev" id="wr-prev" aria-label="Vorige kaart"></button>
+    <button type="button" class="wr-tap wr-next" id="wr-next" aria-label="Volgende kaart"></button>
+    <button type="button" class="icon-btn wr-close" data-close aria-label="Sluiten"></button>
+    <div class="wr-actions" id="wr-actions"></div>
   </dialog>
 
   <dialog id="notes-dialog" class="sheet">
@@ -257,6 +277,7 @@
       <button type="button" class="btn ghost" id="solved-home">Naar start</button>
       <button type="button" class="btn primary" id="solved-again">Nog eentje</button>
     </div>
+    <button type="button" class="link-btn" id="solved-again-small" hidden>Toch nog eentje</button>
   </dialog>
 </body>
 </html>

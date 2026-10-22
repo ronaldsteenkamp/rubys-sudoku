@@ -140,7 +140,8 @@ const seedOf = (name) => [...name].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt
 
 // Speelt de gitaarklanken af in `ctx`. De buffers worden pas gemaakt als ze nodig zijn
 // (de eerste tik) en daarna bewaard; warm() maakt de rest alvast in rustige momenten.
-export function createGuitar(ctx) {
+// `output`: waar het geluid heen gaat (standaard de luidsprekers; feedback.js geeft een volumeknop mee).
+export function createGuitar(ctx, output = ctx.destination) {
   const sr = ctx.sampleRate;
   const cache = new Map();
 
@@ -171,7 +172,7 @@ export function createGuitar(ctx) {
   warmth.Q.value = 0.5;
   const soft = ctx.createWaveShaper();
   soft.curve = SOFT_CLIP;
-  warmth.connect(soft).connect(ctx.destination);
+  warmth.connect(soft).connect(output);
 
   // Wat er nu klinkt. `key` is de snaar (de toon): een nieuwe toon op dezelfde snaar dempt de
   // vorige, zoals bij een echte gitaar.

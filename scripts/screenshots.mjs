@@ -248,6 +248,64 @@ for (const [kind, day] of only ? [] : SPECIAL_CARDS) {
   }
 }
 
+// Slaapstand ('s avonds na 23:00): startscherm, spel en het slaapberichtje.
+const SLEEP_THEMES = only ? THEMES : [['zonnig', 'light'], ['nacht', 'dark'], ['briefje', 'light']];
+for (const [theme, scheme] of SLEEP_THEMES) {
+  let p = await page({ theme, scheme, query: '?vandaag=2026-11-02T23:30' });
+  await p.waitForTimeout(2200); // het filter komt er in 2 seconden overheen
+  await shot(p, `slaap-start-${theme}`, 'slaapstand');
+  await p.context().close();
+  p = await page({ theme, scheme, game, query: '?vandaag=2026-11-02T23:30' });
+  await openPlay(p, selectCell);
+  await p.waitForTimeout(2000);
+  await shot(p, `slaap-spel-${theme}`, 'slaapstand');
+  await p.context().close();
+  const a = heartGame(true);
+  p = await page({ theme, scheme, game: { ...a.game, special: null, shape: null }, query: '?vandaag=2026-11-02T23:30' });
+  await openPlay(p, a.last);
+  await p.click(`.num[data-d="${heart.solution[a.last]}"]`);
+  await p.waitForSelector('#solved-dialog[open]', { timeout: 8000 });
+  await p.waitForTimeout(2500);
+  await shot(p, `slaap-opgelost-${theme}`, 'slaapstand');
+  await p.context().close();
+}
+
+// Ruby Wrapped: het kaartje op het startscherm en elke kaart van het verhaal,
+// voor een vol jaar (2027) en het eerste, gedeeltelijke jaar (2026, in slaapstand).
+const WRAPPED_LOG = [];
+for (let m = 1; m <= 12; m++) {
+  for (let d = 1; d <= 28; d += m === 3 ? 1 : 3) {
+    const day = `2027-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const lv = ['zondag', 'koffie', 'koffie', 'nadenken', 'ruby'][(m + d) % 5];
+    WRAPPED_LOG.push([day, lv, 200 + ((m * 37 + d * 11) % 900), d % 4 ? 0 : 1, d % 2, null, [21, 22, 20, 8, 21][(m + d) % 5]]);
+  }
+}
+WRAPPED_LOG.push(['2027-02-14', 'zondag', 300, 0, 0, 'valentijn-2027', 22], ['2027-10-12', 'nadenken', 700, 0, 0, 'verjaardag-2027', 19]);
+WRAPPED_LOG.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+async function wrappedShots(theme, scheme, query, extraStats, tag) {
+  const p = await page({ theme, scheme, query, extraStats });
+  await p.waitForTimeout(2200);
+  await shot(p, `wrapped-${tag}-start-${theme}`, 'wrapped');
+  await p.click('#wrapped-slot .card');
+  await p.waitForSelector('#wrapped-dialog[open]');
+  const n = await p.locator('#wr-progress span').count();
+  for (let k = 0; k < n; k++) {
+    if (k) await p.click('#wr-next');
+    await p.waitForTimeout(600);
+    const id = await p.getAttribute('#wr-card', 'data-card');
+    await shot(p, `wrapped-${tag}-${String(k + 1).padStart(2, '0')}-${id}-${theme}`, 'wrapped');
+  }
+  await p.context().close();
+}
+for (const [theme, scheme] of only ? THEMES : [['zonnig', 'light'], ['nacht', 'dark']]) {
+  await wrappedShots(theme, scheme, '?vandaag=2027-12-31T20:00', { log: WRAPPED_LOG }, '2027');
+}
+if (!only) {
+  const first = [['2026-10-21', 'koffie', 330, 0, 3, null, 21], ['2026-10-22', 'koffie', 312, 0, 1, null, 22], ['2026-10-22', 'nadenken', 845, 1, 2, null, 23],
+    ['2026-11-07', 'zondag', 260, 0, 1, null, 20], ['2026-12-25', 'zondag', 290, 0, 0, 'kerst-2026', 11]];
+  await wrappedShots('briefje', 'light', '?vandaag=2026-12-31T23:30', { log: first }, '2026');
+}
+
 // Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.
 if (!only) {
   let p = await page({ theme: 'zonnig', scheme: 'light', dailyDone: true });

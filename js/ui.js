@@ -3,6 +3,8 @@
 import { Game } from './game.js';
 import { LEVELS, levelById, dateKey, dailyLevelFor, SHAPES, SHAPE_CELLS, shapeColor } from './generator.js';
 import { currentMatch } from './matches.js';
+import { sleepActive, SLEEP_VOLUME } from './sleep.js';
+import { wrapped, wrappedYearOn, wrappedYears } from './wrapped.js';
 import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
@@ -39,6 +41,31 @@ function loadSettings() {
 }
 
 let settings = loadSettings();
+
+// ---------- Slaapstand ----------
+
+// Is de slaapstand nu actief? (automatisch van 23:00 tot 06:00, of altijd aan/uit)
+const sleeping = () => sleepActive(settings.sleep, today());
+
+// Geluid en trillen volgens de instellingen, de slaapstand (half volume, geen
+// trillen) en de herstelpuzzel (Gitaar wordt even Zacht).
+function applyFeedback() {
+  const sleep = sleeping();
+  const sound = recovery && settings.sound === 'gitaar' ? 'zacht' : settings.sound;
+  configureFeedback({ ...settings, sound, haptics: settings.haptics && !sleep }, { volume: sleep ? SLEEP_VOLUME : 1 });
+}
+
+// Zet de slaapstand aan of uit. De overgang (een filter in style.css) duurt
+// zo'n 2 seconden en komt zonder melding, ook midden in een puzzel.
+function applySleep() {
+  const on = sleeping();
+  if (on !== (document.documentElement.dataset.sleep === '1')) {
+    if (on) document.documentElement.dataset.sleep = '1';
+    else delete document.documentElement.dataset.sleep;
+  }
+  applyFeedback();
+}
+setInterval(applySleep, 30000);
 let stats = store.loadStats();
 let unlocked = store.loadUnlocked();
 let game = Game.fromJSON(store.loadGame());
@@ -331,6 +358,8 @@ function renderHome() {
     specialSlot.append(btn);
   }
 
+  renderWrappedCard(now);
+
   // Verder spelen
   const cont = $('#continue-slot');
   cont.innerHTML = '';
@@ -471,7 +500,7 @@ function showScreen(name) {
 }
 
 function goHome() {
-  configureFeedback(settings);
+  applyFeedback();
   closeHint();
   stopTimer();
   saveGame();
@@ -525,7 +554,10 @@ function enterPlay() {
   // Herstelpuzzel: rustig aan. Timer standaard verborgen, en alleen zachte geluiden.
   recovery = game.matchKind === 'herstel';
   timerShownInRecovery = false;
-  configureFeedback(recovery && settings.sound === 'gitaar' ? { ...settings, sound: 'zacht' } : settings);
+  applyFeedback();
+  // Na een slaapberichtje mocht het scherm uit; bij een nieuwe puzzel weer niet.
+  wakeLockBlocked = false;
+  keepAwake();
   notesMode = false;
   hint = null;
   paused = false;
@@ -975,7 +1007,9 @@ function celebrate(special, jersey = false, handHearts = true) {
   box.innerHTML = '';
   const set = special || (jersey ? ['🏐', '33'] : themeById(document.documentElement.dataset.theme).celebrate);
   const hand = handwritten() && handHearts;
-  for (let k = 0; k < 28; k++) {
+  // In de slaapstand rustiger: minder deeltjes, en langzamer.
+  const calm = sleeping();
+  for (let k = 0; k < (calm ? 10 : 28); k++) {
     const s = document.createElement('span');
     // Briefje: zijn twee getekende hartjes, om en om in rood en balpenblauw.
     if (hand) {
@@ -987,7 +1021,7 @@ function celebrate(special, jersey = false, handHearts = true) {
     }
     s.style.left = `${Math.random() * 100}%`;
     s.style.setProperty('--s', `${18 + Math.random() * 22}px`);
-    s.style.setProperty('--d', `${3.2 + Math.random() * 2.5}s`);
+    s.style.setProperty('--d', `${(3.2 + Math.random() * 2.5) * (calm ? 1.6 : 1)}s`);
     s.style.setProperty('--delay', `${Math.random() * 1.4}s`);
     s.style.setProperty('--x', `${(Math.random() - 0.5) * 120}px`);
     s.style.setProperty('--r', `${(Math.random() - 0.5) * 90}deg`);
@@ -1006,7 +1040,7 @@ function onSolved() {
   const day = dateKey(today());
   const started = dateKey(new Date(g.startedAt));
   const match = g.match ? { date: g.match, kind: g.matchKind } : null;
-  const { previousBest, firstOnLevel, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started, match }, day);
+  const { previousBest, firstOnLevel, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started, match, hour: today().getHours() }, day);
   // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
   let freshThemes = [];
   if (counted) {
@@ -1043,12 +1077,19 @@ function onSolved() {
   const jersey = !g.special && volleybal && (fresh.some((m) => m.id === 'rugnummer33') || Boolean(g.matchKind));
   // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
   const special = g.special ? M.specialById(g.special, stats) : null;
+  // Slaapstand: een slaapberichtje, geen "nog eentje"-knop (wel een klein linkje),
+  // en het scherm mag weer uit.
+  const asleep = sleeping();
+  $('#solved-again').hidden = asleep;
+  $('#solved-again-small').hidden = !asleep;
+  if (asleep) letScreenSleep();
   celebrate(special?.celebrate || null, jersey, !special || shapeColor(special.shape) === 'heart');
 
   let note;
   if (special) note = special.solvedText;
   else if (g.matchKind === 'warmup') note = M.warmupNote();
   else if (g.matchKind === 'herstel') note = M.recoveryNote(stats.matches[g.match]?.uitslag);
+  else if (asleep) note = M.sleepNote();
   else {
     const recent = store.loadRecentNotes();
     note = M.loveNote(recent);
@@ -1107,6 +1148,7 @@ async function offerTheme(id) {
 }
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
+$('#solved-again-small').addEventListener('click', () => $('#solved-dialog').close('again'));
 $('#solved-home').addEventListener('click', () => $('#solved-dialog').close('home'));
 
 // ---------- Menu ----------
@@ -1172,7 +1214,7 @@ document.addEventListener('click', (e) => {
 // Tik op de achtergrond sluit een dialoog (behalve bevestigingen).
 for (const d of document.querySelectorAll('dialog')) {
   d.addEventListener('click', (e) => {
-    if (e.target === d && !['confirm-dialog', 'solved-dialog'].includes(d.id)) d.close();
+    if (e.target === d && !['confirm-dialog', 'solved-dialog', 'wrapped-dialog'].includes(d.id)) d.close();
   });
 }
 
@@ -1211,6 +1253,7 @@ function renderSettings() {
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
   explainErrors();
   for (const r of document.querySelectorAll('input[name="sound"]')) r.checked = r.value === settings.sound;
+  for (const r of document.querySelectorAll('input[name="sleep"]')) r.checked = r.value === settings.sleep;
   for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'haptics']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
   }
@@ -1231,7 +1274,7 @@ $('#settings-dialog').addEventListener('change', (e) => {
   if (!name) return;
   settings[name] = type === 'checkbox' ? checked : value;
   store.saveSettings(settings);
-  configureFeedback(settings);
+  applySleep();
   if (name === 'theme') { applyTheme(); renderHome(); } // render() volgt hieronder
   if (name === 'errors') { checkMarks = new Set(); explainErrors(); }
   // Even laten horen hoe het klinkt: bij Gitaar een kort akkoord.
@@ -1258,7 +1301,7 @@ function reloadState() {
   focusDigit = null;
   checkMarks = new Set();
   applyTheme();
-  configureFeedback(settings);
+  applySleep();
   goHome();
 }
 
@@ -1374,7 +1417,163 @@ function renderStats() {
     <table class="stat-table">
       <thead><tr><th>Niveau</th><th>Gespeeld</th><th>Opgelost</th><th>Record</th><th>Gem.</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>`;
+    </table>${wrappedListHtml()}`;
+}
+
+// ---------- Ruby Wrapped ----------
+
+// De jaren waarvoor er iets in het logboek staat of een overzicht bewaard is.
+const wrappedDataYears = () => [...store.logEntries(stats).map((e) => Number(e.day.slice(0, 4))), ...Object.keys(stats.wrapped || {}).map(Number)];
+
+// Het overzicht van een jaar: vers uit het logboek, of het bewaarde als dat vollediger is.
+function wrappedFor(year) {
+  const before = JSON.stringify(stats.wrapped?.[year] ?? null);
+  const w = store.rememberWrapped(stats, wrapped(store.logEntries(stats), year));
+  if (JSON.stringify(stats.wrapped?.[year] ?? null) !== before) saved(store.saveStats(stats));
+  return w;
+}
+
+// Van 31 december tot en met 7 januari: een kaartje op het startscherm.
+function renderWrappedCard(now) {
+  const slot = $('#wrapped-slot');
+  slot.innerHTML = '';
+  const year = wrappedYearOn(now);
+  if (!year || !wrappedDataYears().includes(year)) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'card wrapped-card';
+  btn.innerHTML = `<span class="card-kicker">Ruby Wrapped ${year}</span>
+    <span class="card-title">${escapeHtml(M.WRAPPED_CARD_TITLE)}</span>
+    <span class="card-meta">Tik om je jaar te bekijken</span>`;
+  btn.addEventListener('click', () => openWrapped(year));
+  slot.append(btn);
+}
+
+// Onder Statistieken: alle eerdere (en de huidige) Wrapped om terug te kijken.
+function wrappedListHtml() {
+  const years = wrappedYears(wrappedDataYears(), today());
+  if (!years.length) return '';
+  return `<div class="wrapped-list"><h3>Ruby Wrapped ✨</h3>${years.map((y) => `<button type="button" class="btn ghost" data-wrapped="${y}">${y}</button>`).join('')}</div>`;
+}
+$('#stats-body').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-wrapped]');
+  if (!b) return;
+  closeDialog('stats-dialog');
+  openWrapped(Number(b.dataset.wrapped));
+});
+
+let wrCards = [];
+let wrIndex = 0;
+let wrYear = null;
+
+function openWrapped(year) {
+  wrYear = year;
+  wrCards = M.wrappedCards(wrappedFor(year), levelById);
+  wrIndex = 0;
+  $('.wr-close').innerHTML = ICONS.close;
+  renderWrapped();
+  openDialog('wrapped-dialog');
+  $('#wr-next').focus();
+}
+
+function renderWrapped() {
+  const c = wrCards[wrIndex];
+  $('#wr-progress').innerHTML = wrCards.map((_, k) => `<span class="${k < wrIndex ? 'done' : k === wrIndex ? 'now' : ''}"></span>`).join('');
+  const card = $('#wr-card');
+  card.dataset.card = c.id;
+  card.setAttribute('aria-label', `Kaart ${wrIndex + 1} van ${wrCards.length}`);
+  card.innerHTML = `<span class="wr-emoji" aria-hidden="true">${escapeHtml(c.emoji)}</span>
+    <span class="wr-kicker">${escapeHtml(c.kicker)}</span>
+    <p class="wr-big">${escapeHtml(c.big)}</p>
+    <p class="wr-text">${escapeHtml(c.text)}</p>`;
+  // Opnieuw starten van de inschuif-animatie (staat uit bij minder beweging).
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = '';
+  const last = wrIndex === wrCards.length - 1;
+  $('#wr-prev').disabled = wrIndex === 0;
+  $('#wr-next').setAttribute('aria-label', last ? 'Sluiten' : 'Volgende kaart');
+  const actions = $('#wr-actions');
+  actions.innerHTML = '';
+  if (last) {
+    const share = document.createElement('button');
+    share.type = 'button';
+    share.className = 'btn primary';
+    share.id = 'wr-share';
+    share.textContent = 'Deel als plaatje';
+    share.addEventListener('click', () => shareWrapped(c).catch(() => toast('Dat lukte even niet 💛')));
+    actions.append(share);
+  }
+}
+
+function stepWrapped(d) {
+  const n = wrIndex + d;
+  if (n < 0) return;
+  if (n >= wrCards.length) { closeDialog('wrapped-dialog'); return; }
+  wrIndex = n;
+  renderWrapped();
+}
+$('#wr-prev').addEventListener('click', () => stepWrapped(-1));
+$('#wr-next').addEventListener('click', () => stepWrapped(1));
+$('#wrapped-dialog').addEventListener('keydown', (e) => {
+  const k = e.key;
+  if (k === 'ArrowRight' || k === 'PageDown') { e.preventDefault(); stepWrapped(1); }
+  else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); stepWrapped(-1); }
+  else if (k === 'Home') { e.preventDefault(); stepWrapped(-wrIndex); }
+  else if (k === 'End') { e.preventDefault(); stepWrapped(wrCards.length - 1 - wrIndex); }
+});
+
+// De afsluitkaart als plaatje (canvas → PNG), via het deelmenu of anders als download.
+async function shareWrapped(c) {
+  await document.fonts?.ready;
+  const css = getComputedStyle(document.documentElement);
+  const v = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+  const W = 1080, H = 1350;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const x = canvas.getContext('2d');
+  const grad = x.createRadialGradient(W / 2, 0, 50, W / 2, 0, H);
+  grad.addColorStop(0, v('--bg-2', '#fdefc8'));
+  grad.addColorStop(0.7, v('--bg', '#fff8e7'));
+  x.fillStyle = grad;
+  x.fillRect(0, 0, W, H);
+  x.textAlign = 'center';
+  x.fillStyle = v('--ink', '#3a2f22');
+  const wrap = (text, font, y, lineHeight, maxWidth) => {
+    x.font = font;
+    let line = '';
+    for (const word of text.split(' ')) {
+      const test = line ? `${line} ${word}` : word;
+      if (x.measureText(test).width > maxWidth && line) { x.fillText(line, W / 2, y); line = word; y += lineHeight; } else line = test;
+    }
+    x.fillText(line, W / 2, y);
+    return y + lineHeight;
+  };
+  let y = 360;
+  y = wrap(c.emoji, '160px sans-serif', y, 200, W - 160);
+  x.fillStyle = v('--ink-soft', '#7a6a55');
+  y = wrap(c.kicker.toUpperCase(), '800 40px Nunito, sans-serif', y, 70, W - 160);
+  x.fillStyle = v('--ink', '#3a2f22');
+  y = wrap(c.big, '600 100px Fraunces, Georgia, serif', y + 20, 120, W - 160);
+  wrap(c.text, '48px Nunito, sans-serif', y + 30, 68, W - 200);
+  x.fillStyle = v('--ink-soft', '#7a6a55');
+  x.font = '700 36px Nunito, sans-serif';
+  x.fillText(`Ruby Wrapped ${wrYear} · Ruby's Sudoku`, W / 2, H - 80);
+  const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
+  const file = new File([blob], `ruby-wrapped-${wrYear}.png`, { type: 'image/png' });
+  if (navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: `Ruby Wrapped ${wrYear}` }); return; } catch (err) { if (err?.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast('Plaatje gedownload 💛');
 }
 
 // ---------- Kalender ----------
@@ -1641,8 +1840,9 @@ function registerServiceWorker() {
 // daarom proberen we het ook bij elke aanraking zolang we er nog geen hebben.
 let wakeLock = null;
 let wakeLockPending = false;
+let wakeLockBlocked = false; // na een slaapberichtje: het scherm mag uit
 async function keepAwake() {
-  if (!('wakeLock' in navigator) || wakeLock || wakeLockPending || document.visibilityState !== 'visible') return;
+  if (wakeLockBlocked || !('wakeLock' in navigator) || wakeLock || wakeLockPending || document.visibilityState !== 'visible') return;
   wakeLockPending = true;
   try {
     wakeLock = await navigator.wakeLock.request('screen');
@@ -1654,6 +1854,13 @@ async function keepAwake() {
 }
 document.addEventListener('visibilitychange', keepAwake);
 document.addEventListener('pointerdown', keepAwake, { passive: true });
+// Welterusten: de wake lock los, zodat het scherm uit mag (tot ze een nieuwe puzzel begint).
+function letScreenSleep() {
+  wakeLockBlocked = true;
+  wakeLock?.release().catch(() => {});
+  wakeLock = null;
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') applySleep(); });
 
 // ---------- Opstarten ----------
 
@@ -1675,7 +1882,7 @@ $('#daily-card').addEventListener('click', () => {
 });
 
 applyTheme();
-configureFeedback(settings);
+applySleep();
 if (testDate) {
   const badge = document.createElement('div');
   badge.className = 'test-badge';

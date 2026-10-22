@@ -3,8 +3,8 @@
 // SHELL-HASH hieronder. De tests falen als de app-bestanden veranderd zijn
 // zonder nieuwe release, zodat een update nooit vergeten wordt.
 // Een nieuwe versie wacht netjes tot Ruby op "verversen" tikt (zie ui.js).
-const VERSION = 'v28';
-// SHELL-HASH: f6961f3b01c806da
+const VERSION = 'v29';
+// SHELL-HASH: 29a00c8aa33aeff4
 const CACHE = `rubys-sudoku-${VERSION}`;
 
 const SHELL = [
@@ -22,6 +22,8 @@ const SHELL = [
   'js/storage.js',
   'js/messages.js',
   'js/matches.js',
+  'js/sleep.js',
+  'js/wrapped.js',
   'js/themes.js',
   'js/feedback.js',
   'js/guitar.js',

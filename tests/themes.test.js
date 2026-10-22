@@ -145,6 +145,22 @@ test('figuurpuzzels: elke kleurfamilie haalt 4.5:1 in elk thema', async () => {
   assert.deepEqual(fails, []);
 });
 
+// Slaapstand: hetzelfde filter in de CSS als in sleep.js, en de cijfers op het
+// bord blijven ook mét slaapfilter in elk thema 4.5:1 halen.
+test('slaapstand: cijfers en tekst blijven in elk thema leesbaar (4.5:1)', async () => {
+  const { SLEEP_FILTER, sleepColor } = await import('../js/sleep.js');
+  assert.ok(css.includes(`html[data-sleep] { filter: sepia(${SLEEP_FILTER.sepia}) brightness(${SLEEP_FILTER.brightness}) contrast(${SLEEP_FILTER.contrast}); }`), 'filter in de CSS = sleep.js');
+  const fails = [];
+  for (const t of THEMES) {
+    const v = vars[t.id];
+    for (const [fg, bg] of [...PAIRS, ...CALENDAR_TEXT]) {
+      const c = contrast(sleepColor(v[fg]), sleepColor(v[bg]));
+      if (!(c >= 4.5)) fails.push(`${t.id} (slaapstand): --${fg} op --${bg} = ${c.toFixed(2)}`);
+    }
+  }
+  assert.deepEqual(fails, []);
+});
+
 const d = (y, m, day) => new Date(y, m - 1, day, 12);
 
 test("het oude 'auto' wordt het thema dat ze toen zag; onbekend valt terug op zonnig", () => {
