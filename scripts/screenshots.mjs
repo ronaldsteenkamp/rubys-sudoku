@@ -3,12 +3,12 @@
 // Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren]   (vereist Playwright + Chromium)
 // Met --themas alleen die thema's (start, spel en hartjespuzzel) plus een overzicht per thema.
 // De plaatjes komen in screenshots/ (staat niet in git), met per scherm een overzicht.
-import { createServer } from 'node:http';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { extname, join, normalize } from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { generate, generateHeart } from '../js/generator.js';
 import { THEMES as ALL_THEMES } from '../js/themes.js';
+import { serve } from './static-server.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const out = join(root, 'screenshots');
@@ -16,19 +16,7 @@ const allSizes = process.argv.includes('--maten');
 const only = process.argv.find((a) => a.startsWith('--themas='))?.slice(9).split(',');
 
 // ---------- Kleine webserver ----------
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
-const server = createServer(async (req, res) => {
-  const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^\/+/, '') || 'index.html';
-  try {
-    const body = await readFile(join(root, path));
-    res.writeHead(200, { 'content-type': TYPES[extname(path)] || 'application/octet-stream' });
-    res.end(body);
-  } catch {
-    res.writeHead(404); res.end();
-  }
-});
-await new Promise((r) => server.listen(0, r));
-const base = `http://localhost:${server.address().port}/`;
+const { server, base } = await serve({ prefix: '/' });
 
 // ---------- Vaste spelsituaties ----------
 const bit = (d) => 1 << (d - 1);
