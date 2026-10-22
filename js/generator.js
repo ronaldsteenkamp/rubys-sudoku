@@ -13,7 +13,15 @@ export const LEVELS = [
   { id: 'ruby', name: 'Ruby-modus', emoji: '🔥', tagline: 'Voor echte kampioenen', level: 4, minClues: 20 },
 ];
 
-export const levelById = (id) => LEVELS.find((l) => l.id === id) || LEVELS[0];
+// Puzzels voor een wedstrijddag (zie matches.js). Ze tellen mee in de
+// statistieken, maar staan niet als niveau op het startscherm: zo zet een
+// supermakkelijke warming-up geen record op Zondagochtend.
+export const MATCH_LEVELS = [
+  { id: 'warmup', name: 'Warming-up', emoji: '🏐', tagline: 'Hersens opwarmen', level: 1, minClues: 46 },
+  { id: 'herstel', name: 'Herstelpuzzel', emoji: '🛋️', tagline: 'Rustig bijkomen', level: 1, minClues: 34 },
+];
+
+export const levelById = (id) => LEVELS.find((l) => l.id === id) || MATCH_LEVELS.find((l) => l.id === id) || LEVELS[0];
 
 // Kleine, snelle seeded random-generator.
 export function mulberry32(seed) {
@@ -163,6 +171,26 @@ export function generateDaily(date = new Date()) {
   const p = generate({ levelId, seed: hashString('ruby-dagpuzzel-' + key), maxAttempts, bankIndex: dailyBankIndex(date) });
   return { ...p, daily: key };
 }
+
+// ---------- Wedstrijddag ----------
+
+// Warming-up: kort en licht. Veel gegeven cijfers (±46) en alleen de
+// eenvoudigste technieken, dus sneller dan een Zondagochtend.
+// Deterministisch per wedstrijd, net als de dagpuzzel.
+export function generateWarmup(matchDate) {
+  const lvl = levelById('warmup');
+  const seed = hashString('ruby-warmup-' + matchDate);
+  return { ...finish(attempt(mulberry32(seed), lvl.level, lvl.minClues), lvl, seed, 'warmup'), match: matchDate, matchKind: 'warmup' };
+}
+
+// Herstel: een rustige puzzel op Zondagochtend-niveau, ook vast per wedstrijd.
+export function generateRecovery(matchDate) {
+  const seed = hashString('ruby-herstel-' + matchDate);
+  const p = generate({ levelId: 'zondag', seed });
+  return { ...p, levelId: 'herstel', source: 'herstel', match: matchDate, matchKind: 'herstel' };
+}
+
+export const generateMatchPuzzle = (matchDate, kind) => (kind === 'warmup' ? generateWarmup(matchDate) : generateRecovery(matchDate));
 
 // ---------- Hartjespuzzel (jubileum & verjaardag) ----------
 

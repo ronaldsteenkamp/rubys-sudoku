@@ -2,6 +2,7 @@
 
 import { Game } from './game.js';
 import { LEVELS, levelById, dateKey, dailyLevelFor, HEART_MASK, HEART_OUTLINE } from './generator.js';
+import { currentMatch } from './matches.js';
 import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
@@ -11,17 +12,16 @@ import { feedback, configure as configureFeedback, hasHaptics } from './feedback
 
 const $ = (sel) => document.querySelector(sel);
 
-// ---------- Datum (met ?vandaag=JJJJ-MM-DD om speciale dagen te testen) ----------
+// ---------- Datum (met ?vandaag=JJJJ-MM-DD of JJJJ-MM-DDTUU:MM om te testen) ----------
 
 const params = new URLSearchParams(location.search);
+// Met alleen een datum loopt de klok gewoon mee; met een tijd erbij staat de tijd stil.
 function today() {
-  const o = params.get('vandaag');
+  const o = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?$/.exec(params.get('vandaag') || '');
   const now = new Date();
-  if (o && /^\d{4}-\d{2}-\d{2}$/.test(o)) {
-    const [y, m, d] = o.split('-').map(Number);
-    return new Date(y, m - 1, d, now.getHours(), now.getMinutes());
-  }
-  return now;
+  if (!o) return now;
+  const [y, m, d] = o.slice(1, 4).map(Number);
+  return o[4] ? new Date(y, m - 1, d, Number(o[4]), Number(o[5])) : new Date(y, m - 1, d, now.getHours(), now.getMinutes());
 }
 
 // Met een testdatum krijgt de app een eigen opslag, zodat Ruby's echte voortgang onaangeroerd blijft.
@@ -177,6 +177,7 @@ async function generateHere(kind, args) {
   const g = await import('./generator.js');
   if (kind === 'daily') return g.generateDaily(new Date(args.date));
   if (kind === 'heart') return g.generateHeart(args.seed);
+  if (kind === 'match') return g.generateMatchPuzzle(args.date, args.kind);
   return g.generate(args);
 }
 
@@ -282,7 +283,7 @@ const BRAND_HTML = $('.brand').innerHTML;
 
 // Wat het startscherm het laatst liet zien (dag en dagdeel); zie 'visibilitychange'.
 let homeMoment = '';
-const momentOf = (date) => `${dateKey(date)} ${M.partOfDay(date)}`;
+const momentOf = (date) => `${dateKey(date)} ${M.partOfDay(date)} ${currentMatch(date)?.phase ?? ''}`;
 
 function renderHome() {
   const now = today();
@@ -326,12 +327,13 @@ function renderHome() {
   cont.innerHTML = '';
   // De dagpuzzel zelf heeft al een "Verder"-knop in z'n eigen kaart.
   // Net zo voor de speciale puzzel van vandaag.
-  if (game && !game.solved && game.daily !== dateKey(now) && !(special && game.special === special.id)) {
+  const matchNow = currentMatch(now);
+  if (game && !game.solved && game.daily !== dateKey(now) && !(special && game.special === special.id) && !(matchNow && game.match === matchNow.match.date)) {
     const lvl = levelById(game.levelId);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'card continue';
-    const what = game.special ? 'Speciale puzzel' : game.daily ? 'Dagpuzzel' : `${lvl.emoji} ${lvl.name}`;
+    const what = game.special ? 'Speciale puzzel' : game.daily ? 'Dagpuzzel' : `${lvl.emoji} ${lvl.name}`; // ook Warming-up of Herstelpuzzel
     btn.innerHTML = `<span class="card-kicker">Verder puzzelen</span>
       <span class="card-title">${escapeHtml(what)}</span>
       <span class="card-meta">${settings.showTimer ? formatTime(game.elapsed) + ' · ' : ''}${game.values.filter(Boolean).length} van 81 vakjes</span>`;
@@ -339,6 +341,7 @@ function renderHome() {
     cont.append(btn);
   }
 
+  renderMatch(matchNow);
   renderInstall();
   renderUpdate();
 
@@ -384,6 +387,72 @@ function renderHome() {
   }
 }
 
+// ---------- Wedstrijddag ----------
+
+// Het kaartje op het startscherm. Zonder wedstrijd blijft het leeg en ziet
+// het startscherm er precies zo uit als altijd.
+function renderMatch(now) {
+  const slot = $('#match-slot');
+  slot.innerHTML = '';
+  if (!now) return;
+  const { match, phase } = now;
+  const info = stats.matches[match.date] || {};
+  const card = document.createElement('div');
+  card.className = 'card match';
+  card.setAttribute('role', 'group');
+  card.setAttribute('aria-label', 'Wedstrijddag');
+  const busy = (kind) => game && !game.solved && game.match === match.date && game.matchKind === kind;
+  const button = (label, cls, onClick) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `btn ${cls}`;
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  };
+  const play = (kind) => () => {
+    if (busy(kind)) enterPlay();
+    else startGame({ kind: 'match', match: { date: match.date, kind } });
+  };
+  let text = '';
+  const actions = document.createElement('div');
+  actions.className = 'match-actions';
+
+  if (phase === 'voor') {
+    // Elke wedstrijd z'n eigen peptalk, en niet dezelfde als de vorige keren.
+    if (info.pep == null) {
+      store.setMatchPeptalk(stats, match.date, M.pickPeptalk(match, store.recentPeptalks(stats)));
+      saved(store.saveStats(stats));
+    }
+    text = M.peptalkText(stats.matches[match.date].pep, match);
+    if (info.warmup) text += `\n${M.WARMUP_DONE}`;
+    else actions.append(button(busy('warmup') ? 'Verder met de warming-up' : 'Warming-up 🧠', 'primary', play('warmup')));
+  } else if (phase === 'tijdens') {
+    text = M.duringLine(match);
+  } else if (!info.uitslag) {
+    text = M.HOW_DID_IT_GO;
+    actions.classList.add('match-outcomes');
+    for (const { id, label } of M.OUTCOME_BUTTONS) {
+      actions.append(button(label, 'ghost', () => {
+        store.setMatchOutcome(stats, match.date, id);
+        saved(store.saveStats(stats));
+        renderHome();
+        $('#match-slot .btn.primary')?.focus();
+      }));
+    }
+  } else {
+    text = M.outcomeReply(info.uitslag, match.date);
+    if (info.herstel) text += `\n${M.RECOVERY_DONE}`;
+    else actions.append(button(busy('herstel') ? 'Verder met de herstelpuzzel' : 'Herstelpuzzel 🛋️', 'primary', play('herstel')));
+  }
+
+  card.innerHTML = `<span class="card-kicker">Wedstrijddag</span>
+    <span class="card-title">${escapeHtml(M.matchHeadline(match, phase))}</span>
+    ${text.split('\n').map((t) => `<p class="match-text">${escapeHtml(t)}</p>`).join('')}`;
+  if (actions.children.length) card.append(actions);
+  slot.append(card);
+}
+
 function showScreen(name) {
   $('#home').hidden = name !== 'home';
   $('#play').hidden = name !== 'play';
@@ -391,6 +460,7 @@ function showScreen(name) {
 }
 
 function goHome() {
+  configureFeedback(settings);
   closeHint();
   stopTimer();
   saveGame();
@@ -401,7 +471,7 @@ function goHome() {
 // ---------- Spel starten ----------
 
 let starting = false;
-async function startGame({ kind, levelId, special }) {
+async function startGame({ kind, levelId, special, match }) {
   if (starting) return;
   if (game && !game.solved && game.history.length) {
     const ok = await confirmDialog('Nieuwe puzzel?', 'Je bent nog bezig met een puzzel. Die wordt dan vervangen.', 'Ja, nieuwe', 'Nee, terug');
@@ -413,10 +483,12 @@ async function startGame({ kind, levelId, special }) {
     let p;
     if (kind === 'daily') p = await requestPuzzle('daily', { date: today().getTime() });
     else if (kind === 'heart') p = await requestPuzzle('heart', { seed: special.seed });
+    else if (kind === 'match') p = await requestPuzzle('match', match);
     else p = await takePuzzle(levelId);
     game = new Game({
       givens: p.givens, solution: p.solution, levelId: p.levelId,
       daily: p.daily || null, special: special?.id || null, shape: p.shape || null,
+      match: p.match || null, matchKind: p.matchKind || null,
     });
     store.recordStart(stats, game.levelId);
     saved(store.saveStats(stats));
@@ -439,6 +511,10 @@ function enterPlay() {
   if (!game) return;
   const lvl = levelById(game.levelId);
   $('#play-title').textContent = game.special ? 'Speciaal voor jou ❤️' : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
+  // Herstelpuzzel: rustig aan. Timer standaard verborgen, en alleen zachte geluiden.
+  recovery = game.matchKind === 'herstel';
+  timerShownInRecovery = false;
+  configureFeedback(recovery && settings.sound === 'gitaar' ? { ...settings, sound: 'zacht' } : settings);
   notesMode = false;
   hint = null;
   paused = false;
@@ -761,11 +837,16 @@ function tick() {
   renderTimer();
 }
 
+// In de herstelpuzzel is de tijd verborgen tot ze er zelf op tikt (alleen voor die puzzel).
+let recovery = false;
+let timerShownInRecovery = false;
+const timerShown = () => (recovery ? timerShownInRecovery : settings.showTimer);
+
 function renderTimer() {
   const t = $('#timer');
   if (!game) return;
-  t.textContent = settings.showTimer ? formatTime(game.elapsed) : '⏱ ••:••';
-  t.setAttribute('aria-label', settings.showTimer ? `Tijd ${formatTime(game.elapsed)}, tik om te verbergen` : 'Tijd verborgen, tik om te tonen');
+  t.textContent = timerShown() ? formatTime(game.elapsed) : '⏱ ••:••';
+  t.setAttribute('aria-label', timerShown() ? `Tijd ${formatTime(game.elapsed)}, tik om te verbergen` : 'Tijd verborgen, tik om te tonen');
 }
 
 function pause() {
@@ -905,7 +986,8 @@ function onSolved() {
   render();
   const day = dateKey(today());
   const started = dateKey(new Date(g.startedAt));
-  const { previousBest, firstOnLevel, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started }, day);
+  const match = g.match ? { date: g.match, kind: g.matchKind } : null;
+  const { previousBest, firstOnLevel, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started, match }, day);
   // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
   let freshThemes = [];
   if (counted) {
@@ -935,13 +1017,17 @@ function onSolved() {
     setTimeout(() => board.classList.remove('solved-glow'), 1500);
   }
   // Rugnummer 33 net vrij in Volleybal: een eigen feestje (een speciale puzzel gaat voor).
-  const jersey = !g.special && fresh.some((m) => m.id === 'rugnummer33') && document.documentElement.dataset.theme === 'volleybal';
+  // Ook een wedstrijdpuzzel krijgt in Volleybal ballen en een 33 (zonder de mijlpaal zelf).
+  const volleybal = document.documentElement.dataset.theme === 'volleybal';
+  const jersey = !g.special && volleybal && (fresh.some((m) => m.id === 'rugnummer33') || Boolean(g.matchKind));
   celebrate(Boolean(g.special), jersey);
 
   // Op id, niet op vandaag: na middernacht is het geen speciale dag meer.
   const special = g.special ? M.specialById(g.special) : null;
   let note;
   if (special) note = special.solvedText;
+  else if (g.matchKind === 'warmup') note = M.warmupNote();
+  else if (g.matchKind === 'herstel') note = M.recoveryNote(stats.matches[g.match]?.uitslag);
   else {
     const recent = store.loadRecentNotes();
     note = M.loveNote(recent);
@@ -959,18 +1045,19 @@ function onSolved() {
   $('#solved-scribble').hidden = !scribble;
   $('#solved-stats').textContent = [
     g.special ? 'Speciale puzzel' : g.daily ? `Dagpuzzel · ${lvl.name}` : lvl.name,
-    formatTime(g.elapsed),
+    recovery && !timerShownInRecovery ? null : formatTime(g.elapsed),
     g.hints ? `${g.hints} ${g.hints === 1 ? 'hint' : 'hints'}` : 'zonder hints',
     !g.mistakes && settings.errors !== 'uit' ? 'zonder fouten ✨' : null,
   ].filter(Boolean).join(' · ');
   // Een nieuw persoonlijk record (of de allereerste op dit niveau) krijgt een eigen, warme regel.
   // Een speciale puzzel is geen wedstrijdje; daar zeggen we niks over tijden.
-  const recordText = counted && !g.special ? M.recordLine({ level: lvl, elapsed: g.elapsed, previousBest, firstOnLevel }) : '';
+  // Net zo voor de puzzels van een wedstrijddag.
+  const recordText = counted && !g.special && !g.matchKind ? M.recordLine({ level: lvl, elapsed: g.elapsed, previousBest, firstOnLevel }) : '';
   $('#solved-record').textContent = recordText;
   $('#solved-record').hidden = !recordText;
   $('#solved-note').textContent = note;
   $('#solved-again').textContent = 'Nog eentje';
-  $('#solved-again').dataset.level = g.special || g.daily ? 'koffie' : g.levelId;
+  $('#solved-again').dataset.level = g.matchKind ? 'zondag' : g.special || g.daily ? 'koffie' : g.levelId;
 
   setTimeout(() => {
     const d = openDialog('solved-dialog');
@@ -1007,8 +1094,11 @@ $('#back-btn').addEventListener('click', goHome);
 $('#pause-btn').addEventListener('click', pause);
 $('#menu-btn').addEventListener('click', () => { if (game) { render(); openDialog('menu-dialog'); } });
 $('#timer').addEventListener('click', () => {
-  settings.showTimer = !settings.showTimer;
-  store.saveSettings(settings);
+  if (recovery) timerShownInRecovery = !timerShownInRecovery;
+  else {
+    settings.showTimer = !settings.showTimer;
+    store.saveSettings(settings);
+  }
   renderTimer();
 });
 
@@ -1566,7 +1656,7 @@ configureFeedback(settings);
 if (testDate) {
   const badge = document.createElement('div');
   badge.className = 'test-badge';
-  badge.textContent = `Testdatum ${dateKey(today())} · aparte opslag`;
+  badge.textContent = `Testdatum ${params.get('vandaag').replace('T', ' ')} · aparte opslag`;
   document.body.append(badge);
 }
 try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch { /* oudere browsers */ }

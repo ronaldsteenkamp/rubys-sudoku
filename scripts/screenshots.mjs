@@ -194,6 +194,27 @@ for (const [theme, scheme] of CAL_THEMES) {
   await p.context().close();
 }
 
+// Wedstrijddag (do 22 oktober, 21:00 uit bij DIO Bedum): vóór de wedstrijd,
+// "hoe ging het?" en na het antwoord. Ook op iPhone-SE-breedte.
+const MATCH_STATES = [
+  ['voor', '?vandaag=2026-10-22T18:00', {}],
+  ['vraag', '?vandaag=2026-10-22T23:30', { matches: { '2026-10-22': { warmup: true, pep: 0 } } }],
+  ['na', '?vandaag=2026-10-22T23:30', { matches: { '2026-10-22': { warmup: true, pep: 0, uitslag: 'verloren' } } }],
+];
+const MATCH_THEMES = only ? THEMES : [['zonnig', 'light'], ['nacht', 'dark'], ['volleybal', 'light'], ['briefje', 'light']];
+for (const [theme, scheme] of MATCH_THEMES) {
+  for (const [state, query, extraStats] of MATCH_STATES) {
+    const p = await page({ theme, scheme, query, extraStats });
+    await shot(p, `wedstrijd-${state}-${theme}`, 'wedstrijd');
+    await p.context().close();
+  }
+}
+for (const [state, query, extraStats] of only ? [] : MATCH_STATES) {
+  const p = await page({ theme: 'zonnig', scheme: 'light', viewport: SIZES.se, query, extraStats });
+  await shot(p, `wedstrijd-${state}-se`, 'wedstrijd');
+  await p.context().close();
+}
+
 // Andere staten van het startscherm: dagpuzzel opgelost, bezig, en een smal scherm.
 if (!only) {
   let p = await page({ theme: 'zonnig', scheme: 'light', dailyDone: true });

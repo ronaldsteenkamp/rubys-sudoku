@@ -7,8 +7,10 @@ import { computeCandidates } from './techniques.js';
 const isCells = (a, max) => Array.isArray(a) && a.length === 81 && a.every((x) => Number.isInteger(x) && x >= 0 && x <= max);
 const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
 const isCount = (n) => Number.isFinite(n) && n >= 0;
-// Dezelfde ids als LEVELS in generator.js (die halen we hier niet binnen, dan komt de hele voorraad mee).
-const LEVEL_IDS = ['zondag', 'koffie', 'nadenken', 'ruby'];
+// Dezelfde ids als LEVELS en MATCH_LEVELS in generator.js (die halen we hier
+// niet binnen, dan komt de hele voorraad mee).
+const LEVEL_IDS = ['zondag', 'koffie', 'nadenken', 'ruby', 'warmup', 'herstel'];
+const MATCH_KINDS = ['warmup', 'herstel'];
 
 // Klopt een opgeslagen puzzel (uit localStorage of een back-up) echt? Een
 // puzzel zonder geldige oplossing zou de app bij elke start laten vastlopen.
@@ -23,7 +25,8 @@ export function isValidGameData(data) {
 }
 
 export class Game {
-  constructor({ givens, solution, levelId = 'zondag', daily = null, special = null, shape = null, id = null }) {
+  // `match` + `matchKind`: de warming-up of herstelpuzzel van de wedstrijd op die datum.
+  constructor({ givens, solution, levelId = 'zondag', daily = null, special = null, shape = null, id = null, match = null, matchKind = null }) {
     this.id = id || `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
     this.givens = givens.slice();
     this.solution = solution.slice();
@@ -31,6 +34,8 @@ export class Game {
     this.daily = daily;
     this.special = special;
     this.shape = shape;
+    this.match = match;
+    this.matchKind = matchKind;
     this.values = givens.slice();
     this.notes = new Array(81).fill(0);
     this.history = [];
@@ -157,8 +162,8 @@ export class Game {
   noteDigits(i) { return digitsOf(this.notes[i]); }
 
   toJSON() {
-    const { id, givens, solution, levelId, daily, special, shape, values, notes, elapsed, mistakes, hints, solved, startedAt } = this;
-    return { v: 1, id, givens, solution, levelId, daily, special, shape, values, notes, elapsed, mistakes, hints, solved, startedAt };
+    const { id, givens, solution, levelId, daily, special, shape, match, matchKind, values, notes, elapsed, mistakes, hints, solved, startedAt } = this;
+    return { v: 1, id, givens, solution, levelId, daily, special, shape, match, matchKind, values, notes, elapsed, mistakes, hints, solved, startedAt };
   }
 
   // Geeft null bij alles wat niet klopt, zodat een kapotte opslag nooit de app laat vastlopen.
@@ -172,6 +177,7 @@ export class Game {
       special: typeof data.special === 'string' && /^(jubileum|verjaardag)-\d{4}$/.test(data.special) ? data.special : null,
       shape: data.shape === 'heart' ? 'heart' : null,
       id: typeof data.id === 'string' && data.id.length < 40 ? data.id : null,
+      ...(isDay(data.match) && MATCH_KINDS.includes(data.matchKind) ? { match: data.match, matchKind: data.matchKind } : {}),
     });
     for (const k of ['values', 'notes']) if (data[k]) g[k] = data[k].slice();
     for (const k of ['elapsed', 'mistakes', 'hints', 'startedAt']) if (isCount(data[k])) g[k] = data[k];

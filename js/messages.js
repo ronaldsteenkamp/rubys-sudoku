@@ -1,5 +1,7 @@
 // Alles wat persoonlijk is: bijnamen, begroetingen, lieve berichtjes,
-// mijlpalen en speciale dagen. Pas gerust aan!
+// mijlpalen, speciale dagen en wedstrijddagen. Pas gerust aan!
+
+import { LAST_MATCH, shortOpponent, matchStart } from './matches.js';
 
 export const NICKNAMES = [
   'Ruby', 'Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje',
@@ -353,6 +355,10 @@ export const MILESTONES = [
     text: 'HONDERD PUZZELS. Je bent een legende. Ik hou van je, RubyxCube. Ook als je even vastzit 💛 Laat dit scherm zien voor één enorme knuffel. 🤗',
     unit: ['puzzel', 'puzzels'], progress: (s) => ({ current: s.totalSolved, target: 100 }),
     check: (s) => s.totalSolved >= 100 },
+  { id: 'seizoen-uit', title: 'Seizoen uitgespeeld', icon: '🏐',
+    hint: 'Doe de herstelpuzzel na de laatste wedstrijd van het seizoen',
+    text: 'Het seizoen zit erop! Bij elke wedstrijd stond ik (in gedachten) langs de lijn. Op naar het volgende seizoen, nummer 33. Ik blijf je grootste fan 📣💛',
+    check: (s) => Boolean(s.matches?.[LAST_MATCH.date]?.herstel) },
 ];
 
 export function newMilestones(stats, unlocked) {
@@ -459,6 +465,133 @@ export const calendarRecordNote = (day) => CALENDAR_RECORD_NOTES[Number(day.slic
 
 // Waar een speciale puzzel bij hoorde, voor de kalender.
 export const specialLabel = (id) => (specialById(id)?.kind === 'verjaardag' ? 'je verjaardag 🎂' : 'ons jubileum 💛');
+
+// ---------- Wedstrijddag (Donitas DS 14, zie matches.js) ----------
+
+// Iets vasts per wedstrijd (zodat de kop niet bij elke blik verspringt).
+const byDate = (list, date, salt = 0) => list[[...date].reduce((a, c) => a + c.charCodeAt(0), salt) % list.length];
+export const matchNick = (date) => byDate(GREETING_NICKNAMES, date);
+
+// "Vanavond om 21:00 uit bij DIO Bedum 🏐"
+export function matchHeadline(match, phase) {
+  const where = match.home ? 'thuis tegen' : 'uit bij';
+  const opp = shortOpponent(match);
+  if (phase === 'tijdens') return `Nu bezig: ${where} ${opp} 🏐`;
+  if (phase === 'na') return `${match.home ? 'Thuis tegen' : 'Uit bij'} ${opp} 🏐`;
+  const h = matchStart(match).getHours();
+  return `${h < 12 ? 'Vanochtend' : h < 18 ? 'Vanmiddag' : 'Vanavond'} om ${match.time} ${where} ${opp} 🏐`;
+}
+
+// Peptalks vóór de wedstrijd. `when` (optioneel): alleen bij 'thuis', 'uit',
+// 'ochtend' (aanvang vóór 12 uur) of 'avond' (vanaf 18 uur).
+// In de tekst: n = bijnaam, opp = tegenstander.
+export const PEPTALKS = [
+  { text: ({ n }) => `Vandaag ben jij nummer 33 én nummer 1, ${n}. Laat ze maar zien hoe het moet 🏐` },
+  { text: ({ n }) => `Diep ademhalen, ${n}. Je hebt dit al honderd keer gedaan, en je kunt het 💛` },
+  { text: ({ n }) => `Eén punt tegelijk, net als één vakje tegelijk. Succes, ${n}! 🧩` },
+  { text: () => 'Ik ben nu al trots op je, wat de uitslag ook wordt 💛' },
+  { text: ({ n }) => `Hoge ballen, harde smashes en een lach op je gezicht. Zo doe je dat, ${n} 💪` },
+  { text: () => 'Rugnummer 33 heeft er zin in. De rest van het team gelukkig ook 😄' },
+  { text: () => 'Onthoud: de bal moet óver het net. Dat is eigenlijk het hele geheim 😉' },
+  { text: () => 'Wordt het spannend? Denk aan preitaart. Werkt altijd 🥧' },
+  { text: () => 'Mis je een bal, zeg dan gewoon dat de zon in je ogen scheen. Ook binnen 😎' },
+  { text: () => 'Met Donitas ben je onverslaanbaar gezellig. En misschien ook gewoon onverslaanbaar 🏐' },
+  { when: 'thuis', text: ({ n }) => `Thuiswedstrijd! Eigen zaal, eigen net, eigen publiek. Maak er een feestje van, ${n} 🏠` },
+  { when: 'thuis', text: ({ opp }) => `Vandaag komt ${opp} bij jullie op bezoek. Laat maar zien wie hier de baas is 📣` },
+  { when: 'uit', text: ({ opp }) => `Op naar ${opp}! Neem je beste set mee, en een snack voor onderweg 🚗` },
+  { when: 'uit', text: () => 'Uitwedstrijd, maar met jou erbij voelt elke zaal als thuis 🏐' },
+  { when: 'ochtend', text: () => 'Ochtendwedstrijd: eerst koffie, dan knallen ☕🏐' },
+  { when: 'ochtend', text: ({ n }) => `Vroeg op voor volleybal. Jij bent echt een kampioen, ${n} 🌅` },
+  { when: 'avond', text: () => 'Avondwedstrijd: de hele dag om op te laden, en dan vanavond schitteren ✨' },
+  { when: 'avond', text: ({ n }) => `Vanavond ben jij de ster in de zaal, ${n} 🌟` },
+];
+
+// Welke peptalks passen bij deze wedstrijd (thuis/uit, ochtend/avond)?
+export function peptalksFor(match) {
+  const h = matchStart(match).getHours();
+  const tags = [match.home ? 'thuis' : 'uit', h < 12 ? 'ochtend' : h >= 18 ? 'avond' : 'middag'];
+  return PEPTALKS.map((p, i) => i).filter((i) => !PEPTALKS[i].when || tags.includes(PEPTALKS[i].when));
+}
+
+// Kiest een peptalk (index) die ze bij de laatste wedstrijden niet al kreeg.
+export function pickPeptalk(match, recent = [], rng = Math.random) {
+  const fits = peptalksFor(match);
+  const fresh = fits.filter((i) => !recent.includes(i));
+  return pick(fresh.length ? fresh : fits, rng);
+}
+
+export const peptalkText = (i, match) => (PEPTALKS[i] || PEPTALKS[0]).text({ n: matchNick(match.date), opp: shortOpponent(match) });
+
+// Tijdens de wedstrijd (dan speelt ze; de app wacht gewoon).
+export const DURING_LINES = [
+  'Succes! Ik zit (in gedachten) langs de lijn 📣',
+  'Nu even geen sudoku: jij staat te knallen. Ik juich mee 📣',
+  'Hup Donitas! Hup nummer 33! 📣',
+];
+export const duringLine = (match) => byDate(DURING_LINES, match.date);
+
+// Warming-up: op het kaartje als hij gedaan is, en op het opgelost-scherm.
+export const WARMUP_READY = 'Een korte warming-up voor je hoofd 🧠';
+export const WARMUP_DONE = 'Warming-up gedaan ✓ Hersens staan aan, nu de benen nog 💪';
+export const WARMUP_NOTES = [
+  'Hersens zijn warm, nu de armen nog 💪',
+  'Opgewarmd! Je hoofd is er klaar voor, nu de rest van je ook 🏐',
+  'Check: hersens aan. Nu nog even rekken en strekken 🤸',
+  'Zo, die warming-up zit erin. Succes straks, nummer 33 💛',
+  'Snel gefikst! Neem die snelheid mee het veld op ⚡',
+];
+export const warmupNote = (rng = Math.random) => pick(WARMUP_NOTES, rng);
+
+// Na de wedstrijd vraagt de app hoe het ging. Hij weet de uitslag niet en
+// neemt die dus nooit aan; bij verloren troostend en trots, nooit 'volgende
+// keer beter'; bij zeg-maar-niks neutraal en lief.
+export const HOW_DID_IT_GO = 'Hoe ging het?';
+export const OUTCOME_BUTTONS = [
+  { id: 'gewonnen', label: 'Gewonnen 🏆' },
+  { id: 'verloren', label: 'Verloren 💛' },
+  { id: 'stil', label: 'Zeg maar niks 🤫' },
+];
+export const OUTCOME_REPLIES = {
+  gewonnen: [
+    'Gewonnen! Ik wist het wel. Wat ben ik trots op je 🏆',
+    'Yes! Nummer 33 heeft weer geleverd 🏆',
+    'Een overwinning! Die mag je de hele avond vieren 🎉',
+    'Gewonnen, natuurlijk. Jullie zijn toppers 🏐',
+  ],
+  verloren: [
+    'Balen, maar ik ben net zo trots op je. Je hebt alles gegeven 💛',
+    'Niet gewonnen, wel gespeeld met je hele hart. Dat telt voor mij het meest 💛',
+    'Verliezen hoort erbij. In mijn ogen ben jij altijd de beste 💛',
+    'Kom maar hier, knuffel. Je hebt het goed gedaan 🤗',
+  ],
+  stil: [
+    'Prima, we hebben het er niet over. Fijn dat je er weer bent 💛',
+    'Geheim is geheim 🤫 Tijd om lekker bij te komen.',
+    'Het is goed zo. Zin in een rustig puzzeltje? 🛋️',
+  ],
+};
+export const outcomeReply = (uitslag, date) => byDate(OUTCOME_REPLIES[uitslag] || OUTCOME_REPLIES.stil, date, 7);
+
+export const RECOVERY_READY = 'Een rustige puzzel om bij te komen 🛋️';
+export const RECOVERY_DONE = 'Herstelpuzzel gedaan. Lekker uitrusten nu 🛋️';
+export const RECOVERY_NOTES = {
+  gewonnen: [
+    'Gewonnen én een puzzel opgelost. Wat een dag, kampioen 🏆',
+    'Twee overwinningen op één dag. Jij bent niet te stoppen 💛',
+    'Nu lekker uitrusten. Dat heb je dubbel en dwars verdiend 🛋️',
+  ],
+  verloren: [
+    'Zo, je hoofd is weer even rustig. Ik ben trots op je, altijd 💛',
+    'Na een zware wedstrijd nog een puzzel gefikst. Dat zegt genoeg over jou 💛',
+    'Vandaag was je gewoon geweldig. Kom maar lekker bij 🤗',
+  ],
+  stil: [
+    'Lekker bijgekomen? Fijne avond nog 💛',
+    'Rustig puzzeltje, rustig hoofd 🌙',
+    'Zo, die zit erin. Nu nog een dekentje en thee 🍵',
+  ],
+};
+export const recoveryNote = (uitslag, rng = Math.random) => pick(RECOVERY_NOTES[uitslag] || RECOVERY_NOTES.stil, rng);
 
 // ---------- Nieuwe thema's (seizoenen) ----------
 

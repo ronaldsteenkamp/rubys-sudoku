@@ -99,8 +99,51 @@ export function emptyStats() {
     seasonSolves: {}, // { 'herfst-2026': 2 } opgeloste puzzels per seizoen
     unlockedThemes: [], // ontgrendelde seizoensthema's, bijv. ['herfst']
     log: [], // logboek van opgeloste puzzels, zie hieronder
+    matches: {}, // per wedstrijddatum: { uitslag, warmup, herstel, pep }, zie hieronder
   };
 }
+
+// ---------- Wedstrijddagen ----------
+
+// Per wedstrijd (op datum) wat Ruby erover vertelde en wat ze al deed:
+//   uitslag  'gewonnen' | 'verloren' | 'stil' (= zeg maar niks), alleen als zij het zelf zegt;
+//   warmup / herstel  true als die puzzel is opgelost (dan telt hij niet nog eens);
+//   pep      welke peptalk ze kreeg, zodat die niet steeds dezelfde is.
+export const MATCH_OUTCOMES = ['gewonnen', 'verloren', 'stil'];
+const MATCHES_KEEP = 60;
+
+function cleanMatches(raw) {
+  const out = {};
+  if (!isObj(raw)) return out;
+  for (const date of Object.keys(raw).filter(isDay).sort().slice(-MATCHES_KEEP)) {
+    const r = raw[date];
+    if (!isObj(r)) continue;
+    const m = {};
+    if (MATCH_OUTCOMES.includes(r.uitslag)) m.uitslag = r.uitslag;
+    if (r.warmup === true) m.warmup = true;
+    if (r.herstel === true) m.herstel = true;
+    if (Number.isInteger(r.pep) && r.pep >= 0 && r.pep < 100) m.pep = r.pep;
+    out[date] = m;
+  }
+  return out;
+}
+
+const matchEntry = (stats, date) => (stats.matches[date] ||= {});
+
+// "Hoe ging het?" Alleen wat zij zelf kiest; de app weet de uitslag niet.
+export function setMatchOutcome(stats, date, uitslag) {
+  if (isDay(date) && MATCH_OUTCOMES.includes(uitslag)) matchEntry(stats, date).uitslag = uitslag;
+  return stats;
+}
+
+export function setMatchPeptalk(stats, date, pep) {
+  if (isDay(date) && Number.isInteger(pep)) matchEntry(stats, date).pep = pep;
+  return stats;
+}
+
+// De peptalks van de laatste paar wedstrijden (om herhaling te voorkomen).
+export const recentPeptalks = (stats, n = 8) => Object.keys(stats.matches).sort().slice(-n)
+  .map((d) => stats.matches[d].pep).filter((p) => p != null);
 
 // ---------- Logboek (voor de kalender) ----------
 
@@ -195,6 +238,7 @@ export function migrateStats(raw) {
   s.unlockedThemes = Array.isArray(r.unlockedThemes) ? r.unlockedThemes.filter((t) => SEASON_IDS.includes(t)) : [];
   // Het logboek: kapotte regels eruit, op datum gesorteerd. Zonder logboek
   // (oude opslag of back-up) maken we er een van de bekende dagpuzzels.
+  s.matches = cleanMatches(r.matches);
   s.log = Array.isArray(r.log)
     ? r.log.map(cleanLogRow).filter(Boolean).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).slice(-LOG_MAX)
     : logFromDailies(s.dailyDone, s.dailyTimes);
@@ -227,8 +271,16 @@ function markPlayed(stats, day) {
 // opgelost telt niet nog een keer mee.
 // Geeft terug: `newBest` (dit is nu de beste tijd op dit niveau), `previousBest`
 // (het record van daarvoor, of null) en `firstOnLevel` (de allereerste op dit niveau).
-export function recordSolve(stats, { levelId, elapsed, hints, daily, special, started }, today) {
-  if (daily && stats.dailyDone.includes(daily)) return { stats, newBest: false, previousBest: null, firstOnLevel: false, counted: false };
+// `match` = { date, kind } voor de warming-up of herstelpuzzel van een wedstrijd;
+// die telt mee als gewone puzzel (niet als dagpuzzel), en per wedstrijd één keer.
+export function recordSolve(stats, { levelId, elapsed, hints, daily, special, started, match }, today) {
+  const notCounted = { stats, newBest: false, previousBest: null, firstOnLevel: false, counted: false };
+  if (daily && stats.dailyDone.includes(daily)) return notCounted;
+  if (match && stats.matches?.[match.date]?.[match.kind]) return notCounted;
+  if (match && isDay(match.date) && ['warmup', 'herstel'].includes(match.kind)) {
+    stats.matches ||= {};
+    matchEntry(stats, match.date)[match.kind] = true;
+  }
   const l = stats.levels[levelId] || (stats.levels[levelId] = { played: 1, solved: 0, best: null, totalTime: 0 });
   const previousBest = l.best;
   l.solved++;

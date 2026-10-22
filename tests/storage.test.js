@@ -420,3 +420,49 @@ test('records: previousBest en firstOnLevel, en het record staat in het logboek'
   const old = S.migrateStats({ levels: { ruby: { played: 3, solved: 2, best: null, totalTime: 0 } } });
   assert.equal(S.recordSolve(old, { levelId: 'ruby', elapsed: 1, hints: 0 }, '2026-10-22').firstOnLevel, false);
 });
+
+// ---------- Wedstrijddagen ----------
+
+test('wedstrijdpuzzels tellen mee als gewone puzzel, één keer per wedstrijd, en niet als dagpuzzel', () => {
+  const st = S.emptyStats();
+  const warm = { levelId: 'warmup', elapsed: 60000, hints: 0, match: { date: '2026-11-28', kind: 'warmup' } };
+  assert.equal(S.recordSolve(st, warm, '2026-11-28').counted, true);
+  assert.equal(S.recordSolve(st, warm, '2026-11-28').counted, false, 'nog eens: telt niet');
+  S.recordSolve(st, { levelId: 'herstel', elapsed: 200000, hints: 1, match: { date: '2026-11-28', kind: 'herstel' } }, '2026-11-28');
+  assert.equal(st.totalSolved, 2);
+  assert.equal(st.dailySolved, 0);
+  assert.deepEqual(st.dailyDone, []);
+  assert.equal(st.streak, 1);
+  assert.deepEqual(st.matches['2026-11-28'], { warmup: true, herstel: true });
+  assert.deepEqual(S.logEntries(st).map((e) => e.level), ['warmup', 'herstel']);
+});
+
+test('wedstrijddag: uitslag en peptalk bewaren; alleen wat zij zelf kiest', () => {
+  const st = S.emptyStats();
+  S.setMatchOutcome(st, '2026-11-28', 'verloren');
+  S.setMatchOutcome(st, '2026-11-28', '3-0'); // geen geldige keuze: verandert niets
+  S.setMatchPeptalk(st, '2026-11-28', 4);
+  S.setMatchPeptalk(st, '2026-12-12', 9);
+  assert.deepEqual(st.matches['2026-11-28'], { uitslag: 'verloren', pep: 4 });
+  assert.deepEqual(S.recentPeptalks(st), [4, 9]);
+});
+
+test('wedstrijddagen: kapotte gegevens worden opgeruimd, oude stats zonder wedstrijden werken, en ze gaan mee in de back-up', () => {
+  const s = S.migrateStats({
+    levels: {},
+    matches: {
+      '2026-11-28': { uitslag: 'verloren', warmup: true, herstel: 'ja', pep: 3, extra: '<img>' },
+      morgen: { uitslag: 'gewonnen' }, '2026-12-12': 'kapot', '2027-01-09': { uitslag: 'gelijk', pep: -1 },
+    },
+  });
+  assert.deepEqual(s.matches, { '2026-11-28': { uitslag: 'verloren', warmup: true, pep: 3 }, '2027-01-09': {} });
+  assert.deepEqual(S.migrateStats({}).matches, {});
+
+  const st = S.emptyStats();
+  S.setMatchOutcome(st, '2026-11-28', 'gewonnen');
+  S.saveStats(st);
+  const backup = JSON.parse(JSON.stringify(S.exportBackup()));
+  globalThis.localStorage = new MemoryStorage();
+  assert.equal(S.importBackup(backup).ok, true);
+  assert.equal(S.loadStats().matches['2026-11-28'].uitslag, 'gewonnen');
+});
