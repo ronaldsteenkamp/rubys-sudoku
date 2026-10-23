@@ -850,6 +850,186 @@
   color-scheme: light;
 }
 
+/* ---------- Natuur ---------- */
+
+/* Waddenzee: grijsblauw wad, zilverig licht en een lage horizon met een streepje zee. */
+[data-theme="waddenzee"] {
+  --bg: #eef3f5;
+  --bg-2: #f9fbfc;
+  --surface: #fbfdfe;
+  --surface-2: #e6eef2;
+  --ink: #1f3440;
+  --ink-soft: #455b67;
+  --line: #d6e1e7;
+  --line-strong: #5f7d8c;
+  --accent: #8fb3c4;
+  --accent-strong: #4f7f95;
+  --accent-ink: #14262f;
+  --accent-soft: #dce9ef;
+  --user: #2d5f78;
+  --given: #1f3440;
+  --sel: #8fb3c4;
+  --sel-ink: #14262f;
+  --peer: #edf3f6;
+  --same: #cfe1ea;
+  --same-ring: transparent;
+  --hint: #d9874f;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
+  --heart: #c2456b;
+  --heart-fill: #f6dde6;
+  --heart-edge: #efcadb;
+  --heart-ink: #8e2246;
+  --heart-solved: #b8283f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(30 55 70 / 7%), 0 8px 24px rgb(30 55 70 / 9%);
+  --decor: radial-gradient(130% 50% at 50% 0%, rgb(255 255 255 / 80%), transparent 70%) no-repeat;
+  --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='70' viewBox='0 0 600 70' preserveAspectRatio='none'%3E%3Crect y='0' width='600' height='70' fill='%23c9d6dd'/%3E%3Crect y='0' width='600' height='7' fill='%237f9fb0'/%3E%3Crect y='7' width='600' height='2' fill='%23f4f8fa' fill-opacity='0.8'/%3E%3Cpath d='M0 26C80 22 160 30 240 25S420 21 600 27V70H0Z' fill='%23b6c6cf'/%3E%3Cpath d='M30 40c40-3 70 2 110 0M260 48c50-4 90 1 140-1M430 36c30-2 60 1 90-1' stroke='%23e7eef2' stroke-width='2' fill='none' stroke-linecap='round' opacity='0.8'/%3E%3C/svg%3E") 0 100% / 100% 70px no-repeat;
+  --decor-layer: block;
+  color-scheme: light;
+}
+
+/* Bos: mosgroen, met varens in de hoeken en zonlicht door de bladeren (js/fx/bos.js). */
+[data-theme="bos"] {
+  --bg: #f1f4e9;
+  --bg-2: #e2ead2;
+  --surface: #fdfef9;
+  --surface-2: #ecf1df;
+  --ink: #23301c;
+  --ink-soft: #4a5940;
+  --line: #dde5cf;
+  --line-strong: #55703f;
+  --accent: #8fb35a;
+  --accent-strong: #5d7f32;
+  --accent-ink: #1d2a12;
+  --accent-soft: #e1ecc9;
+  --user: #3d6120;
+  --given: #23301c;
+  --sel: #a9c873;
+  --sel-ink: #1d2a12;
+  --peer: #f0f5e4;
+  --same: #d4e5b3;
+  --same-ring: transparent;
+  --hint: #c8742f;
+  --wrong: #a3201a;
+  --wrong-bg: #f8cfc6;
+  --heart: #c23a5c;
+  --heart-fill: #fadbe4;
+  --heart-edge: #f6c9d6;
+  --heart-ink: #8e2246;
+  --heart-solved: #b8283f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(40 60 20 / 7%), 0 8px 24px rgb(40 60 20 / 9%);
+  --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg opacity='0.42'%3E%3Cpath d='M6 200C60 160 120 80 170 18' stroke='%2355703f' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Cpath transform='translate(10.0 190.0) rotate(-35) scale(1.00)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(10.0 190.0) rotate(55) scale(1.00)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(25.0 174.8) rotate(-37) scale(0.93)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(25.0 174.8) rotate(53) scale(0.93)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(40.0 159.4) rotate(-39) scale(0.86)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(40.0 159.4) rotate(51) scale(0.86)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(55.0 143.7) rotate(-41) scale(0.79)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(55.0 143.7) rotate(49) scale(0.79)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(70.0 127.6) rotate(-43) scale(0.72)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(70.0 127.6) rotate(47) scale(0.72)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(85.0 111.0) rotate(-45) scale(0.65)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(85.0 111.0) rotate(45) scale(0.65)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(100.0 93.8) rotate(-47) scale(0.58)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(100.0 93.8) rotate(43) scale(0.58)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(115.0 76.2) rotate(-49) scale(0.51)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(115.0 76.2) rotate(41) scale(0.51)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(130.0 58.1) rotate(-51) scale(0.44)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(130.0 58.1) rotate(39) scale(0.44)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(145.0 39.6) rotate(-53) scale(0.37)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(145.0 39.6) rotate(37) scale(0.37)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(160.0 20.8) rotate(-55) scale(0.30)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(160.0 20.8) rotate(35) scale(0.30)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3C/g%3E%3C/svg%3E") left -14px top -10px / 200px auto no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg opacity='0.42' transform='translate(220 220) scale(-1 -1)'%3E%3Cpath d='M6 200C60 160 120 80 170 18' stroke='%2355703f' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Cpath transform='translate(10.0 190.0) rotate(-35) scale(1.00)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(10.0 190.0) rotate(55) scale(1.00)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(25.0 174.8) rotate(-37) scale(0.93)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(25.0 174.8) rotate(53) scale(0.93)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(40.0 159.4) rotate(-39) scale(0.86)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(40.0 159.4) rotate(51) scale(0.86)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(55.0 143.7) rotate(-41) scale(0.79)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(55.0 143.7) rotate(49) scale(0.79)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(70.0 127.6) rotate(-43) scale(0.72)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(70.0 127.6) rotate(47) scale(0.72)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(85.0 111.0) rotate(-45) scale(0.65)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(85.0 111.0) rotate(45) scale(0.65)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(100.0 93.8) rotate(-47) scale(0.58)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(100.0 93.8) rotate(43) scale(0.58)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(115.0 76.2) rotate(-49) scale(0.51)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(115.0 76.2) rotate(41) scale(0.51)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(130.0 58.1) rotate(-51) scale(0.44)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(130.0 58.1) rotate(39) scale(0.44)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(145.0 39.6) rotate(-53) scale(0.37)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(145.0 39.6) rotate(37) scale(0.37)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3Cpath transform='translate(160.0 20.8) rotate(-55) scale(0.30)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%236f9446'/%3E%3Cpath transform='translate(160.0 20.8) rotate(35) scale(0.30)' d='M0 0C10-14 30-18 44-16C32-6 14 0 0 0Z' fill='%235d8238'/%3E%3C/g%3E%3C/svg%3E") right -14px bottom -10px / 200px auto no-repeat;
+  --decor-layer: block;
+  color-scheme: light;
+}
+
+/* Noorderlicht: een diepe nachtlucht met sterren en golvend licht (js/fx/noorderlicht.js). */
+[data-theme="noorderlicht"] {
+  --bg: #060b1c;
+  --bg-2: #0d1a33;
+  --surface: #0f1830;
+  --surface-2: #18233f;
+  --ink: #e8f1ff;
+  --ink-soft: #b3c3dd;
+  --line: #24314f;
+  --line-strong: #6f86b5;
+  --accent: #5ee6a8;
+  --accent-strong: #8ff0c4;
+  --accent-ink: #04231a;
+  --accent-soft: #173a3a;
+  --user: #8ff0c4;
+  --given: #e8f1ff;
+  --sel: #5ee6a8;
+  --sel-ink: #04231a;
+  --peer: #17233f;
+  --same: #233c56;
+  --same-ring: color-mix(in srgb, #5ee6a8 60%, transparent);
+  --hint: #ffb38a;
+  --wrong: #ffc08a;
+  --wrong-bg: #46280f;
+  --heart: #ff9fd6;
+  --heart-fill: #3a2350;
+  --heart-edge: #4f2d6b;
+  --heart-ink: #f2d4ff;
+  --heart-solved: #c43477;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 10 / 35%), 0 8px 24px rgb(0 0 20 / 45%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Ccircle cx='0' cy='116' r='0.8' fill='%23e8f1ff' fill-opacity='0.37'/%3E%3Ccircle cx='224' cy='106' r='1.0' fill='%23e8f1ff' fill-opacity='0.58'/%3E%3Ccircle cx='123' cy='73' r='0.7' fill='%23e8f1ff' fill-opacity='0.71'/%3E%3Ccircle cx='37' cy='99' r='1.0' fill='%23e8f1ff' fill-opacity='0.76'/%3E%3Ccircle cx='99' cy='22' r='0.7' fill='%23e8f1ff' fill-opacity='0.72'/%3E%3Ccircle cx='154' cy='144' r='0.9' fill='%23e8f1ff' fill-opacity='0.47'/%3E%3Ccircle cx='80' cy='207' r='0.5' fill='%23e8f1ff' fill-opacity='0.45'/%3E%3Ccircle cx='150' cy='185' r='0.5' fill='%23e8f1ff' fill-opacity='0.54'/%3E%3Ccircle cx='231' cy='136' r='0.6' fill='%23e8f1ff' fill-opacity='0.66'/%3E%3Ccircle cx='249' cy='83' r='1.3' fill='%23e8f1ff' fill-opacity='0.36'/%3E%3Ccircle cx='187' cy='210' r='1.4' fill='%23e8f1ff' fill-opacity='0.49'/%3E%3Ccircle cx='43' cy='208' r='1.4' fill='%23e8f1ff' fill-opacity='0.72'/%3E%3Ccircle cx='260' cy='208' r='0.9' fill='%23e8f1ff' fill-opacity='0.48'/%3E%3Ccircle cx='160' cy='6' r='1.4' fill='%23e8f1ff' fill-opacity='0.77'/%3E%3Ccircle cx='91' cy='227' r='0.5' fill='%23e8f1ff' fill-opacity='0.68'/%3E%3Ccircle cx='247' cy='143' r='1.1' fill='%23e8f1ff' fill-opacity='0.60'/%3E%3Ccircle cx='222' cy='113' r='1.3' fill='%23e8f1ff' fill-opacity='0.85'/%3E%3Ccircle cx='111' cy='211' r='1.0' fill='%23e8f1ff' fill-opacity='0.46'/%3E%3Ccircle cx='12' cy='14' r='1.2' fill='%23e8f1ff' fill-opacity='0.40'/%3E%3Ccircle cx='91' cy='143' r='0.8' fill='%23e8f1ff' fill-opacity='0.59'/%3E%3Ccircle cx='28' cy='99' r='0.7' fill='%23e8f1ff' fill-opacity='0.64'/%3E%3Ccircle cx='143' cy='240' r='0.6' fill='%23e8f1ff' fill-opacity='0.84'/%3E%3Ccircle cx='258' cy='201' r='1.0' fill='%23e8f1ff' fill-opacity='0.53'/%3E%3Ccircle cx='224' cy='168' r='1.0' fill='%23e8f1ff' fill-opacity='0.50'/%3E%3Ccircle cx='139' cy='67' r='1.4' fill='%23e8f1ff' fill-opacity='0.63'/%3E%3Ccircle cx='237' cy='38' r='0.6' fill='%23e8f1ff' fill-opacity='0.83'/%3E%3Ccircle cx='180' cy='75' r='1.2' fill='%23e8f1ff' fill-opacity='0.53'/%3E%3Ccircle cx='229' cy='126' r='1.0' fill='%23e8f1ff' fill-opacity='0.47'/%3E%3Ccircle cx='26' cy='208' r='1.3' fill='%23e8f1ff' fill-opacity='0.48'/%3E%3Ccircle cx='197' cy='88' r='1.3' fill='%23e8f1ff' fill-opacity='0.57'/%3E%3Ccircle cx='0' cy='5' r='0.5' fill='%23e8f1ff' fill-opacity='0.63'/%3E%3Ccircle cx='77' cy='210' r='0.8' fill='%23e8f1ff' fill-opacity='0.67'/%3E%3Ccircle cx='257' cy='128' r='1.2' fill='%23e8f1ff' fill-opacity='0.44'/%3E%3Ccircle cx='170' cy='129' r='0.7' fill='%23e8f1ff' fill-opacity='0.48'/%3E%3C/svg%3E") 0 0 / 260px 260px repeat;
+  color-scheme: dark;
+}
+
+/* Regenachtige dag: blauwgrijs buiten, warm lamplicht binnen rond het bord (druppels: js/fx/regen.js). */
+[data-theme="regen"] {
+  --bg: #1c2733;
+  --bg-2: #2a3846;
+  --surface: #253240;
+  --surface-2: #2f3d4b;
+  --ink: #eef2f6;
+  --ink-soft: #c2ccd6;
+  --line: #3a4856;
+  --line-strong: #8a9aab;
+  --accent: #f2c46b;
+  --accent-strong: #f7d58f;
+  --accent-ink: #2a1c05;
+  --accent-soft: #4a4130;
+  --user: #ffd99a;
+  --given: #eef2f6;
+  --sel: #f2c46b;
+  --sel-ink: #2a1c05;
+  --peer: #2f3d4b;
+  --same: #46535f;
+  --same-ring: color-mix(in srgb, #f2c46b 60%, transparent);
+  --hint: #ffb38a;
+  --wrong: #ffb4a6;
+  --wrong-bg: #55282b;
+  --heart: #ff9fbf;
+  --heart-fill: #3f3150;
+  --heart-edge: #56406b;
+  --heart-ink: #f0dcff;
+  --heart-solved: #c43450;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 35%);
+  --decor: radial-gradient(70% 40% at 50% 45%, rgb(255 196 110 / 10%), transparent 70%) fixed no-repeat;
+  color-scheme: dark;
+}
+
+/* Onderwater: turkoois naar dieper blauw, met lichtstrepen en belletjes (js/fx/onderwater.js). */
+[data-theme="onderwater"] {
+  --bg: #d8f1f4;
+  --bg-2: #effbfc;
+  --surface: #fbfefe;
+  --surface-2: #e1f3f5;
+  --ink: #0d3340;
+  --ink-soft: #335866;
+  --line: #cfe7eb;
+  --line-strong: #2a7f93;
+  --accent: #38bfc9;
+  --accent-strong: #1d8f9c;
+  --accent-ink: #062b30;
+  --accent-soft: #cdeff2;
+  --user: #0f5f78;
+  --given: #0d3340;
+  --sel: #6fd3dc;
+  --sel-ink: #062b30;
+  --peer: #e8f6f8;
+  --same: #fff0b3;
+  --same-ring: transparent;
+  --hint: #f08a5d;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
+  --heart: #d24e78;
+  --heart-fill: #f3dcf5;
+  --heart-edge: #ebcaf0;
+  --heart-ink: #7e2a6b;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(10 60 80 / 7%), 0 8px 24px rgb(10 60 80 / 10%);
+  --decor: linear-gradient(to bottom, transparent 30%, rgb(40 120 170 / 22%)) fixed no-repeat;
+  color-scheme: light;
+}
+
 /* ---------- Dagthema: accentkleuren van een ander thema (zie themeForDay) ---------- */
 /* Op een wedstrijddag die ook een andere bijzondere dag is, krijgt Volleybal de
    accentkleuren van het thema van die dag (html[data-accent]). Per thema dezelfde
@@ -884,6 +1064,11 @@ html[data-accent="krijtbord"] { --accent: #f3d35b; --accent-strong: #f8e08a; --a
 html[data-accent="zonnebloem"] { --accent: #ffc816; --accent-strong: #e0a400; --accent-ink: #2e2300; --sel: #ffd23c; --sel-ink: #2e2300; }
 html[data-accent="hoog-contrast"] { --accent: #ffd400; --accent-strong: #000000; --accent-ink: #000000; --sel: #ffd400; --sel-ink: #000000; }
 html[data-accent="gameboy"] { --accent: #88c070; --accent-strong: #081820; --accent-ink: #081820; --sel: #081820; --sel-ink: #e0f8d0; }
+html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
+html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
+html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
+html[data-accent="regen"] { --accent: #f2c46b; --accent-strong: #f7d58f; --accent-ink: #2a1c05; --sel: #f2c46b; --sel-ink: #2a1c05; }
+html[data-accent="onderwater"] { --accent: #38bfc9; --accent-strong: #1d8f9c; --accent-ink: #062b30; --sel: #6fd3dc; --sel-ink: #062b30; }
 
 /* ---------- Basis ---------- */
 /* Tot ui.js het thema van vandaag heeft gezet (zie js/theme-early.js): even
@@ -1593,6 +1778,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line); }
 .toggle:last-child { border-bottom: 0; }
 .toggle[hidden] { display: none; }
+.rain-toggle { margin-top: 6px; border-bottom: 0; }
 .toggle input {
   appearance: none;
   -webkit-appearance: none;
@@ -2085,6 +2271,99 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 [data-theme="hoog-contrast"] .num.active { box-shadow: inset 0 0 0 3px #000000; }
 [data-theme="hoog-contrast"] .tool[aria-pressed="true"] { box-shadow: inset 0 0 0 3px #000000; }
 [data-theme="hoog-contrast"] :is(.muted, .card-kicker, .card-meta, .level-tag, .level-best) { color: var(--ink); }
+
+/* ---------- Natuur: de effectlagen (js/fx/) ---------- */
+/* Alles beweegt alleen met transform en opacity. --fx-tempo maakt het in de
+   slaapstand half zo snel; html.fx-paused (app niet in beeld) zet alles stil;
+   met minder beweging staat alles stil op een mooie plek (zie onderaan). */
+:root { --fx-tempo: 1; }
+html[data-sleep] { --fx-tempo: 2; }
+.fx-layer { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.fx-layer > i { position: absolute; display: block; will-change: transform, opacity; }
+.fx-over { position: fixed; inset: 0; z-index: 11; overflow: hidden; pointer-events: none; }
+.fx-over > i { position: absolute; display: block; }
+.fx-over svg, .fx-animal svg { display: block; width: 100%; height: auto; }
+html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal { animation-play-state: paused !important; }
+
+/* Waddenzee: glinstering over het streepje zee onderaan. */
+.fx-waddenzee .glint { left: 30%; bottom: 63px; width: 40%; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 90%), transparent); animation: glint calc(26s * var(--fx-tempo)) linear infinite; }
+.fx-waddenzee .glint.g2 { left: 60%; bottom: 66px; width: 22%; opacity: 0.7; animation-duration: calc(38s * var(--fx-tempo)); animation-delay: -15s; }
+@keyframes glint { from { transform: translateX(-110vw); } to { transform: translateX(80vw); } }
+
+/* Bos: lichtvlekken die zacht opgloeien. */
+.fx-bos .zon { width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); border-radius: 50%; background: radial-gradient(circle, rgb(255 238 160 / 55%), rgb(255 238 160 / 0%) 70%); opacity: 0.6; animation: zon calc(var(--d) * var(--fx-tempo)) ease-in-out infinite alternate; }
+@keyframes zon { from { opacity: 0.3; transform: scale(0.9); } to { opacity: 0.9; transform: translate(14px, 8px) scale(1.08); } }
+/* Blaadjes die dwarrelen bij het oplossen. */
+.fx-blaadjes i { top: -40px; width: var(--s); opacity: 0; animation: blad calc(var(--d) * var(--fx-tempo)) ease-in both; }
+@keyframes blad { 0% { opacity: 0; transform: translate(0, 0) rotate(0); } 10% { opacity: 1; } 100% { opacity: 0.85; transform: translate(var(--x), 110vh) rotate(var(--r)); } }
+
+/* Noorderlicht: brede lichtbanen boven het bord, die heel langzaam golven. */
+.fx-noorderlicht .baan {
+  left: -40%; top: 0; width: 180%; height: 36vh; opacity: 0.6;
+  background: linear-gradient(90deg, transparent 6%, rgb(94 230 168 / 55%) 30%, rgb(140 245 205 / 35%) 45%, rgb(170 110 255 / 45%) 66%, transparent 92%);
+  -webkit-mask: linear-gradient(to bottom, transparent, #000 38%, #000 55%, transparent);
+  mask: linear-gradient(to bottom, transparent, #000 38%, #000 55%, transparent);
+  transform: skewY(-5deg);
+  animation: baan calc(var(--d) * var(--fx-tempo)) ease-in-out infinite alternate;
+  transition: opacity 1.4s ease;
+}
+.fx-noorderlicht .b2 { top: 9vh; opacity: 0.45; background: linear-gradient(90deg, transparent 8%, rgb(170 110 255 / 45%) 28%, rgb(94 230 168 / 40%) 58%, transparent 90%); animation-direction: alternate-reverse; }
+.fx-noorderlicht .b3 { top: -6vh; height: 26vh; opacity: 0.3; }
+.fx-noorderlicht.oplaaien .baan { opacity: 0.95; }
+@keyframes baan {
+  0% { transform: translateX(-6%) skewY(-6deg) scaleY(0.8); }
+  50% { transform: translateX(3%) skewY(3deg) scaleY(1.15); }
+  100% { transform: translateX(8%) skewY(-2deg) scaleY(0.9); }
+}
+
+/* Regenachtige dag: warm lamplicht rond het bord, druppels op het raam erachter. */
+[data-theme="regen"] .board { box-shadow: 0 0 0 1px rgb(242 196 107 / 22%), 0 0 70px 14px rgb(255 190 100 / 16%), var(--shadow); }
+.fx-regen .druppel {
+  width: var(--s); height: calc(var(--s) * 1.35); opacity: 0.8;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 35% 32%, rgb(255 255 255 / 85%) 0 12%, rgb(210 225 240 / 35%) 30%, rgb(160 185 210 / 18%) 70%);
+  box-shadow: inset 0 -1px 2px rgb(255 255 255 / 30%), 0 2px 3px rgb(0 0 0 / 30%);
+  animation: druppel calc(var(--d) * var(--fx-tempo)) cubic-bezier(0.5, 0, 0.8, 0.6) infinite;
+}
+@keyframes druppel { 0% { opacity: 0; transform: translateY(0); } 6% { opacity: 0.85; } 30% { transform: translateY(7vh); } 44% { transform: translateY(8vh); } 92% { opacity: 0.85; } 100% { opacity: 0; transform: translateY(85vh); } }
+.fx-regen .druppel.groot { animation-name: druppel-groot; }
+.fx-regen .druppel.klein { animation-name: druppel-klein; }
+@keyframes druppel-groot { 0% { opacity: 0; transform: translateY(0); } 6% { opacity: 0.85; } 40% { transform: translateY(6vh); } 46% { transform: translateY(6.4vh) scale(1.18); } 92% { opacity: 0.85; } 100% { opacity: 0; transform: translateY(85vh) scale(1.18); } }
+@keyframes druppel-klein { 0% { opacity: 0; transform: translateY(0); } 6% { opacity: 0.85; } 40% { opacity: 0.85; transform: translateY(10vh); } 44%, 100% { opacity: 0; transform: translateY(10.4vh); } }
+
+/* Onderwater: lichtstrepen van boven en opstijgende belletjes. */
+.fx-onderwater .straal { top: -12%; width: 74px; height: 85vh; margin-left: -37px; background: linear-gradient(to bottom, rgb(255 255 255 / 50%), rgb(255 255 255 / 0%) 85%); transform-origin: 50% 0; transform: rotate(14deg); opacity: 0.45; animation: straal calc(var(--d) * var(--fx-tempo)) ease-in-out infinite alternate; }
+@keyframes straal { from { opacity: 0.25; transform: rotate(10deg) scaleX(0.8); } to { opacity: 0.6; transform: rotate(18deg) scaleX(1.25); } }
+.fx-onderwater .bel { width: var(--s); height: var(--s); border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 80%); background: radial-gradient(circle at 30% 30%, rgb(255 255 255 / 80%) 0 16%, rgb(255 255 255 / 12%) 40%, transparent 70%); opacity: 0.8; animation: bel calc(var(--d) * var(--fx-tempo)) linear infinite; }
+@keyframes bel { 0% { opacity: 0; transform: translate(0, 30vh); } 10% { opacity: 0.85; } 50% { transform: translate(8px, -5vh); } 90% { opacity: 0.85; } 100% { opacity: 0; transform: translate(-6px, -40vh); } }
+/* Het scholetje bij het oplossen. */
+.fx-visjes i { left: 0; top: calc(16% + var(--dy)); /* boven het opgelost-scherm langs */ width: var(--s); animation: zwem calc(5.5s * var(--fx-tempo)) linear both; }
+@keyframes zwem {
+  0% { transform: translateX(-90px) translateY(0); }
+  25% { transform: translateX(25vw) translateY(-10px); }
+  50% { transform: translateX(50vw) translateY(6px); }
+  75% { transform: translateX(78vw) translateY(-6px); }
+  100% { transform: translateX(110vw) translateY(0); }
+}
+
+/* De dieren: ze kijken om de hoek (aan de rand, op een plek zonder knoppen). */
+.fx-animal { position: fixed; z-index: 6; padding: 0; border: 0; background: none; touch-action: manipulation; transition: transform 0.8s cubic-bezier(0.3, 0.9, 0.4, 1); }
+.fx-animal.from-left { left: 0; transform: translateX(-100%); }
+.fx-animal.from-left.in { transform: translateX(calc(var(--w) - 100%)); }
+.fx-animal.from-right { right: 0; transform: translateX(100%) scaleX(-1); }
+.fx-animal.from-right.in { transform: translateX(calc(100% - var(--w))) scaleX(-1); }
+.fx-zeehondje { width: 88px; }
+.fx-eekhoorntje { width: 70px; }
+.fx-zeehondje .flipper { transform-box: view-box; transform-origin: 46px 50px; }
+.fx-zeehondje.zwaai .flipper { animation: zwaai 0.4s ease-in-out 4 alternate; }
+@keyframes zwaai { to { transform: rotate(-38deg); } }
+.fx-eekhoorntje :is(.kop, .noot) { transform-box: view-box; transform-origin: 52px 44px; }
+.fx-eekhoorntje.in .kop { animation: knabbel calc(0.36s * var(--fx-tempo)) ease-in-out infinite alternate; }
+@keyframes knabbel { to { transform: rotate(7deg) translateY(1px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.fx-layer, .fx-over) *, .fx-animal, .fx-animal * { animation: none !important; transition: none !important; }
+}
 
 /* ---------- Minder beweging ---------- */
 

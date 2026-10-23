@@ -16,9 +16,9 @@ test('elk vergrendeld thema heeft een regel, een hint en een tekst voor het "Nie
     assert.ok(t.emoji && t.icon, `${t.id}: emoji`);
     if (!t.unlock.secret) assert.ok(unlockHint(t, emptyStats(), at(2026, 11, 3)), `${t.id}: hint`);
   }
-  assert.deepEqual(LOCKED_THEME_IDS.sort(), ['beachvolleybal', 'gameboy', 'herfst', 'koffiemonster', 'lente', 'robijn', 'rubyxcube', 'winter', 'zomer', 'zonnebloem']);
+  assert.deepEqual(LOCKED_THEME_IDS.sort(), ['beachvolleybal', 'bos', 'gameboy', 'herfst', 'koffiemonster', 'lente', 'noorderlicht', 'onderwater', 'robijn', 'rubyxcube', 'winter', 'zomer', 'zonnebloem']);
   // Meteen vrij:
-  for (const id of ['gitaar', 'dagverloop', 'krant', 'krijtbord', 'hoog-contrast']) assert.equal(themeById(id).unlock, undefined, id);
+  for (const id of ['gitaar', 'dagverloop', 'krant', 'krijtbord', 'hoog-contrast', 'waddenzee', 'regen']) assert.equal(themeById(id).unlock, undefined, id);
 });
 
 test('{ total: 25 }: Zonnebloem bij de 25e puzzel (de mijlpaal met 🌻)', () => {
@@ -51,7 +51,8 @@ test('recordSolve schrijft het uur in het logboek, en daarmee telt Koffiemonster
   const st = emptyStats();
   for (let k = 0; k < 50; k++) recordSolve(st, { levelId: 'koffie', elapsed: 1000, hints: 0, started: '2026-11-03', hour: k % 2 ? 9 : 6 }, '2026-11-03');
   assert.equal(unlockProgress(themeById('koffiemonster'), st).current, 50);
-  assert.deepEqual(checkThemeUnlocks(st, at(2026, 11, 3)), ['koffiemonster', 'zonnebloem']);
+  // (50 puzzels: ook Bos (40), en 50 zonder hints: Onderwater.)
+  assert.deepEqual(checkThemeUnlocks(st, at(2026, 11, 3)), ['koffiemonster', 'zonnebloem', 'bos', 'onderwater']);
 });
 
 test('{ window }: Beachvolleybal tijdens het WK (13 t/m 22 augustus 2027), daarna blijft hij vrij', () => {
@@ -114,7 +115,7 @@ test('migratie: oude statistieken zonder vrijspeeldatums blijven werken', () => 
   assert.deepEqual(old.unlockedThemes, []);
   assert.deepEqual(old.themeUnlockDates, {});
   // Wat al gehaald is, komt vrij bij de volgende puzzel (met de datum van dan).
-  assert.deepEqual(checkThemeUnlocks(old, at(2026, 11, 3)), ['rubyxcube', 'zonnebloem']);
+  assert.deepEqual(checkThemeUnlocks(old, at(2026, 11, 3)), ['rubyxcube', 'zonnebloem', 'bos']);
   // Een seizoen zonder datum (van vóór de datums) blijft vrij en krijgt er geen bij.
   const season = migrateStats({ unlockedThemes: ['herfst', 'robijn', 'robijn', 'bestaat-niet'], themeUnlockDates: { robijn: '2026-11-01', zonnig: '2026-11-01', herfst: 'gisteren' } });
   assert.deepEqual(season.unlockedThemes, ['herfst', 'robijn']);
@@ -129,4 +130,41 @@ test('Beachvolleybal als accent op een gewone wedstrijddag in de zomer (als hij 
   assert.equal(themeForDay(at(2027, 7, 10), { matches }).accent, null);
   assert.deepEqual(themeForDay(at(2027, 7, 10), { matches, unlocked: ['beachvolleybal'] }), { theme: 'volleybal', accent: 'beachvolleybal', reason: 'wedstrijd', kind: null });
   assert.equal(themeForDay(at(2027, 10, 10), { matches, unlocked: ['beachvolleybal'] }).accent, null, 'niet in de herfst');
+});
+
+// ---------- Natuur ----------
+
+test('{ between: [22, 2] } werkt over middernacht: 22:00 tot 02:00', async () => {
+  const { inHours } = await import('../js/themes.js');
+  const hourAt = (h, m) => new Date(2026, 10, 3, h, m).getHours();
+  assert.equal(inHours(hourAt(21, 59), [22, 2]), false, '21:59');
+  assert.equal(inHours(hourAt(22, 0), [22, 2]), true, '22:00');
+  assert.equal(inHours(hourAt(23, 30), [22, 2]), true, '23:30');
+  assert.equal(inHours(hourAt(0, 0), [22, 2]), true, '00:00');
+  assert.equal(inHours(hourAt(1, 59), [22, 2]), true, '01:59');
+  assert.equal(inHours(hourAt(2, 0), [22, 2]), false, '02:00');
+  // Zonder middernacht ertussen gewoon van–tot.
+  assert.equal(inHours(9, [8, 10]), true);
+  assert.equal(inHours(10, [8, 10]), false);
+});
+
+test('Noorderlicht: 5 puzzels tussen 22:00 en 02:00 (uit het logboek), net wel en net niet', () => {
+  const late = (n, hour) => rows(n, hour);
+  assert.equal(met('noorderlicht', stats({ log: [...late(2, 22), ...late(2, 1), ...late(10, 21), ...late(10, 2)] })), false, '4 laat, de rest net te vroeg of te laat');
+  assert.equal(met('noorderlicht', stats({ log: [...late(2, 22), ...late(2, 1), ...late(1, 23)] })), true);
+  assert.equal(unlockHint(themeById('noorderlicht'), stats({ log: late(3, 0) })), 'Puzzel nog 2 keer laat op de avond 🌙');
+});
+
+test('Onderwater: 10 puzzels zonder hints (stats.noHintSolved), net wel en net niet', () => {
+  assert.equal(met('onderwater', stats({ noHintSolved: 9, totalSolved: 80 })), false);
+  assert.equal(met('onderwater', stats({ noHintSolved: 10 })), true);
+  assert.equal(unlockHint(themeById('onderwater'), stats({ noHintSolved: 9 })), 'Nog 1 puzzel zonder hints 🫧');
+});
+
+test('Bos: 40 puzzels; Waddenzee en Regenachtige dag meteen vrij', () => {
+  assert.equal(met('bos', stats({ totalSolved: 39 })), false);
+  assert.equal(met('bos', stats({ totalSolved: 40 })), true);
+  assert.equal(resolveTheme('waddenzee', at(2026, 11, 3), []), 'waddenzee');
+  assert.equal(resolveTheme('regen', at(2026, 11, 3), []), 'regen');
+  assert.equal(resolveTheme('noorderlicht', at(2026, 11, 3), []), 'zonnig');
 });

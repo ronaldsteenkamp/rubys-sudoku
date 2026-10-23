@@ -385,6 +385,7 @@ test('de kiezer: volgorde en groepjes', async () => {
   const { THEME_GROUPS } = await import('../js/themes.js');
   assert.deepEqual(THEMES.map((t) => t.id), ['zonnig', 'nacht', 'sterren', 'liefde', 'lelie', 'gran-canaria', 'volleybal', 'briefje',
     'robijn', 'rubyxcube', 'koffiemonster', 'gitaar', 'beachvolleybal', 'dagverloop', 'krant', 'krijtbord', 'zonnebloem', 'hoog-contrast',
+    'waddenzee', 'bos', 'noorderlicht', 'regen', 'onderwater',
     'lente', 'zomer', 'herfst', 'winter', 'gameboy']);
   for (const t of THEMES) assert.ok(THEME_GROUPS.some((g) => g.id === t.group), t.id);
   assert.equal(THEMES.filter((t) => t.group === 'seizoen').every((t) => t.season), true);

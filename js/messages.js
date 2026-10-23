@@ -860,6 +860,9 @@ export const THEME_UNLOCK_TEXT = {
   koffiemonster: 'Vijftig puzzels vóór tienen. Het Koffiemonster is wakker ☕ Deze is van mij, met extra melkschuim en een hartje erin 🤎',
   beachvolleybal: 'Het WK Beachvolleybal is in Nederland! Zand tussen je tenen, zon op je snoet en ik langs de lijn. Dit thema blijft van jou 🏖️',
   zonnebloem: 'Kwart eeuw aan puzzels, en kijk: er is iets gaan groeien 🌱 Op je startscherm staat nu een zonnebloem. Elke dag dat je puzzelt, groeit hij een stukje. Net als ik, elke dag een beetje meer gek op jou 🌻',
+  bos: 'Veertig puzzels! Tijd voor een wandeling door het bos: mos onder je voeten, zon door de bladeren, en als je goed kijkt een eekhoorntje met een nootje 🐿️',
+  noorderlicht: 'Vijf keer laat op de avond nog gepuzzeld, nachtuil van me. Als beloning het noorderlicht, speciaal voor jou aangezet 🌌💚',
+  onderwater: 'Tien puzzels zonder één hint! Je bent zo diep gedoken dat je bij de visjes bent beland. Blub, wat ben je slim 🐠🫧',
   gameboy: 'Psst… je hebt het geheime level gevonden! 👾 Press Start, Player 1. (Niet verder vertellen.)',
 };
 
@@ -885,6 +888,7 @@ export const THEME_EMOJI = {
   volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
   robijn: '💎', rubyxcube: '🧩', koffiemonster: '☕', gitaar: '🎸', beachvolleybal: '🏖️', dagverloop: '🌅',
   krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾',
+  waddenzee: '🦭', bos: '🐿️', noorderlicht: '🌌', regen: '☔', onderwater: '🐠',
 };
 
 // Bovenaan de themakiezer als de app vandaag het thema kiest. `name` is het

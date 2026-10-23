@@ -6,7 +6,8 @@ import { JINGLE } from '../js/fx/gameboy.js';
 import { THEMES } from '../js/themes.js';
 
 test('elk effect hoort bij een thema, en elk thema met een effect heeft een module', () => {
-  const files = readdirSync(new URL('../js/fx/', import.meta.url)).map((f) => f.replace(/\.js$/, ''));
+  // (js/fx/lib/ is gedeeld door een paar effecten en hoort zelf bij geen thema.)
+  const files = readdirSync(new URL('../js/fx/', import.meta.url)).filter((f) => f.endsWith('.js')).map((f) => f.replace(/\.js$/, ''));
   const used = THEMES.filter((t) => t.fx).map((t) => t.fx);
   assert.deepEqual([...used].sort(), [...files].sort());
 });

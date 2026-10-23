@@ -55,6 +55,7 @@ export const DEFAULT_SETTINGS = {
   sound: 'zacht', // uit | zacht | gitaar
   haptics: true,
   sleep: 'auto', // auto (23:00–06:00) | aan | uit, zie sleep.js
+  rainSound: false, // zachte regen in Regenachtige dag (alleen als het geluid aan staat)
 };
 
 export const SOUND_STYLES = ['uit', 'zacht', 'gitaar'];

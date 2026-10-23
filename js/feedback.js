@@ -93,6 +93,13 @@ function playGuitar(kind, opts) {
   guitar.play(kind, opts);
 }
 
+// Voor een achtergrondgeluid (de regen in Regenachtige dag): de AudioContext en
+// het hoofdvolume (dus ook half zo hard in de slaapstand). null zonder Web Audio.
+export function audioOutput() {
+  const a = audio();
+  return a ? { ctx: a, out: master } : null;
+}
+
 // Een 8-bit-deuntje in blokgolven (Game Boy), als het geluid aan staat.
 // `notes`: [[Hz, start (s), duur (s)], …]. Geeft true als het klinkt.
 export function chiptune(notes) {

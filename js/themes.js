@@ -110,6 +110,38 @@ export const THEMES = [
     celebrate: ['⭐', '✔️', '💛', '🎉'],
     swatch: { bg: '#ffffff', surface: '#ffffff', accent: '#ffd400', digit: '#002a8f' },
   },
+  // ---------- Natuur ----------
+  // Elk met een eigen effectlaag (js/fx/), alleen geladen als het thema te zien is.
+  {
+    // Af en toe kijkt er een zeehondje om de hoek; tik erop en hij zwaait.
+    id: 'waddenzee', name: 'Waddenzee', scheme: 'light', group: 'natuur', fx: 'waddenzee',
+    celebrate: ['🦭', '🌊', '🐚', '💙'],
+    swatch: { bg: '#eef3f5', surface: '#fbfdfe', accent: '#8fb3c4', digit: '#2d5f78' },
+  },
+  {
+    id: 'bos', name: 'Bos', scheme: 'light', group: 'natuur', emoji: '🐿️', icon: '🌰', fx: 'bos',
+    unlock: { total: 40 }, hint: (left) => `Nog ${left} ${left === 1 ? 'puzzel' : 'puzzels'} 🌰`,
+    celebrate: ['🐿️', '🌿', '🍄', '🌰'],
+    swatch: { bg: '#f1f4e9', surface: '#fdfef9', accent: '#8fb35a', digit: '#3d6120' },
+  },
+  {
+    id: 'noorderlicht', name: 'Noorderlicht', scheme: 'dark', group: 'natuur', emoji: '🌌', icon: '🌌', fx: 'noorderlicht',
+    unlock: { between: [22, 2], solves: 5 }, hint: (left) => `Puzzel nog ${left} keer laat op de avond 🌙`,
+    celebrate: ['🌌', '✨', '💚', '💜'],
+    swatch: { bg: '#060b1c', surface: '#0f1830', accent: '#5ee6a8', digit: '#8ff0c4' },
+  },
+  {
+    // Met een eigen schakelaar voor zachte regen (settings.rainSound, standaard uit).
+    id: 'regen', name: 'Regenachtige dag', scheme: 'dark', group: 'natuur', fx: 'regen',
+    celebrate: ['☔', '🌧️', '☕', '🕯️'],
+    swatch: { bg: '#1c2733', surface: '#253240', accent: '#f2c46b', digit: '#ffd99a' },
+  },
+  {
+    id: 'onderwater', name: 'Onderwater', scheme: 'light', group: 'natuur', emoji: '🫧', icon: '🐠', fx: 'onderwater',
+    unlock: { noHint: 10 }, hint: (left) => `Nog ${left} ${left === 1 ? 'puzzel' : 'puzzels'} zonder hints 🫧`,
+    celebrate: ['🐠', '🫧', '🐚', '🌊'],
+    swatch: { bg: '#d8f1f4', surface: '#fbfefe', accent: '#38bfc9', digit: '#0f5f78' },
+  },
   // ---------- Seizoenen ----------
   {
     id: 'lente', name: 'Lente', scheme: 'light', group: 'seizoen', season: 'lente', unlock: { solves: 3 },
@@ -159,6 +191,7 @@ export const SEASON_AUTO = { id: 'seizoen', name: 'Seizoen', previews: ['lente',
 export const THEME_GROUPS = [
   { id: 'jij', name: 'Van jou' },
   { id: 'sfeer', name: 'Sfeer' },
+  { id: 'natuur', name: 'Natuur' },
   { id: 'seizoen', name: 'Seizoenen' },
   { id: 'geheim', name: 'Geheim 🤫' },
 ];
@@ -196,6 +229,9 @@ export function seasonProgress(stats, date = new Date()) {
 //   { streak: n }            n dagen op rij gepuzzeld (de langste reeks ooit)
 //   { level: id, solves: n } n keer dat niveau opgelost
 //   { before: uur, solves: n }  n puzzels opgelost vóór dat uur (uit het logboek)
+//   { between: [van, tot], solves: n }  n puzzels opgelost vanaf uur `van` tot (zonder) uur `tot`;
+//                            mag over middernacht: [22, 2] = 22:00 tot 02:00 (uit het logboek)
+//   { noHint: n }            n puzzels opgelost zonder hints
 //   { window: [van, tot] }   de app geopend tussen die dagen (allebei meegerekend)
 //   { secret: true }         alleen via een easter egg (zie unlockTheme)
 // Eenmaal vrij blijft vrij: het staat in stats.unlockedThemes, met de dag in stats.themeUnlockDates.
@@ -215,9 +251,17 @@ export function unlockProgress(theme, stats, date = new Date()) {
     const early = (stats.log || []).filter((row) => Number.isInteger(row[6]) && row[6] < r.before).length;
     return { current: early, target: r.solves };
   }
+  if ('between' in r) {
+    const late = (stats.log || []).filter((row) => Number.isInteger(row[6]) && inHours(row[6], r.between)).length;
+    return { current: late, target: r.solves };
+  }
+  if ('noHint' in r) return { current: stats.noHintSolved || 0, target: r.noHint };
   if (r.window) { const k = dayKey(date); return { current: r.window[0] <= k && k <= r.window[1] ? 1 : 0, target: 1 }; }
   return { current: 0, target: 1 }; // geheim: niet door te spelen
 }
+
+// Valt uur `hour` (0–23) in [van, tot)? Werkt ook over middernacht heen: [22, 2] = 22, 23, 0 en 1.
+export const inHours = (hour, [from, to]) => (from <= to ? hour >= from && hour < to : hour >= from || hour < to);
 
 // Is de regel van `theme` op `date` gehaald?
 export function unlockRuleMet(theme, stats, date = new Date()) {

@@ -183,9 +183,9 @@ test('de kiezer: groepjes, vergrendelde thema\'s met een slotje en een hint', as
   const page = await open(base, { clock: GEWOON, storage: { settings: { theme: 'zonnig' }, stats: { totalSolved: 20, levels: { ruby: { played: 4, solved: 4 } } } } });
   await page.click('[data-open="settings-dialog"]');
   const groups = await page.$$eval('.theme-group-title', (els) => els.map((e) => e.textContent));
-  assert.deepEqual(groups, ['Van jou', 'Sfeer', 'Seizoenen']);
+  assert.deepEqual(groups, ['Van jou', 'Sfeer', 'Natuur', 'Seizoenen']);
   const names = await page.$$eval('#theme-picker .theme-name', (els) => els.map((e) => e.textContent));
-  assert.equal(names.length, 22, 'alles behalve het geheime thema');
+  assert.equal(names.length, 27, 'alles behalve het geheime thema');
   assert.ok(!names.includes('Game Boy'));
   for (const name of ['Robijn', 'RubyxCube', 'Koffiemonster', 'Beachvolleybal', 'Zonnebloem']) {
     const card = page.locator('.theme-opt.locked', { hasText: name });
