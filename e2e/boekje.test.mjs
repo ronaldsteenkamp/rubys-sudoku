@@ -66,6 +66,8 @@ test('ontdekken via een hint: pas bij stap 2, dan een stipje en een regel op het
   assert.equal(await page.textContent('#solved-book'), 'Nieuw in je boekje: Laatste vakje 📖');
   assert.equal(await page.isVisible('#solved-record'), false);
   await page.click('#solved-home');
+  // Het startscherm komt pas na het sluiten van de dialoog (een los moment): daar op wachten.
+  await page.waitForSelector('#home:not([hidden]) .nav-btn');
   // Al gemeld: geen stipje meer nodig.
   assert.equal(await page.isVisible('.nav-btn .book-dot'), false);
   await openBook(page);
@@ -81,7 +83,7 @@ test('niet afgemaakt: de techniek is toch ontdekt, met een stipje dat weggaat zo
   await page.click('#hint-next');
   await page.click('#hint-close');
   await page.click('#back-btn');
-  assert.equal(await page.isVisible('.nav-btn .book-dot'), true);
+  await page.waitForSelector('.nav-btn .book-dot', { state: 'visible' });
   // Statistieken opent dan meteen het boekje.
   await page.click('[data-open="stats-dialog"]');
   await page.waitForSelector('#book .book-item');
@@ -89,6 +91,7 @@ test('niet afgemaakt: de techniek is toch ontdekt, met een stipje dat weggaat zo
   assert.equal(await page.textContent('.book-count'), 'Je kent nu 1 van de 13 technieken');
   assert.equal(await page.isVisible('.stats-tabs .book-dot'), false);
   await page.keyboard.press('Escape');
+  await page.waitForSelector('#stats-dialog:not([open])', { state: 'attached' });
   assert.equal(await page.isVisible('.nav-btn .book-dot'), false);
   assert.deepEqual(page.errors, []);
   await page.context().close();
@@ -107,7 +110,8 @@ test('een recordregel gaat voor: dan geen boekjesregel, alleen het stipje', asyn
   assert.equal(await page.isVisible('#solved-record'), true);
   assert.equal(await page.isVisible('#solved-book'), false);
   await page.click('#solved-home');
-  assert.equal(await page.isVisible('.nav-btn .book-dot'), true);
+  await page.waitForSelector('#home:not([hidden]) .nav-btn');
+  await page.waitForSelector('.nav-btn .book-dot', { state: 'visible' });
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });
