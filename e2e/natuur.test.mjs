@@ -85,6 +85,7 @@ test('met minder beweging staat alles stil: een stilstaand beeld, geen dieren', 
 
 test('het zeehondje zwaait met een flipper als je erop tikt', async () => {
   const page = await open(base, { clock: GEWOON, query: '?dier=1', storage: { settings: { theme: 'waddenzee' } } });
+  await page.waitForSelector('.fx-layer.fx-waddenzee', { state: 'attached' });
   await page.clock.runFor(1000);
   await page.waitForSelector('.fx-zeehondje.in');
   await page.waitForTimeout(900);
@@ -99,6 +100,8 @@ test('zonder ?dier=1: overdag komt het eekhoorntje na een paar minuten, in de sl
   for (const [hour, expectAnimal] of [[12, true], [23, false]]) {
     const page = await open(base, { clock: new Date(2026, 10, 3, hour, 30), storage: { settings: { theme: 'bos', sleep: 'auto' }, stats: STATS } });
     assert.equal(await page.getAttribute('html', 'data-sleep'), expectAnimal ? null : '1');
+    // Eerst moet het effect van Bos geladen zijn (een losse module), anders loopt de klok al voor de timer er is.
+    await page.waitForSelector('.fx-layer.fx-bos', { state: 'attached' });
     // Tel elk dier dat verschijnt (hij blijft maar even, dus achteraf kijken is niet genoeg).
     await page.evaluate(() => {
       window.__dieren = 0;
