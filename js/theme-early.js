@@ -18,6 +18,11 @@
     if (saved && saved.day === day && params.get('dagthema') !== 'uit' && typeof saved.theme === 'string') {
       html.setAttribute('data-theme', saved.theme);
       if (saved.accent) html.setAttribute('data-accent', saved.accent);
+      // Dagverloop: de kleuren van het laatste kwartier, tot ui.js de echte van nu zet.
+      if (saved.vars && typeof saved.vars === 'object') {
+        for (var k in saved.vars) if (/^[a-z0-9-]+$/.test(k)) html.style.setProperty('--' + k, String(saved.vars[k]));
+        if (saved.scheme === 'dark' || saved.scheme === 'light') { html.style.colorScheme = saved.scheme; html.setAttribute('data-scheme', saved.scheme); }
+      }
       return;
     }
   } catch (e) { /* geen opslag: dan wacht de pagina gewoon even op ui.js */ }

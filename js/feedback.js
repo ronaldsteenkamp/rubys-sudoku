@@ -93,10 +93,21 @@ function playGuitar(kind, opts) {
   guitar.play(kind, opts);
 }
 
+// Een 8-bit-deuntje in blokgolven (Game Boy), als het geluid aan staat.
+// `notes`: [[Hz, start (s), duur (s)], …]. Geeft true als het klinkt.
+export function chiptune(notes) {
+  if (enabled.sound === 'uit') return false;
+  try {
+    for (const [freq, at, dur] of notes) tone(freq, { at, dur, gain: 0.028, type: 'square' });
+    return true;
+  } catch { return false; }
+}
+
 // `opts.digit`: welk cijfer het is (bij Gitaar heeft elk cijfer een eigen toon).
+// `opts.sound: false`: alleen trillen (het geluid komt al ergens anders vandaan).
 export function feedback(kind, opts = {}) {
   try {
-    if (enabled.sound === 'zacht') SOUNDS[kind]?.();
+    if (opts.sound === false) { /* stil */ } else if (enabled.sound === 'zacht') SOUNDS[kind]?.();
     else if (enabled.sound === 'gitaar') playGuitar(kind, opts);
   } catch { /* geen geluid, geen probleem */ }
   // 'unlock' en 'preview' zijn alleen geluid; de trilling blijft zoals hij was.

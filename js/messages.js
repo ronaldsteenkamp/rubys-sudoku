@@ -842,13 +842,19 @@ export function wrappedCards(w, level) {
   return cards;
 }
 
-// ---------- Nieuwe thema's (seizoenen) ----------
+// ---------- Nieuwe thema's (vrijgespeeld) ----------
 
 export const THEME_UNLOCK_TEXT = {
   lente: 'Alles gaat weer bloeien. Ik ook, elke keer als ik jou zie 🦋',
   zomer: 'Voor lange avonden, ijsjes op het terras en jouw zonnige humeur 🍦',
   herfst: 'Voor de gezelligste tijd van het jaar, met jou op de bank 🛋️',
   winter: 'Voor koude dagen en warme knuffels. Kruip maar lekker onder de deken 🧣',
+  robijn: 'Tien keer Ruby-modus verslagen! Daar hoort een robijn bij: zeldzaam, stralend en keihard. Net als jij 💎',
+  rubyxcube: 'Zes dagen op rij, voor elke kant van de kubus één. Voor mijn RubyxCube, die ik nooit helemaal uitgepuzzeld raak 🧩',
+  koffiemonster: 'Vijftig puzzels vóór tienen. Het Koffiemonster is wakker ☕ Deze is van mij, met extra melkschuim en een hartje erin 🤎',
+  beachvolleybal: 'Het WK Beachvolleybal is in Nederland! Zand tussen je tenen, zon op je snoet en ik langs de lijn. Dit thema blijft van jou 🏖️',
+  zonnebloem: 'Kwart eeuw aan puzzels, en kijk: er is iets gaan groeien 🌱 Op je startscherm staat nu een zonnebloem. Elke dag dat je puzzelt, groeit hij een stukje. Net als ik, elke dag een beetje meer gek op jou 🌻',
+  gameboy: 'Psst… je hebt het geheime level gevonden! 👾 Press Start, Player 1. (Niet verder vertellen.)',
 };
 
 // ---------- Kleine tekstjes ----------
@@ -871,6 +877,8 @@ export const PAUSE_LINES = [
 export const THEME_EMOJI = {
   zonnig: '☀️', nacht: '🌙', sterren: '⭐', liefde: '❤️', lelie: '🌸', 'gran-canaria': '🌴',
   volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
+  robijn: '💎', rubyxcube: '🧩', koffiemonster: '☕', gitaar: '🎸', beachvolleybal: '🏖️', dagverloop: '🌅',
+  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾',
 };
 
 // Bovenaan de themakiezer als de app vandaag het thema kiest. `name` is het

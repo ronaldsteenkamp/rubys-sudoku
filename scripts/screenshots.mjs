@@ -1,5 +1,6 @@
 // Maakt screenshots van het startscherm en het speelscherm in alle thema's,
-// plus de verjaardag en de hart-onthulling. Handig na een ontwerpwijziging.
+// plus de verjaardag, de hart-onthulling, Dagverloop op vier tijden, de
+// zonnebloem in elk stadium en de effecten bij het oplossen. Handig na een ontwerpwijziging.
 // Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren]   (vereist Playwright + Chromium)
 // Met --themas alleen die thema's (start, spel en hartjespuzzel) plus een overzicht per thema.
 // De plaatjes komen in screenshots/ (staat niet in git), met per scherm een overzicht.
@@ -7,7 +8,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { generate, generateHeart, generateShape, SHAPES } from '../js/generator.js';
-import { THEMES as ALL_THEMES } from '../js/themes.js';
+import { THEMES as ALL_THEMES, LOCKED_THEME_IDS } from '../js/themes.js';
 import { serve } from './static-server.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -65,19 +66,19 @@ async function page({ theme, scheme, viewport = IPHONE13, game = null, query = '
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: scheme, reducedMotion, isMobile: true, hasTouch: true, userAgent: IPHONE_UA });
   // Met ?vandaag= gebruikt de app een aparte testopslag.
   const prefix = query.includes('vandaag=') ? 'rubys-sudoku-test:' : 'rubys-sudoku:';
-  await ctx.addInitScript(({ theme, stats, game, dailyDone, extraStats, prefix }) => {
+  await ctx.addInitScript(({ theme, stats, game, dailyDone, extraStats, prefix, locked }) => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
     const today = new Date();
     const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     localStorage.setItem(prefix + 'settings', JSON.stringify({ theme }));
     const done = dailyDone ? { dailyDone: [key], dailyTimes: { [key]: 372000 } } : {};
-    // Seizoensthema's staan vrij, anders zou het thema terugvallen op zonnig.
-    const seasons = { unlockedThemes: ['lente', 'zomer', 'herfst', 'winter'] };
+    // Alle thema's staan vrij (seizoenen, Robijn, Game Boy…), anders zou het thema terugvallen op zonnig.
+    const seasons = { unlockedThemes: locked };
     localStorage.setItem(prefix + 'stats', JSON.stringify({ ...stats, ...done, ...seasons, ...extraStats, lastSolvedDay: key }));
     localStorage.setItem(prefix + 'unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint']));
     if (game) localStorage.setItem(prefix + 'game', JSON.stringify(game));
-  }, { theme, stats, game, dailyDone, extraStats, prefix });
+  }, { theme, stats, game, dailyDone, extraStats, prefix, locked: LOCKED_THEME_IDS });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.error('paginafout:', e.message));
   await p.goto(base + query);
@@ -133,6 +134,44 @@ for (const [theme, scheme] of THEMES) {
   await p.context().close();
 }
 
+// Dagverloop op vier momenten van de dag (ochtend, middag, avond, nacht), start en spel.
+if (!only || only.includes('dagverloop')) {
+  // 's Nachts om kwart voor elf: nog net vóór de slaapstand (die maakt alles zwart-wit).
+  for (const [name, time] of [['ochtend', '07:30'], ['middag', '13:00'], ['avond', '18:30'], ['nacht', '22:45']]) {
+    let p = await page({ theme: 'dagverloop', scheme: 'light', query: `?vandaag=2027-03-03T${time}`, extraStats: { unlockedThemes: [] } });
+    await p.waitForTimeout(500);
+    await shot(p, `dagverloop-${name}-start`, 'dagverloop');
+    await p.context().close();
+    p = await page({ theme: 'dagverloop', scheme: 'light', game, query: `?vandaag=2027-03-03T${time}` });
+    await openPlay(p, selectCell);
+    await p.waitForTimeout(500);
+    await shot(p, `dagverloop-${name}-spel`, 'dagverloop');
+    await p.context().close();
+  }
+}
+
+// Zonnebloem: de bloem in elk groeistadium (aantal gespeelde dagen).
+if (!only || only.includes('zonnebloem')) {
+  const days = (n) => Array.from({ length: n }, (_, k) => { const d = new Date(2026, 6, 1 + k); return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, 'koffie', 300, 0, 0]; });
+  for (const [stage, n] of [['zaadje', 0], ['kiem', 2], ['steel', 8], ['knop', 20], ['bloem', 35], ['volle-bloem', 50], ['volle-bloem-60', 60]]) {
+    const p = await page({ theme: 'zonnebloem', scheme: 'light', extraStats: { log: days(n) } });
+    await p.locator('.home-head').screenshot({ path: join(out, `zonnebloem-${stage}.png`) });
+    shots.push({ file: `zonnebloem-${stage}.png`, group: 'zonnebloem', name: `${stage} (${n} dagen)` });
+    await p.context().close();
+  }
+}
+
+// Effecten bij het oplossen: het latte-hartje, de kubus halverwege en Game Boy.
+for (const [theme, wait] of [['koffiemonster', 1700], ['rubyxcube', 560], ['gameboy', 700]].filter(([t]) => !only || only.includes(t))) {
+  const a = heartGame(true);
+  const p = await page({ theme, scheme: 'light', game: { ...a.game, special: null, shape: null } });
+  await openPlay(p, a.last);
+  await p.click(`.num[data-d="${heart.solution[a.last]}"]`);
+  await p.waitForTimeout(wait);
+  await shot(p, `opgelost-${theme}`, 'effecten');
+  await p.context().close();
+}
+
 // Minder beweging: het hart moet meteen gekleurd zijn.
 if (!only) {
   const a = heartGame(true);
@@ -144,9 +183,9 @@ if (!only) {
   await p.context().close();
 }
 
-// Thema-kiezer: Winter vrij, Herfst op 2 van 3 (vandaag is het herfst), de rest dicht.
-for (const [theme, scheme] of [['zonnig', 'light'], ['sterren', 'dark'], ['winter', 'light']]) {
-  const p = await page({ theme, scheme, query: '?vandaag=2026-10-21', extraStats: { unlockedThemes: ['winter'], seasonSolves: { 'herfst-2026': 2 } } });
+// Thema-kiezer: Winter vrij, Herfst op 2 van 3 (vandaag is het herfst), Robijn en Game Boy vrij, de rest dicht.
+for (const [theme, scheme] of [['zonnig', 'light'], ['sterren', 'dark'], ['winter', 'light'], ['krijtbord', 'dark']]) {
+  const p = await page({ theme, scheme, query: '?vandaag=2026-10-21', extraStats: { unlockedThemes: ['winter', 'robijn', 'gameboy'], seasonSolves: { 'herfst-2026': 2 }, totalSolved: 18, bestStreak: 4 } });
   await p.click('[data-open="settings-dialog"]');
   await p.waitForTimeout(400);
   await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, `kiezer-${theme}.png`) });
@@ -161,6 +200,7 @@ for (const [theme, scheme] of [['zonnig', 'light'], ['sterren', 'dark'], ['winte
   const p = await page({ theme: 'zonnig', scheme: 'light', query: '?vandaag=2027-01-10', extraStats: { unlockedThemes: [], seasonSolves: {} } });
   await p.click('[data-open="settings-dialog"]');
   await p.waitForTimeout(400);
+  await shot(p, 'kiezer-scherm-niets-vrij', 'kiezer');
   await p.locator('#settings-dialog fieldset').first().screenshot({ path: join(out, 'kiezer-niets-vrij.png') });
   shots.push({ file: 'kiezer-niets-vrij.png', group: 'kiezer', name: 'kiezer-niets-vrij (januari)' });
   await p.context().close();

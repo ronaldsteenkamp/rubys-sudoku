@@ -9,7 +9,7 @@ import { getHint, stageCells } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { FIXED_THEMES, SEASON_THEMES, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, seasonOf, seasonProgress } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -32,10 +32,14 @@ if (testDate) store.useTestStorage();
 
 // ---------- Status ----------
 
+// Wat het toestel wil: donker, of extra contrast (bijvoorbeeld in fel zonlicht).
+const device = () => ({ dark: matchMedia('(prefers-color-scheme: dark)').matches, contrast: matchMedia('(prefers-contrast: more)').matches });
+
 // Instellingen, met het oude 'Automatisch'-thema omgezet naar wat ze nu ziet.
 function loadSettings() {
   const s = store.loadSettings();
-  const theme = migrateThemeSetting(s.theme, matchMedia('(prefers-color-scheme: dark)').matches);
+  const { dark, contrast } = device();
+  const theme = migrateThemeSetting(s.theme, dark, contrast);
   if (theme !== s.theme) { s.theme = theme; store.saveSettings(s); }
   return s;
 }
@@ -47,11 +51,14 @@ let settings = loadSettings();
 // Is de slaapstand nu actief? (automatisch van 23:00 tot 06:00, of altijd aan/uit)
 const sleeping = () => sleepActive(settings.sleep, today());
 
-// Geluid en trillen volgens de instellingen, de slaapstand (half volume, geen
-// trillen) en de herstelpuzzel (Gitaar wordt even Zacht).
+// Geluid en trillen volgens de instellingen, het thema (in Gitaar klinkt de
+// gitaar, tenzij het geluid uit staat; de instelling zelf blijft zoals hij is),
+// de slaapstand (half volume, geen trillen) en de herstelpuzzel (Gitaar wordt even Zacht).
 function applyFeedback() {
   const sleep = sleeping();
-  const sound = recovery && settings.sound === 'gitaar' ? 'zacht' : settings.sound;
+  let sound = settings.sound;
+  if (sound !== 'uit' && shownTheme.theme === 'gitaar') sound = 'gitaar';
+  if (recovery && sound === 'gitaar') sound = 'zacht';
   configureFeedback({ ...settings, sound, haptics: settings.haptics && !sleep }, { volume: sleep ? SLEEP_VOLUME : 1 });
 }
 
@@ -163,15 +170,21 @@ function themePreview(id) {
   const { bg, surface, accent, digit } = themeById(id).swatch;
   return `<span class="tp" style="--tp-bg:${bg};--tp-surface:${surface};--tp-accent:${accent};--tp-digit:${digit}"><b>7</b><em></em></span>`;
 }
-// Briefje: wat Ruby zelf invult staat er in zijn handschrift (hand/*.svg, zie style.css).
+// Briefje: zijn handschrift ook in het logo, de hartjes en "Goed zo!" (hand/*.svg, zie style.css).
 const handwritten = () => document.documentElement.dataset.theme === 'briefje';
+// Cijfers als plaatje: in Briefje en Krijtbord staat wat Ruby zelf invult er
+// met de hand (de gegeven cijfers blijven strak), in Game Boy zijn alle cijfers pixels.
+function glyphs() {
+  const t = document.documentElement.dataset.theme;
+  return t === 'gameboy' ? 'pixel' : t === 'briefje' || t === 'krijtbord' ? 'hand' : null;
+}
 
 // Het thema van nu: op een dagthema-dag kiest de app (zie themeForDay in
 // themes.js), anders haar eigen keuze. settings.theme verandert daarbij nooit.
 // Met ?dagthema=uit (om te testen, bijv. voor screenshots per thema) geldt altijd haar eigen keuze.
 const dayThemesOff = params.get('dagthema') === 'uit';
 function currentTheme(now = today()) {
-  if (dayThemesOff) return { theme: resolveTheme(settings.theme, now, stats.unlockedThemes), accent: null, own: true };
+  if (dayThemesOff) return { theme: resolveTheme(settings.theme, now, stats.unlockedThemes, device()), accent: null, own: true };
   return themeToday(settings.theme, now, { unlocked: stats.unlockedThemes, unlockDates: stats.themeUnlockDates, matches: MATCHES, specials: M.specialKindsOn(now) });
 }
 let shownTheme = currentTheme();
@@ -189,8 +202,51 @@ function applyTheme() {
   store.saveThemeToday(dayKey(now), t, accent);
   // Licht of donker: de kleuren van de figuurpuzzels (zie .board[data-color]) volgen dat.
   document.documentElement.dataset.scheme = themeById(t).scheme;
+  updateThemeColor();
+  loadFx(themeById(t).fx || null);
+  applyFeedback();
+}
+
+// De kleur van de balken boven en onder het scherm.
+function updateThemeColor() {
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   document.querySelector('meta[name="theme-color"]').setAttribute('content', bg || '#fff8e7');
+}
+
+// ---------- Thema-effecten (js/fx/*.js) ----------
+
+// Een thema met iets bijzonders (de klok van Dagverloop, de zonnebloem, het
+// latte-hartje, de kubus, het 8-bit-deuntje) heeft een eigen module, die pas
+// geladen wordt als dat thema te zien is. Een module kan hebben:
+//   start(ctx) / stop()   thema aan of uit
+//   home(ctx)             het startscherm is (opnieuw) getekend
+//   solved(ctx)           puzzel opgelost; geeft { sound: true } als hij zelf geluid maakte
+let fx = null, fxName = null;
+const fxCtx = {
+  now: () => today(),
+  stats: () => stats,
+  toast: (text, ms) => toast(text, ms),
+  get board() { return $('#board'); },
+  get reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; },
+  // Dagverloop heeft nieuwe kleuren gezet.
+  changed({ scheme, vars }) {
+    store.saveThemeToday(dayKey(today()), shownTheme.theme, shownTheme.accent, { vars, scheme });
+    updateThemeColor();
+  },
+};
+
+function loadFx(name) {
+  if (name === fxName) { fx?.start?.(fxCtx); return; }
+  fx?.stop?.();
+  fx = null;
+  fxName = name;
+  if (!name) return;
+  import(`./fx/${name}.js`).then((m) => {
+    if (fxName !== name) return; // intussen een ander thema
+    fx = m;
+    m.start?.(fxCtx);
+    if (!$('#home').hidden) m.home?.(fxCtx);
+  }).catch((e) => store.logError(`fx ${name}: ${e.message}`));
 }
 
 // ---------- Puzzels ophalen (Web Worker, met vangnet op de hoofdthread) ----------
@@ -405,6 +461,7 @@ function renderHome() {
   renderMatch(matchNow, special);
   renderInstall();
   renderUpdate();
+  fx?.home?.(fxCtx);
 
   // Dagpuzzel
   const key = dateKey(now);
@@ -604,6 +661,7 @@ function buildBoard() {
     b.type = 'button';
     b.className = 'cell';
     b.dataset.i = i;
+    b.dataset.b = Math.floor(rowOf(i) / 3) * 3 + Math.floor(colOf(i) / 3); // het blok (RubyxCube kleurt per blok)
     b.tabIndex = -1;
     b.style.setProperty('--rd', 8 - rowOf(i)); // voor de hart-onthulling
     board.append(b);
@@ -641,7 +699,7 @@ function buildBoard() {
     b.type = 'button';
     b.className = 'num';
     b.dataset.d = d;
-    b.innerHTML = `${d}<small></small>`;
+    b.innerHTML = `<span class="nd d${d}">${d}</span><small></small>`;
     b.addEventListener('click', () => inputDigit(d));
     pad.append(b);
   }
@@ -701,7 +759,7 @@ function render() {
   const strike = new Map();
   if (stage?.strike) for (const { cell, digit } of stage.strike) strike.set(cell, (strike.get(cell) || 0) | bit(digit));
   const showWrong = settings.errors === 'direct';
-  const hand = handwritten();
+  const glyph = glyphs();
   const shape = game.shape ? SHAPE_CELLS[game.shape] : null;
 
   const cells = $('#board').children;
@@ -710,7 +768,9 @@ function render() {
     const given = game.isGiven(i);
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
-    if (v) cls.push(given ? 'given' : 'user', ...(hand && !given ? ['hand'] : []));
+    // Met de hand alleen wat zij invult; pixels voor alle cijfers.
+    const g = v && (glyph === 'pixel' || (glyph === 'hand' && !given)) ? glyph : null;
+    if (v) cls.push(given ? 'given' : 'user', ...(g ? [g] : []));
     // Een figuur met accenten (pijl, lint, naden…) tekent die in de donkerdere tint; anders de omtrek.
     if (shape?.mask[i]) {
       cls.push('in-shape', ...(given ? ['shape-given'] : []));
@@ -725,7 +785,7 @@ function render() {
     if (i === popCell) cls.push('pop');
 
     let html = '';
-    if (v) html = hand && !given ? `<span class="v hand d${v}"></span>` : `<span class="v">${v}</span>`;
+    if (v) html = g === 'hand' ? `<span class="v hand d${v}"></span>` : g ? `<span class="v ${g} d${v}">${v}</span>` : `<span class="v">${v}</span>`;
     else if (game.notes[i]) {
       html = '<span class="notes">';
       for (let d = 1; d <= 9; d++) {
@@ -943,7 +1003,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') saveGame();
   // Een app op het beginscherm blijft vaak dagen open. Is het intussen een
   // nieuwe dag (of een ander dagdeel), dan het startscherm opnieuw tekenen.
-  else if (!$('#home').hidden && momentOf(today()) !== homeMoment) { applyTheme(); renderHome(); }
+  else if (!$('#home').hidden && momentOf(today()) !== homeMoment) { applyTheme(); renderHome(); checkOpeningUnlocks(); }
 });
 window.addEventListener('pagehide', saveGame);
 
@@ -1072,12 +1132,10 @@ function onSolved() {
   const match = g.match ? { date: g.match, kind: g.matchKind } : null;
   const { previousBest, firstOnLevel, counted } = store.recordSolve(stats, { levelId: g.levelId, elapsed: g.elapsed, hints: g.hints, daily: g.daily, special: g.special, started, match, hour: today().getHours() }, day);
   // Seizoensthema's: elke meegetelde puzzel telt voor het seizoen van vandaag.
-  let freshThemes = [];
-  if (counted) {
-    recordSeasonSolve(stats, today());
-    freshThemes = checkThemeUnlocks(stats, today());
-  }
-  // Vrijgespeeld: vandaag meteen dat seizoen (een dagthema, zie themeForDay).
+  if (counted) recordSeasonSolve(stats, today());
+  // Komt er een thema vrij (seizoen, aantal puzzels, reeks, Ruby-modus, vóór tienen…)?
+  const freshThemes = checkThemeUnlocks(stats, today());
+  // Vrijgespeeld seizoen: vandaag meteen dat seizoen (een dagthema, zie themeForDay).
   if (freshThemes.length) applyTheme();
   // Pas de puzzel opruimen als de statistieken echt bewaard zijn; anders staat
   // hij er na een herstart nog en telt hij alsnog mee.
@@ -1087,7 +1145,9 @@ function onSolved() {
   unlocked = [...unlocked, ...fresh.map((m) => m.id)];
   store.saveUnlocked(unlocked);
 
-  feedback('solved');
+  // Het thema kan iets eigens doen (latte-hartje, kubus, 8-bit-deuntje).
+  const own = fx?.solved?.(fxCtx);
+  feedback('solved', { sound: !own?.sound });
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const board = $('#board');
   if (g.shape && SHAPE_CELLS[g.shape]) {
@@ -1167,9 +1227,10 @@ function onSolved() {
   }, reduce ? 200 : g.shape ? 2050 : 1900);
 }
 
-// Een nieuw seizoensthema is vrij: vragen of ze het meteen wil proberen.
+// Een nieuw thema is vrij: vragen of ze het meteen wil proberen.
 async function offerTheme(id) {
   const t = themeById(id);
+  feedback('unlock');
   const yes = await confirmDialog(`Nieuw thema: ${t.name} ${t.emoji}`, M.THEME_UNLOCK_TEXT[id], 'Probeer maar!', 'Later', t.icon);
   if (!yes) return;
   settings.theme = id;
@@ -1178,6 +1239,23 @@ async function offerTheme(id) {
   renderHome();
   render();
 }
+
+// Thema's die vrijkomen door alleen de app te openen (een datumvenster, zoals
+// het WK Beachvolleybal). Bij het opstarten en bij terugkomen in de app.
+async function checkOpeningUnlocks() {
+  const fresh = checkThemeUnlocks(stats, today(), { opening: true });
+  if (!fresh.length) return;
+  saved(store.saveStats(stats));
+  for (const id of fresh) await offerTheme(id);
+}
+
+// Het geheime thema: 8 keer snel op het logo tikken.
+const logoTap = tapCounter();
+$('.brand').addEventListener('click', () => {
+  if (!logoTap(performance.now()) || !unlockTheme(stats, 'gameboy', today())) return;
+  saved(store.saveStats(stats));
+  offerTheme('gameboy');
+});
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
 $('#solved-again-small').addEventListener('click', () => $('#solved-dialog').close('again'));
@@ -1261,14 +1339,9 @@ function themeChoice({ id, name, previews, hint = '' }) {
         <span class="theme-name">${escapeHtml(name)}</span>${hint ? `<small class="theme-hint">${escapeHtml(hint)}</small>` : ''}</span></label>`;
 }
 
-// Een nog vergrendeld seizoen: wel te zien en te focussen, niet te kiezen.
-function lockedSeason(t) {
-  const now = seasonOf(today()).season === t.season;
-  const { current, target } = seasonProgress(stats, today());
-  const left = Math.max(1, target - current);
-  const hint = now
-    ? `Nog ${left} ${left === 1 ? 'puzzel' : 'puzzels'} deze ${t.name.toLowerCase()}`
-    : `Los ${target} puzzels op ${t.when} ${t.emoji}`;
+// Een nog vergrendeld thema: wel te zien en te focussen, niet te kiezen.
+function lockedTheme(t) {
+  const hint = unlockHint(t, stats, today());
   return `<button type="button" class="theme-opt locked" aria-disabled="true" aria-label="${escapeHtml(`${t.name}, nog op slot. ${hint}`)}">
       <span class="theme-card"><i class="theme-preview" aria-hidden="true">${themePreview(t.id)}</i>
         <span class="theme-name">${escapeHtml(t.name)}</span><small class="theme-hint" aria-hidden="true">${escapeHtml(hint)}</small></span></button>`;
@@ -1287,14 +1360,18 @@ function renderSettings() {
   const note = $('#day-theme-note');
   note.hidden = shownTheme.own;
   note.textContent = shownTheme.own ? '' : M.dayThemeLine(today(), dayThemeInfo());
-  $('#theme-options').innerHTML = FIXED_THEMES.map((t) => themeChoice({ ...t, previews: [t.id] })).join('');
+  // Per groepje een rij voorproefjes. Een geheim thema staat er pas als het vrij is.
   const own = stats.unlockedThemes;
   const seasonNow = resolveTheme('seizoen', today(), own);
-  $('#season-options').innerHTML = [
+  $('#theme-picker').innerHTML = THEME_GROUPS.map((g) => {
+    const items = THEMES.filter((t) => t.group === g.id && !(t.unlock?.secret && !own.includes(t.id)))
+      .map((t) => (!t.unlock || own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedTheme(t)));
     // 'Seizoen (automatisch)' pas zodra er minstens één seizoen vrij is.
-    own.length ? themeChoice({ ...SEASON_AUTO, previews: [seasonNow], hint: 'automatisch' }) : '',
-    ...SEASON_THEMES.map((t) => (own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedSeason(t))),
-  ].join('');
+    if (g.id === 'seizoen' && THEMES.some((t) => t.season && own.includes(t.id))) items.unshift(themeChoice({ ...SEASON_AUTO, previews: [seasonNow], hint: 'automatisch' }));
+    if (!items.length) return '';
+    return `<h3 class="theme-group-title" id="theme-group-${g.id}">${escapeHtml(g.name)}</h3>
+      <div id="theme-options-${g.id}" class="theme-options" role="radiogroup" aria-labelledby="theme-group-${g.id}">${items.join('')}</div>`;
+  }).join('');
   for (const r of document.querySelectorAll('input[name="errors"]')) r.checked = r.value === settings.errors;
   explainErrors();
   for (const r of document.querySelectorAll('input[name="sound"]')) r.checked = r.value === settings.sound;
@@ -1324,6 +1401,8 @@ $('#settings-dialog').addEventListener('change', (e) => {
   if (name === 'errors') { checkMarks = new Set(); explainErrors(); }
   // Even laten horen hoe het klinkt: bij Gitaar een kort akkoord.
   if (name === 'sound') feedback(value === 'gitaar' ? 'preview' : 'place');
+  // Het thema Gitaar speelt ook meteen een akkoord: dan hoort ze dat de gitaar meedoet.
+  if (name === 'theme' && shownTheme.theme === 'gitaar' && settings.sound !== 'uit') feedback('preview');
   renderTimer();
   render();
 });
@@ -1939,6 +2018,7 @@ buildBoard();
 renderHome();
 showScreen('home');
 if (stats.totalSolved > 0) requestPersist();
+checkOpeningUnlocks();
 
 const idle = globalThis.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
 idle(() => fillStash());

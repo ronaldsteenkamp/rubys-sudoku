@@ -279,3 +279,121 @@ test('dagthema: Volleybal met elk ander accent blijft leesbaar (4.5:1)', () => {
   }
   assert.deepEqual(fails, []);
 });
+
+// ---------- Nieuwe thema's met iets bijzonders ----------
+
+// Alle controles van hierboven voor één set kleuren (een kwartier van Dagverloop, een blok van RubyxCube).
+async function colourFails(label, v, scheme, min = 4.5) {
+  const { sleepColor } = await import('../js/sleep.js');
+  const fails = [];
+  for (const [pairs, need] of [[PAIRS, min], [CALENDAR_TEXT, min], [CALENDAR_SHAPES, 3]]) {
+    for (const [fg, bg] of pairs) {
+      const c = contrast(v[fg], v[bg]);
+      if (!(c >= need)) fails.push(`${label}: --${fg} op --${bg} = ${c.toFixed(2)} (nodig ${need})`);
+    }
+  }
+  for (const [fg, bg] of [...PAIRS, ...CALENDAR_TEXT]) {
+    const c = contrast(sleepColor(v[fg]), sleepColor(v[bg]));
+    if (!(c >= (fg === 'accent-ink' ? 3.5 : 4.5))) fails.push(`${label} (slaapstand): --${fg} op --${bg} = ${c.toFixed(2)}`);
+  }
+  const keys = ['sel', 'peer', 'same', 'wrong-bg', 'heart-fill'];
+  for (let a = 0; a < keys.length; a++) {
+    for (let b = a + 1; b < keys.length; b++) {
+      if ([keys[a], keys[b]].includes('same') && v['same-ring'] !== 'transparent') continue;
+      const d = deltaE(v[keys[a]], v[keys[b]]);
+      if (d < 8) fails.push(`${label}: --${keys[a]} en --${keys[b]} lijken te veel op elkaar (ΔE ${d.toFixed(1)})`);
+    }
+  }
+  const fam = scheme === 'dark' ? FAMILY_DARK : FAMILY_LIGHT;
+  for (const f of FAMILIES) for (const k of ['fill', 'edge']) if (!(contrast(v.user, fam[`${f}-${k}`]) >= 4.5)) fails.push(`${label}: --user op ${f}-${k}`);
+  return fails;
+}
+
+test('Dagverloop: op elk kwartier van de dag klopt het contrast en is alles te onderscheiden', async () => {
+  const { dagverloopAt } = await import('../js/fx/dagverloop.js');
+  const needed = Object.keys(vars.zonnig);
+  const fails = [];
+  for (let q = 0; q < 96; q++) {
+    const date = new Date(2027, 2, 3, Math.floor(q / 4), (q % 4) * 15);
+    const { scheme, vars: v } = dagverloopAt(date);
+    const label = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+    const missing = needed.filter((k) => !(k in v));
+    if (missing.length) fails.push(`${label} mist ${missing.join(', ')}`);
+    fails.push(...await colourFails(`dagverloop ${label}`, v, scheme));
+  }
+  assert.deepEqual(fails, []);
+});
+
+test('Dagverloop: ochtendroze, middagblauw, avondoranje en nachtpaars, licht of donker volgt het uur', async () => {
+  const { dagverloopAt, PALETTES } = await import('../js/fx/dagverloop.js');
+  const at = (h, m = 0) => dagverloopAt(new Date(2027, 2, 3, h, m));
+  const hue = (hex) => { const [r, g, b] = rgb(hex).map((c) => c / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b), dd = mx - mn;
+    const h = mx === r ? ((g - b) / dd) % 6 : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4; return (h * 60 + 360) % 360; };
+  assert.equal(at(7).scheme, 'light'); assert.ok(hue(at(7).vars.accent) > 300, 'ochtend: roze');
+  assert.equal(at(13).scheme, 'light'); assert.ok(hue(at(13).vars.accent) > 190 && hue(at(13).vars.accent) < 230, 'middag: blauw');
+  assert.equal(at(18).scheme, 'light'); assert.ok(hue(at(18).vars.accent) > 15 && hue(at(18).vars.accent) < 40, 'avond: oranje');
+  assert.equal(at(2).scheme, 'dark'); assert.ok(hue(at(2).vars.accent) > 250 && hue(at(2).vars.accent) < 290, 'nacht: paars');
+  assert.equal(at(5, 45).scheme, 'dark'); assert.equal(at(6).scheme, 'light');
+  assert.equal(at(20, 45).scheme, 'light'); assert.equal(at(21).scheme, 'dark');
+  // Binnen een kwartier verandert er niets; de middag is precies het CSS-blok (en het voorproefje).
+  assert.deepEqual(dagverloopAt(new Date(2027, 2, 3, 13, 1)), dagverloopAt(new Date(2027, 2, 3, 13, 14)));
+  for (const [k, v] of Object.entries(PALETTES.middag)) if (k !== 'scheme') assert.equal(vars.dagverloop[k], v, `middag --${k}`);
+  // Vloeiend: binnen licht of donker schuift de achtergrond per kwartier maar een klein beetje op.
+  for (let q = 1; q < 96; q++) {
+    const a = dagverloopAt(new Date(2027, 2, 3, Math.floor((q - 1) / 4), ((q - 1) % 4) * 15));
+    const b = dagverloopAt(new Date(2027, 2, 3, Math.floor(q / 4), (q % 4) * 15));
+    if (a.scheme === b.scheme) assert.ok(deltaE(a.vars.bg, b.vars.bg) < 6, `kwartier ${q}: ΔE ${deltaE(a.vars.bg, b.vars.bg).toFixed(1)}`);
+  }
+});
+
+// RubyxCube: per blok een eigen kleur. Elk blok apart doorrekenen.
+const cubeBlocks = [...css.matchAll(/\[data-theme="rubyxcube"\] \.cell\[data-b="(\d)"\]\s*\{([^}]*)\}/g)]
+  .map(([, b, body]) => [Number(b), Object.fromEntries([...body.matchAll(/--([\w-]+):\s*([^;]+);/g)].map(([, k, v]) => [k, v.trim()]))]);
+
+test('RubyxCube: negen blokken, buren hebben een andere kleur, alle zes de kleuren doen mee', () => {
+  assert.deepEqual(cubeBlocks.map(([b]) => b), [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  const colour = (b) => cubeBlocks[b][1].surface;
+  assert.equal(new Set(cubeBlocks.map(([b]) => colour(b))).size, 6);
+  for (let b = 0; b < 9; b++) {
+    if (b % 3 < 2) assert.notEqual(colour(b), colour(b + 1), `blok ${b} en ${b + 1}`);
+    if (b < 6) assert.notEqual(colour(b), colour(b + 3), `blok ${b} en ${b + 3}`);
+  }
+});
+
+test('RubyxCube: in elk blok klopt het contrast en zijn selectie, buren en fouten te zien', async () => {
+  const fails = [];
+  for (const [b, block] of cubeBlocks) fails.push(...await colourFails(`rubyxcube blok ${b}`, { ...vars.rubyxcube, ...block }, 'light'));
+  assert.deepEqual(fails, []);
+});
+
+test('Hoog contrast: alle tekst en cijfers minstens 7:1', async () => {
+  assert.deepEqual(await colourFails('hoog-contrast', vars['hoog-contrast'], 'light', 7), []);
+  assert.ok(/\[data-theme="hoog-contrast"\] \.cell\.selected \{ box-shadow: inset 0 0 0 4px/.test(css), 'selectie ook als rand, niet alleen kleur');
+});
+
+test("'auto' kiest Hoog contrast als het toestel om meer contrast vraagt", () => {
+  assert.equal(migrateThemeSetting('auto', false, true), 'hoog-contrast');
+  assert.equal(migrateThemeSetting('auto', true, true), 'hoog-contrast');
+  assert.equal(migrateThemeSetting('auto', true, false), 'nacht');
+  assert.equal(migrateThemeSetting('lelie', false, true), 'lelie', 'een eigen keuze blijft');
+  assert.equal(resolveTheme('auto', d(2026, 10, 21), [], { contrast: true }), 'hoog-contrast');
+  assert.equal(resolveTheme('auto', d(2026, 10, 21), [], { dark: true }), 'nacht');
+  assert.equal(resolveTheme('auto', d(2026, 10, 21), []), 'zonnig');
+});
+
+test('de kiezer: volgorde en groepjes', async () => {
+  const { THEME_GROUPS } = await import('../js/themes.js');
+  assert.deepEqual(THEMES.map((t) => t.id), ['zonnig', 'nacht', 'sterren', 'liefde', 'lelie', 'gran-canaria', 'volleybal', 'briefje',
+    'robijn', 'rubyxcube', 'koffiemonster', 'gitaar', 'beachvolleybal', 'dagverloop', 'krant', 'krijtbord', 'zonnebloem', 'hoog-contrast',
+    'lente', 'zomer', 'herfst', 'winter', 'gameboy']);
+  for (const t of THEMES) assert.ok(THEME_GROUPS.some((g) => g.id === t.group), t.id);
+  assert.equal(THEMES.filter((t) => t.group === 'seizoen').every((t) => t.season), true);
+  assert.deepEqual(THEMES.filter((t) => t.group === 'geheim').map((t) => t.id), ['gameboy']);
+});
+
+test('Game Boy: alleen de vier groentinten', () => {
+  const four = ['#081820', '#346856', '#88c070', '#e0f8d0'];
+  for (const [k, v] of Object.entries(vars.gameboy)) {
+    for (const hex of v.match(/#[0-9a-f]{6}/g) || []) assert.ok(four.includes(hex), `--${k}: ${hex}`);
+  }
+});

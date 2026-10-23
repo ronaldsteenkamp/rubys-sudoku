@@ -448,6 +448,408 @@
   color-scheme: light;
 }
 
+/* ---------- Nieuwe thema's ---------- */
+
+/* Robijn: diep robijnrood met geslepen facetten. */
+[data-theme="robijn"] {
+  --bg: #1c0610;
+  --bg-2: #3a0b1f;
+  --surface: #2a0a17;
+  --surface-2: #3a1122;
+  --ink: #fdebf0;
+  --ink-soft: #e8bccb;
+  --line: #4d1a2c;
+  --line-strong: #c0506f;
+  --accent: #ff4f7e;
+  --accent-strong: #ff7a9c;
+  --accent-ink: #2a0612;
+  --accent-soft: #4f1328;
+  --user: #ffa3bd;
+  --given: #fdebf0;
+  --sel: #ff6b92;
+  --sel-ink: #2a0612;
+  --peer: #3c1022;
+  --same: #5c1a36;
+  --same-ring: color-mix(in srgb, #ff6b92 65%, transparent);
+  --hint: #ffb070;
+  --wrong: #ffc58a;
+  --wrong-bg: #4d2a0a;
+  --heart: #ff8fb1;
+  --heart-fill: #3d1a4a;
+  --heart-edge: #55245f;
+  --heart-ink: #f4d0ff;
+  --heart-solved: #c43450;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(40 0 12 / 50%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='208'%3E%3Cpolygon points='-30 0 0 -52 30 0' fill='%23ffffff' fill-opacity='0.015'/%3E%3Cpolygon points='0 -52 60 -52 30 0' fill='%23ff7aa0' fill-opacity='0.032'/%3E%3Cpolygon points='30 0 60 -52 90 0' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='60 -52 120 -52 90 0' fill='%23ffffff' fill-opacity='0.035'/%3E%3Cpolygon points='90 0 120 -52 150 0' fill='%23ffffff' fill-opacity='0.060'/%3E%3Cpolygon points='120 -52 180 -52 150 0' fill='%23ffffff' fill-opacity='0.056'/%3E%3Cpolygon points='150 0 180 -52 210 0' fill='%23ff7aa0' fill-opacity='0.064'/%3E%3Cpolygon points='180 -52 240 -52 210 0' fill='%23ffffff' fill-opacity='0.037'/%3E%3Cpolygon points='210 0 240 -52 270 0' fill='%23ff7aa0' fill-opacity='0.057'/%3E%3Cpolygon points='240 -52 300 -52 270 0' fill='%23ffffff' fill-opacity='0.056'/%3E%3Cpolygon points='270 0 300 -52 330 0' fill='%23ffffff' fill-opacity='0.070'/%3E%3Cpolygon points='300 -52 360 -52 330 0' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='330 0 360 -52 390 0' fill='%23ffffff' fill-opacity='0.070'/%3E%3Cpolygon points='360 -52 420 -52 390 0' fill='%23ffffff' fill-opacity='0.054'/%3E%3Cpolygon points='-60 52 -30 0 0 52' fill='%23ffffff' fill-opacity='0.070'/%3E%3Cpolygon points='-30 0 30 0 0 52' fill='%23ff7aa0' fill-opacity='0.037'/%3E%3Cpolygon points='0 52 30 0 60 52' fill='%23ff7aa0' fill-opacity='0.065'/%3E%3Cpolygon points='30 0 90 0 60 52' fill='%23ff7aa0' fill-opacity='0.024'/%3E%3Cpolygon points='60 52 90 0 120 52' fill='%23ff7aa0' fill-opacity='0.041'/%3E%3Cpolygon points='90 0 150 0 120 52' fill='%23ffffff' fill-opacity='0.071'/%3E%3Cpolygon points='120 52 150 0 180 52' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='150 0 210 0 180 52' fill='%23ff7aa0' fill-opacity='0.019'/%3E%3Cpolygon points='180 52 210 0 240 52' fill='%23ffffff' fill-opacity='0.049'/%3E%3Cpolygon points='210 0 270 0 240 52' fill='%23ff7aa0' fill-opacity='0.040'/%3E%3Cpolygon points='240 52 270 0 300 52' fill='%23ff7aa0' fill-opacity='0.070'/%3E%3Cpolygon points='270 0 330 0 300 52' fill='%23ff7aa0' fill-opacity='0.037'/%3E%3Cpolygon points='300 52 330 0 360 52' fill='%23ffffff' fill-opacity='0.055'/%3E%3Cpolygon points='330 0 390 0 360 52' fill='%23ff7aa0' fill-opacity='0.046'/%3E%3Cpolygon points='-30 104 0 52 30 104' fill='%23ff7aa0' fill-opacity='0.039'/%3E%3Cpolygon points='0 52 60 52 30 104' fill='%23ffffff' fill-opacity='0.037'/%3E%3Cpolygon points='30 104 60 52 90 104' fill='%23ffffff' fill-opacity='0.035'/%3E%3Cpolygon points='60 52 120 52 90 104' fill='%23ff7aa0' fill-opacity='0.052'/%3E%3Cpolygon points='90 104 120 52 150 104' fill='%23ffffff' fill-opacity='0.069'/%3E%3Cpolygon points='120 52 180 52 150 104' fill='%23ffffff' fill-opacity='0.067'/%3E%3Cpolygon points='150 104 180 52 210 104' fill='%23ffffff' fill-opacity='0.053'/%3E%3Cpolygon points='180 52 240 52 210 104' fill='%23ffffff' fill-opacity='0.045'/%3E%3Cpolygon points='210 104 240 52 270 104' fill='%23ffffff' fill-opacity='0.071'/%3E%3Cpolygon points='240 52 300 52 270 104' fill='%23ff7aa0' fill-opacity='0.057'/%3E%3Cpolygon points='270 104 300 52 330 104' fill='%23ffffff' fill-opacity='0.050'/%3E%3Cpolygon points='300 52 360 52 330 104' fill='%23ffffff' fill-opacity='0.035'/%3E%3Cpolygon points='330 104 360 52 390 104' fill='%23ffffff' fill-opacity='0.063'/%3E%3Cpolygon points='360 52 420 52 390 104' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='-60 156 -30 104 0 156' fill='%23ffffff' fill-opacity='0.020'/%3E%3Cpolygon points='-30 104 30 104 0 156' fill='%23ff7aa0' fill-opacity='0.024'/%3E%3Cpolygon points='0 156 30 104 60 156' fill='%23ff7aa0' fill-opacity='0.075'/%3E%3Cpolygon points='30 104 90 104 60 156' fill='%23ff7aa0' fill-opacity='0.053'/%3E%3Cpolygon points='60 156 90 104 120 156' fill='%23ffffff' fill-opacity='0.042'/%3E%3Cpolygon points='90 104 150 104 120 156' fill='%23ffffff' fill-opacity='0.023'/%3E%3Cpolygon points='120 156 150 104 180 156' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='150 104 210 104 180 156' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='180 156 210 104 240 156' fill='%23ff7aa0' fill-opacity='0.061'/%3E%3Cpolygon points='210 104 270 104 240 156' fill='%23ff7aa0' fill-opacity='0.016'/%3E%3Cpolygon points='240 156 270 104 300 156' fill='%23ff7aa0' fill-opacity='0.020'/%3E%3Cpolygon points='270 104 330 104 300 156' fill='%23ff7aa0' fill-opacity='0.052'/%3E%3Cpolygon points='300 156 330 104 360 156' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='330 104 390 104 360 156' fill='%23ff7aa0' fill-opacity='0.056'/%3E%3Cpolygon points='-30 208 0 156 30 208' fill='%23ff7aa0' fill-opacity='0.068'/%3E%3Cpolygon points='0 156 60 156 30 208' fill='%23ffffff' fill-opacity='0.037'/%3E%3Cpolygon points='30 208 60 156 90 208' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='60 156 120 156 90 208' fill='%23ffffff' fill-opacity='0.015'/%3E%3Cpolygon points='90 208 120 156 150 208' fill='%23ffffff' fill-opacity='0.053'/%3E%3Cpolygon points='120 156 180 156 150 208' fill='%23ffffff' fill-opacity='0.016'/%3E%3Cpolygon points='150 208 180 156 210 208' fill='%23ffffff' fill-opacity='0.026'/%3E%3Cpolygon points='180 156 240 156 210 208' fill='%23ffffff' fill-opacity='0.049'/%3E%3Cpolygon points='210 208 240 156 270 208' fill='%23ff7aa0' fill-opacity='0.031'/%3E%3Cpolygon points='240 156 300 156 270 208' fill='%23ffffff' fill-opacity='0.028'/%3E%3Cpolygon points='270 208 300 156 330 208' fill='%23ffffff' fill-opacity='0.018'/%3E%3Cpolygon points='300 156 360 156 330 208' fill='%23ffffff' fill-opacity='0.057'/%3E%3Cpolygon points='330 208 360 156 390 208' fill='%23ff7aa0' fill-opacity='0.045'/%3E%3Cpolygon points='360 156 420 156 390 208' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='-60 260 -30 208 0 260' fill='%23ffffff' fill-opacity='0.023'/%3E%3Cpolygon points='-30 208 30 208 0 260' fill='%23ff7aa0' fill-opacity='0.069'/%3E%3Cpolygon points='0 260 30 208 60 260' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='30 208 90 208 60 260' fill='%23ffffff' fill-opacity='0.075'/%3E%3Cpolygon points='60 260 90 208 120 260' fill='%23ffffff' fill-opacity='0.061'/%3E%3Cpolygon points='90 208 150 208 120 260' fill='%23ffffff' fill-opacity='0.030'/%3E%3Cpolygon points='120 260 150 208 180 260' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='150 208 210 208 180 260' fill='%23ffffff' fill-opacity='0.029'/%3E%3Cpolygon points='180 260 210 208 240 260' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='210 208 270 208 240 260' fill='%23ffffff' fill-opacity='0.036'/%3E%3Cpolygon points='240 260 270 208 300 260' fill='%23ff7aa0' fill-opacity='0.059'/%3E%3Cpolygon points='270 208 330 208 300 260' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='300 260 330 208 360 260' fill='%23ff7aa0' fill-opacity='0.027'/%3E%3Cpolygon points='330 208 390 208 360 260' fill='%23ffffff' fill-opacity='0.074'/%3E%3C/svg%3E") 0 0 / 240px 208px repeat, radial-gradient(90% 50% at 85% 0%, rgb(255 79 126 / 18%), transparent 70%) no-repeat;
+  color-scheme: dark;
+}
+
+/* RubyxCube: elk blok een eigen zachte kubuskleur (zie .cell[data-b] verderop). */
+[data-theme="rubyxcube"] {
+  --bg: #f2f3f7;
+  --bg-2: #e3e6ee;
+  --surface: #ffffff;
+  --surface-2: #eef0f5;
+  --ink: #1b1d2a;
+  --ink-soft: #454859;
+  --line: #d3d6df;
+  --line-strong: #1b1d2a;
+  --accent: #ffcf1f;
+  --accent-strong: #1e5bd6;
+  --accent-ink: #1b1d2a;
+  --accent-soft: #fff1b3;
+  --user: #1f48b0;
+  --given: #1b1d2a;
+  --sel: #1b1d2a;
+  --sel-ink: #ffffff;
+  --peer: #eceef4;
+  --same: #dfe2ea;
+  --same-ring: #1b1d2a;
+  --hint: #f2711c;
+  --wrong: #ffffff;
+  --wrong-bg: #c8174f;
+  --heart: #d0336a;
+  --heart-fill: #f6dcf3;
+  --heart-edge: #efc6eb;
+  --heart-ink: #7d1650;
+  --heart-solved: #b8204f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(27 29 42 / 8%), 0 8px 24px rgb(27 29 42 / 9%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Crect x='14' y='18' width='16' height='16' rx='3.5' fill='%23e8322d' fill-opacity='0.13' transform='rotate(-7 22 26)'/%3E%3Crect x='92' y='40' width='16' height='16' rx='3.5' fill='%23ffcf1f' fill-opacity='0.13' transform='rotate(-1 100 48)'/%3E%3Crect x='160' y='12' width='16' height='16' rx='3.5' fill='%231e5bd6' fill-opacity='0.13' transform='rotate(-5 168 20)'/%3E%3Crect x='40' y='96' width='16' height='16' rx='3.5' fill='%232aa54a' fill-opacity='0.13' transform='rotate(-5 48 104)'/%3E%3Crect x='128' y='110' width='16' height='16' rx='3.5' fill='%23ff8a1c' fill-opacity='0.13' transform='rotate(11 136 118)'/%3E%3Crect x='186' y='84' width='16' height='16' rx='3.5' fill='%23c9ccd6' fill-opacity='0.13' transform='rotate(-3 194 92)'/%3E%3Crect x='70' y='160' width='16' height='16' rx='3.5' fill='%231e5bd6' fill-opacity='0.13' transform='rotate(-5 78 168)'/%3E%3Crect x='150' y='170' width='16' height='16' rx='3.5' fill='%23e8322d' fill-opacity='0.13' transform='rotate(-15 158 178)'/%3E%3Crect x='12' y='190' width='16' height='16' rx='3.5' fill='%23ff8a1c' fill-opacity='0.13' transform='rotate(9 20 198)'/%3E%3C/svg%3E") 0 0 / 220px 220px repeat;
+  color-scheme: light;
+}
+
+/* Koffiemonster: espresso, crème en melkschuim. */
+[data-theme="koffiemonster"] {
+  --bg: #f5ede3;
+  --bg-2: #ead7c0;
+  --surface: #fffaf3;
+  --surface-2: #f3e5d3;
+  --ink: #2f1d10;
+  --ink-soft: #5e4433;
+  --line: #e9d7c2;
+  --line-strong: #6f4527;
+  --accent: #c98b4f;
+  --accent-strong: #a96a31;
+  --accent-ink: #24130a;
+  --accent-soft: #f2dcc0;
+  --user: #7b4320;
+  --given: #2f1d10;
+  --sel: #d9a46b;
+  --sel-ink: #24130a;
+  --peer: #f7eadb;
+  --same: #ecd2b0;
+  --same-ring: transparent;
+  --hint: #c9662f;
+  --wrong: #a3201a;
+  --wrong-bg: #f9cfc6;
+  --heart: #c2456b;
+  --heart-fill: #fadbe6;
+  --heart-edge: #f6c8d7;
+  --heart-ink: #8e2246;
+  --heart-solved: #b8283f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(80 45 20 / 7%), 0 8px 24px rgb(80 45 20 / 9%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg transform='translate(30 40) rotate(20) scale(1)'%3E%3Cellipse rx='7' ry='10' fill='%236f4527' fill-opacity='0.13'/%3E%3Cpath d='M0-9C-3-4 3 4 0 9' stroke='%23f5ede3' stroke-opacity='0.9' stroke-width='1.4' fill='none'/%3E%3C/g%3E%3Cg transform='translate(200 30) rotate(-30) scale(0.8)'%3E%3Cellipse rx='7' ry='10' fill='%236f4527' fill-opacity='0.13'/%3E%3Cpath d='M0-9C-3-4 3 4 0 9' stroke='%23f5ede3' stroke-opacity='0.9' stroke-width='1.4' fill='none'/%3E%3C/g%3E%3Cg transform='translate(120 150) rotate(60) scale(1.1)'%3E%3Cellipse rx='7' ry='10' fill='%236f4527' fill-opacity='0.13'/%3E%3Cpath d='M0-9C-3-4 3 4 0 9' stroke='%23f5ede3' stroke-opacity='0.9' stroke-width='1.4' fill='none'/%3E%3C/g%3E%3Cg transform='translate(230 210) rotate(10) scale(0.9)'%3E%3Cellipse rx='7' ry='10' fill='%236f4527' fill-opacity='0.13'/%3E%3Cpath d='M0-9C-3-4 3 4 0 9' stroke='%23f5ede3' stroke-opacity='0.9' stroke-width='1.4' fill='none'/%3E%3C/g%3E%3Cg transform='translate(50 220) rotate(-50) scale(0.85)'%3E%3Cellipse rx='7' ry='10' fill='%236f4527' fill-opacity='0.13'/%3E%3Cpath d='M0-9C-3-4 3 4 0 9' stroke='%23f5ede3' stroke-opacity='0.9' stroke-width='1.4' fill='none'/%3E%3C/g%3E%3Ccircle cx='170' cy='110' r='26' fill='none' stroke='%23a96a31' stroke-opacity='0.08' stroke-width='5'/%3E%3Ccircle cx='174' cy='106' r='26' fill='none' stroke='%23a96a31' stroke-opacity='0.05' stroke-width='2'/%3E%3C/svg%3E") 0 0 / 260px 260px repeat;
+  color-scheme: light;
+}
+
+/* Gitaar: warm hout met nerf, snaren als dunne lijnen en een plectrum als selectie. */
+[data-theme="gitaar"] {
+  --bg: #ecd5b0;
+  --bg-2: #f6e5c6;
+  --surface: #fbf0dc;
+  --surface-2: #f3e2c3;
+  --ink: #2b1a0c;
+  --ink-soft: #5a3f26;
+  --line: #d2bb94;
+  --line-strong: #5b351a;
+  --accent: #e8932e;
+  --accent-strong: #b8641a;
+  --accent-ink: #2b1a0c;
+  --accent-soft: #f8deb2;
+  --user: #8a3414;
+  --given: #2b1a0c;
+  --sel: #f0a63a;
+  --sel-ink: #2b1a0c;
+  --peer: #f6e4c4;
+  --same: #efd093;
+  --same-ring: transparent;
+  --hint: #c25a1c;
+  --wrong: #a3201a;
+  --wrong-bg: #f6c9c0;
+  --heart: #c23a5c;
+  --heart-fill: #fadbe4;
+  --heart-edge: #f6c9d6;
+  --heart-ink: #8e2246;
+  --heart-solved: #b8283f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(80 45 15 / 8%), 0 8px 24px rgb(80 45 15 / 12%);
+  --decor: repeating-linear-gradient(91deg, rgb(120 70 25 / 0%) 0 14px, rgb(120 70 25 / 7%) 15px 16px, rgb(120 70 25 / 0%) 17px 31px), repeating-linear-gradient(89deg, rgb(255 240 210 / 0%) 0 40px, rgb(255 240 210 / 22%) 41px 46px, rgb(255 240 210 / 0%) 47px 90px), repeating-linear-gradient(90.5deg, rgb(90 50 15 / 0%) 0 63px, rgb(90 50 15 / 6%) 64px 66px, rgb(90 50 15 / 0%) 67px 137px);
+  color-scheme: light;
+}
+
+/* Beachvolleybal: zand, zee en zon, met een zachte golf onderaan. */
+[data-theme="beachvolleybal"] {
+  --bg: #fff5dc;
+  --bg-2: #ffe2a3;
+  --surface: #fffdf6;
+  --surface-2: #e6f6f8;
+  --ink: #0f3546;
+  --ink-soft: #3b5d6c;
+  --line: #ecdfc2;
+  --line-strong: #1f7a99;
+  --accent: #ffb22e;
+  --accent-strong: #e08a00;
+  --accent-ink: #0f3546;
+  --accent-soft: #ffe7b0;
+  --user: #0a5e7c;
+  --given: #0f3546;
+  --sel: #49bfe0;
+  --sel-ink: #082a38;
+  --peer: #e8f6fa;
+  --same: #fde3a0;
+  --same-ring: transparent;
+  --hint: #ef6f3c;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
+  --heart: #e0406a;
+  --heart-fill: #fde0e8;
+  --heart-edge: #f9c9d6;
+  --heart-ink: #9c1f3c;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(15 60 80 / 6%), 0 8px 24px rgb(15 60 80 / 9%);
+  --decor: radial-gradient(circle at 88% -2%, rgb(255 200 70 / 55%) 0 46px, rgb(255 190 80 / 18%) 47px, transparent 190px) no-repeat;
+  --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='90' viewBox='0 0 480 90'%3E%3Cpath d='M0 34C60 14 120 14 180 34S300 54 360 34 450 14 480 24V90H0Z' fill='%2349bfe0' fill-opacity='0.22'/%3E%3Cpath d='M0 52C70 34 130 36 200 52S330 70 400 52 460 40 480 46V90H0Z' fill='%231f7a99' fill-opacity='0.2'/%3E%3Cpath d='M0 34C60 14 120 14 180 34S300 54 360 34 450 14 480 24' fill='none' stroke='%23ffffff' stroke-opacity='0.7' stroke-width='2'/%3E%3C/svg%3E") 0 100% / 480px 90px repeat-x;
+  --decor-anim: waves 24s linear infinite;
+  --decor-layer: block;
+  color-scheme: light;
+}
+
+/* Dagverloop: de kleuren schuiven met de dag mee (js/fx/dagverloop.js zet ze per kwartier). Dit is de middag. */
+[data-theme="dagverloop"] {
+  --bg: #eef5ff;
+  --bg-2: #d5e7ff;
+  --surface: #ffffff;
+  --surface-2: #e8f1fc;
+  --ink: #142a4c;
+  --ink-soft: #3e5372;
+  --line: #d5e1f0;
+  --line-strong: #4b6fa6;
+  --accent: #7db6f2;
+  --accent-strong: #3f86d6;
+  --accent-ink: #0c2242;
+  --accent-soft: #d6e8fc;
+  --user: #1f57a8;
+  --given: #142a4c;
+  --sel: #7db6f2;
+  --sel-ink: #0c2242;
+  --peer: #eaf3fd;
+  --same: #c4dbf6;
+  --same-ring: transparent;
+  --hint: #e07a3f;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
+  --heart: #d24e78;
+  --heart-fill: #efdcfa;
+  --heart-edge: #e5cbf7;
+  --heart-ink: #6e2a7a;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(20 50 90 / 6%), 0 8px 24px rgb(20 50 90 / 9%);
+  --decor: radial-gradient(circle at 86% -4%, color-mix(in srgb, var(--accent) 45%, transparent) 0 40px, color-mix(in srgb, var(--accent) 14%, transparent) 41px, transparent 200px) no-repeat;
+  color-scheme: light;
+}
+
+/* Krant: vergeeld papier, zwart en grijs, dunne lijnen zoals de sudoku achterin. */
+[data-theme="krant"] {
+  --bg: #f2ead4;
+  --bg-2: #e8dcbc;
+  --surface: #f9f4e6;
+  --surface-2: #ede4cc;
+  --ink: #1b1a17;
+  --ink-soft: #4a463e;
+  --line: #a59f90;
+  --line-strong: #1b1a17;
+  --accent: #6a665e;
+  --accent-strong: #1b1a17;
+  --accent-ink: #f9f4e6;
+  --accent-soft: #e4dbc3;
+  --user: #4d4943;
+  --given: #141311;
+  --sel: #34322d;
+  --sel-ink: #f9f4e6;
+  --peer: #ece4cd;
+  --same: #d9cfb3;
+  --same-ring: #1b1a17;
+  --hint: #8a5a2b;
+  --wrong: #9e1b1b;
+  --wrong-bg: #f0d2c6;
+  --heart: #a8283f;
+  --heart-fill: #e8dcef;
+  --heart-edge: #ddcbe7;
+  --heart-ink: #5e2a5e;
+  --heart-solved: #a8283f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(40 35 20 / 8%), 0 6px 18px rgb(40 35 20 / 7%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23p)'/%3E%3C/svg%3E") 0 0 / 220px 220px repeat;
+  color-scheme: light;
+}
+
+/* Krijtbord: een donkergroen schoolbord met krijtvegen en ruwe witte lijnen. */
+[data-theme="krijtbord"] {
+  --bg: #1d362b;
+  --bg-2: #284a3a;
+  --surface: #234236;
+  --surface-2: #2c5043;
+  --ink: #f3f1e7;
+  --ink-soft: #cdd6c8;
+  --line: #3f6152;
+  --line-strong: #e6e3d6;
+  --accent: #f3d35b;
+  --accent-strong: #f8e08a;
+  --accent-ink: #1d2a1f;
+  --accent-soft: #3d5a3c;
+  --user: #fff6d8;
+  --given: #ffffff;
+  --sel: #f3d35b;
+  --sel-ink: #1d2a1f;
+  --peer: #2d5345;
+  --same: #3f6a59;
+  --same-ring: color-mix(in srgb, #f3d35b 60%, transparent);
+  --hint: #ffb38a;
+  --wrong: #ffb4a6;
+  --wrong-bg: #5b2c2a;
+  --heart: #ff9fbf;
+  --heart-fill: #4b2c44;
+  --heart-edge: #613956;
+  --heart-ink: #ffd6e6;
+  --heart-solved: #c43450;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 30%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23k)'/%3E%3C/svg%3E") 0 0 / 240px 240px repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='700' viewBox='0 0 600 700'%3E%3Cfilter id='b' x='-20%25' y='-50%25' width='140%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='14'/%3E%3C/filter%3E%3Cg fill='%23ffffff' filter='url(%23b)'%3E%3Cellipse cx='140' cy='120' rx='150' ry='26' fill-opacity='0.06' transform='rotate(-8 140 120)'/%3E%3Cellipse cx='470' cy='300' rx='130' ry='22' fill-opacity='0.05' transform='rotate(6 470 300)'/%3E%3Cellipse cx='200' cy='560' rx='170' ry='30' fill-opacity='0.05' transform='rotate(-4 200 560)'/%3E%3Cellipse cx='520' cy='640' rx='90' ry='18' fill-opacity='0.04'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 600px 700px repeat;
+  color-scheme: dark;
+}
+
+/* Game Boy: alleen de vier groentinten, vierkante hoeken en pixelcijfers. */
+[data-theme="gameboy"] {
+  --bg: #88c070;
+  --bg-2: #88c070;
+  --surface: #e0f8d0;
+  --surface-2: #88c070;
+  --ink: #081820;
+  --ink-soft: #081820;
+  --line: #88c070;
+  --line-strong: #081820;
+  --accent: #88c070;
+  --accent-strong: #081820;
+  --accent-ink: #081820;
+  --accent-soft: #e0f8d0;
+  --user: #081820;
+  --given: #081820;
+  --sel: #081820;
+  --sel-ink: #e0f8d0;
+  --peer: #88c070;
+  --same: #88c070;
+  --same-ring: #081820;
+  --hint: #346856;
+  --wrong: #e0f8d0;
+  --wrong-bg: #346856;
+  --heart: #346856;
+  --heart-fill: #e0f8d0;
+  --heart-edge: #88c070;
+  --heart-ink: #081820;
+  --heart-solved: #346856;
+  --heart-solved-ink: #e0f8d0;
+  --shadow: 4px 4px 0 #346856;
+  color-scheme: light;
+}
+
+/* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
+[data-theme="zonnebloem"] {
+  --bg: #fffae3;
+  --bg-2: #ffeea0;
+  --surface: #ffffff;
+  --surface-2: #f1f6e2;
+  --ink: #2b3214;
+  --ink-soft: #4e5a2c;
+  --line: #ebe3b9;
+  --line-strong: #5c7a28;
+  --accent: #ffc816;
+  --accent-strong: #e0a400;
+  --accent-ink: #2e2300;
+  --accent-soft: #fff0b0;
+  --user: #385f10;
+  --given: #2b3214;
+  --sel: #ffd23c;
+  --sel-ink: #2e2300;
+  --peer: #f2f8e4;
+  --same: #dcedb8;
+  --same-ring: transparent;
+  --hint: #e0821e;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
+  --heart: #d24e78;
+  --heart-fill: #fde0e8;
+  --heart-edge: #f9c8d6;
+  --heart-ink: #93264d;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(80 70 10 / 6%), 0 8px 24px rgb(80 70 10 / 8%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg transform='translate(36 44) scale(1)'%3E%3Cg fill='%23ffc816' fill-opacity='0.32'%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(36)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(108)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(180)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(252)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(288)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(324)'/%3E%3C/g%3E%3Ccircle r='4' fill='%237a5418' fill-opacity='0.25'/%3E%3C/g%3E%3Cg transform='translate(196 26) scale(0.75)'%3E%3Cg fill='%23ffc816' fill-opacity='0.32'%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(36)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(108)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(180)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(252)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(288)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(324)'/%3E%3C/g%3E%3Ccircle r='4' fill='%237a5418' fill-opacity='0.25'/%3E%3C/g%3E%3Cg transform='translate(128 140) scale(1.15)'%3E%3Cg fill='%23ffc816' fill-opacity='0.32'%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(36)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(108)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(180)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(252)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(288)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(324)'/%3E%3C/g%3E%3Ccircle r='4' fill='%237a5418' fill-opacity='0.25'/%3E%3C/g%3E%3Cg transform='translate(232 212) scale(0.85)'%3E%3Cg fill='%23ffc816' fill-opacity='0.32'%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(36)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(108)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(180)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(252)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(288)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(324)'/%3E%3C/g%3E%3Ccircle r='4' fill='%237a5418' fill-opacity='0.25'/%3E%3C/g%3E%3Cg transform='translate(48 222) scale(0.7)'%3E%3Cg fill='%23ffc816' fill-opacity='0.32'%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(36)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(108)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(180)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(252)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(288)'/%3E%3Cellipse cx='0' cy='-7' rx='2.6' ry='5' transform='rotate(324)'/%3E%3C/g%3E%3Ccircle r='4' fill='%237a5418' fill-opacity='0.25'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 260px 260px repeat;
+  color-scheme: light;
+}
+
+/* RubyxCube: elk 3×3-blok een eigen zachte kubuskleur (ui.js zet data-b op elk vakje).
+   Geel rood groen / blauw wit oranje / groen oranje blauw: buren verschillen altijd.
+   Per blok een eigen tint voor het vakje, de buren (rij/kolom/blok) en gelijke cijfers;
+   selectie (antraciet) en fout (framboos) zijn op elke kleur goed te zien. */
+[data-theme="rubyxcube"] .cell[data-b="0"] { --surface: #fff4c2; --peer: #ffe68a; --same: #ffdb5c; }
+[data-theme="rubyxcube"] .cell[data-b="1"] { --surface: #ffe0db; --peer: #ffc7bf; --same: #ffb0a6; }
+[data-theme="rubyxcube"] .cell[data-b="2"] { --surface: #dbf3e1; --peer: #bfe9cb; --same: #a6dfb6; }
+[data-theme="rubyxcube"] .cell[data-b="3"] { --surface: #e0eaff; --peer: #c6d7ff; --same: #adc5ff; }
+[data-theme="rubyxcube"] .cell[data-b="4"] { --surface: #ffffff; --peer: #eceef4; --same: #dfe2ea; }
+[data-theme="rubyxcube"] .cell[data-b="5"] { --surface: #ffe6cf; --peer: #ffd3a8; --same: #ffc285; }
+[data-theme="rubyxcube"] .cell[data-b="6"] { --surface: #dbf3e1; --peer: #bfe9cb; --same: #a6dfb6; }
+[data-theme="rubyxcube"] .cell[data-b="7"] { --surface: #ffe6cf; --peer: #ffd3a8; --same: #ffc285; }
+[data-theme="rubyxcube"] .cell[data-b="8"] { --surface: #e0eaff; --peer: #c6d7ff; --same: #adc5ff; }
+
+/* Hoog contrast: wit, zwart en één felle kleur, voor fel zonlicht of in de sporthal. */
+[data-theme="hoog-contrast"] {
+  --bg: #ffffff;
+  --bg-2: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #efefef;
+  --ink: #000000;
+  --ink-soft: #222222;
+  --line: #6e6e6e;
+  --line-strong: #000000;
+  --accent: #ffd400;
+  --accent-strong: #000000;
+  --accent-ink: #000000;
+  --accent-soft: #fff1a6;
+  --user: #002a8f;
+  --given: #000000;
+  --sel: #ffd400;
+  --sel-ink: #000000;
+  --peer: #e6e6e6;
+  --same: #d6e6ff;
+  --same-ring: #000000;
+  --hint: #b23c00;
+  --wrong: #8b0000;
+  --wrong-bg: #ffdede;
+  --heart: #b0003a;
+  --heart-fill: #f0dcff;
+  --heart-edge: #e4c6ff;
+  --heart-ink: #4a0028;
+  --heart-solved: #a3002f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 0 0 1px #000000;
+  color-scheme: light;
+}
+
 /* ---------- Dagthema: accentkleuren van een ander thema (zie themeForDay) ---------- */
 /* Op een wedstrijddag die ook een andere bijzondere dag is, krijgt Volleybal de
    accentkleuren van het thema van die dag (html[data-accent]). Per thema dezelfde
@@ -471,6 +873,17 @@ html[data-accent="lente"] { --accent: #f2a7bf; --accent-strong: #e07f9f; --accen
 html[data-accent="zomer"] { --accent: #f0607a; --accent-strong: #d94661; --accent-ink: #2d0d14; --sel: #7cc47f; --sel-ink: #10260f; }
 html[data-accent="herfst"] { --accent: #c8662b; --accent-strong: #ad5320; --accent-ink: #1f0f05; --sel: #d9783d; --sel-ink: #1f0f05; }
 html[data-accent="winter"] { --accent: #7fb0dc; --accent-strong: #5b95c9; --accent-ink: #10213a; --sel: #7fb0dc; --sel-ink: #10213a; }
+html[data-accent="robijn"] { --accent: #ff4f7e; --accent-strong: #ff7a9c; --accent-ink: #2a0612; --sel: #ff6b92; --sel-ink: #2a0612; }
+html[data-accent="rubyxcube"] { --accent: #ffcf1f; --accent-strong: #1e5bd6; --accent-ink: #1b1d2a; --sel: #1b1d2a; --sel-ink: #ffffff; }
+html[data-accent="koffiemonster"] { --accent: #c98b4f; --accent-strong: #a96a31; --accent-ink: #24130a; --sel: #d9a46b; --sel-ink: #24130a; }
+html[data-accent="gitaar"] { --accent: #e8932e; --accent-strong: #b8641a; --accent-ink: #2b1a0c; --sel: #f0a63a; --sel-ink: #2b1a0c; }
+html[data-accent="beachvolleybal"] { --accent: #ffb22e; --accent-strong: #e08a00; --accent-ink: #0f3546; --sel: #49bfe0; --sel-ink: #082a38; }
+html[data-accent="dagverloop"] { --accent: #7db6f2; --accent-strong: #3f86d6; --accent-ink: #0c2242; --sel: #7db6f2; --sel-ink: #0c2242; }
+html[data-accent="krant"] { --accent: #6a665e; --accent-strong: #1b1a17; --accent-ink: #f9f4e6; --sel: #34322d; --sel-ink: #f9f4e6; }
+html[data-accent="krijtbord"] { --accent: #f3d35b; --accent-strong: #f8e08a; --accent-ink: #1d2a1f; --sel: #f3d35b; --sel-ink: #1d2a1f; }
+html[data-accent="zonnebloem"] { --accent: #ffc816; --accent-strong: #e0a400; --accent-ink: #2e2300; --sel: #ffd23c; --sel-ink: #2e2300; }
+html[data-accent="hoog-contrast"] { --accent: #ffd400; --accent-strong: #000000; --accent-ink: #000000; --sel: #ffd400; --sel-ink: #000000; }
+html[data-accent="gameboy"] { --accent: #88c070; --accent-strong: #081820; --accent-ink: #081820; --sel: #081820; --sel-ink: #e0f8d0; }
 
 /* ---------- Basis ---------- */
 /* Tot ui.js het thema van vandaag heeft gezet (zie js/theme-early.js): even
@@ -1095,7 +1508,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   scrollbar-width: none;
 }
 .theme-options::-webkit-scrollbar { display: none; }
-.theme-opt { position: relative; flex: none; display: flex; scroll-snap-align: start; }
+.theme-opt { position: relative; flex: none; display: flex; align-self: flex-start; scroll-snap-align: start; }
 .theme-opt input { position: absolute; opacity: 0; }
 .theme-group-title { margin: 4px 0 6px; font: 800 0.78rem/1.2 "Nunito", sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .theme-group-title + .theme-options { margin-bottom: 8px; }
@@ -1110,7 +1523,8 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  width: 104px;
+  width: auto;
+  min-width: 104px; /* lange namen (Beachvolleybal) maken de kaart breder, de hint niet */
   padding: 8px 8px 10px;
   border: 2px solid var(--line);
   border-radius: 18px;
@@ -1120,7 +1534,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   white-space: nowrap;
 }
 .theme-name { line-height: 1.2; }
-.theme-hint { display: block; max-width: 100%; font-size: 0.7rem; font-weight: 600; line-height: 1.25; color: var(--ink-soft); white-space: normal; }
+.theme-hint { display: block; width: 0; min-width: 100%; font-size: 0.7rem; font-weight: 600; line-height: 1.25; color: var(--ink-soft); white-space: normal; }
 /* Vergrendeld seizoen: gedimd voorproefje met een slotje. */
 .theme-opt.locked { margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: center; cursor: default; }
 .theme-opt.locked .theme-card { border-style: dashed; }
@@ -1411,8 +1825,9 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .v.hand.d7 { -webkit-mask-image: url("../hand/digit-7.svg"); mask-image: url("../hand/digit-7.svg"); }
 .v.hand.d8 { -webkit-mask-image: url("../hand/digit-8.svg"); mask-image: url("../hand/digit-8.svg"); }
 .v.hand.d9 { -webkit-mask-image: url("../hand/digit-9.svg"); mask-image: url("../hand/digit-9.svg"); }
-/* Een fout cijfer krijgt een golvend lijntje eronder (net als de onderstreping bij gedrukte cijfers). */
-.cell.hand.wrong::after {
+/* Een fout cijfer krijgt een golvend lijntje eronder (net als de onderstreping bij gedrukte cijfers).
+   Ook de pixelcijfers van Game Boy (dat zijn ook maskers, zonder echte tekst). */
+:is(.cell.hand, .cell.pixel).wrong::after {
   content: "";
   position: absolute;
   left: 28%;
@@ -1447,6 +1862,190 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .scribble .hand-art { transform: rotate(-3deg); }
 .confetti span.hand-art { width: var(--s, 24px); }
 
+/* ---------- Nieuwe thema's: alles behalve de kleuren ---------- */
+
+/* Robijn: de cijfers met een zachte glans, alsof het licht erop valt. */
+[data-theme="robijn"] .cell .v { text-shadow: 0 0 10px color-mix(in srgb, currentColor 40%, transparent), 0 -1px 0 rgb(255 255 255 / 22%); }
+[data-theme="robijn"] .cell.selected .v { text-shadow: 0 1px 0 rgb(255 255 255 / 30%); }
+[data-theme="robijn"] .board { background: linear-gradient(135deg, #3a0f20, #2a0a17 45%, #33091a); }
+
+/* RubyxCube: zwarte kubusrand en een korte draai bij het oplossen (zie js/fx/kubus.js). */
+[data-theme="rubyxcube"] .board { border-width: 3px; border-radius: 12px; }
+.board.cube-turn { animation: cube-turn 1.25s cubic-bezier(0.45, 0, 0.25, 1); }
+@keyframes cube-turn {
+  0% { transform: perspective(1100px) rotateX(0) rotateY(0); }
+  45% { transform: perspective(1100px) rotateX(14deg) rotateY(180deg) scale(0.88); }
+  100% { transform: perspective(1100px) rotateX(0) rotateY(360deg); }
+}
+
+/* Koffiemonster: het latte-art-hartje bij het oplossen (zie js/fx/latte.js). */
+.board-wrap { position: relative; }
+.latte { position: absolute; left: 50%; top: 50%; width: min(46%, 220px); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; z-index: 2; filter: drop-shadow(0 8px 18px rgb(60 30 10 / 35%)); animation: latte-in 0.5s ease both, latte-out 0.6s ease 3.5s forwards; }
+.latte svg { display: block; width: 100%; height: 100%; }
+.latte .latte-line { stroke-dasharray: 100; stroke-dashoffset: 100; animation: latte-draw 1.1s ease-in-out 0.35s forwards; }
+.latte .latte-fill { opacity: 0; animation: latte-fill 0.6s ease 1.3s forwards; }
+.latte.still, .latte.still .latte-line, .latte.still .latte-fill { animation: none; stroke-dashoffset: 0; opacity: 1; }
+@keyframes latte-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } }
+@keyframes latte-out { to { opacity: 0; } }
+@keyframes latte-draw { to { stroke-dashoffset: 0; } }
+@keyframes latte-fill { to { opacity: 1; } }
+
+/* Gitaar: een houten bord met nerf; de dunne lijnen zijn snaren (liggend, glanzend) en
+   fretten (staand), de dikke lijnen palissander. Het gekozen vakje is een plectrum. */
+[data-theme="gitaar"] .board {
+  --line: transparent;
+  position: relative;
+  background:
+    repeating-linear-gradient(90deg, rgb(140 85 30 / 0%) 0 9px, rgb(140 85 30 / 6%) 10px 11px, rgb(140 85 30 / 0%) 12px 23px),
+    repeating-linear-gradient(88deg, rgb(255 245 225 / 0%) 0 30px, rgb(255 245 225 / 35%) 31px 36px, rgb(255 245 225 / 0%) 37px 70px),
+    var(--surface);
+}
+[data-theme="gitaar"] .cell:where(:not(.peer, .same, .selected, .wrong, .in-shape, .shape-edge, .shape-accent)) { background-color: transparent; }
+[data-theme="gitaar"] .board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom,
+      transparent 0 calc(100% / 9 - 1.5px), #8f7350 calc(100% / 9 - 1.5px), #fff7df calc(100% / 9 - 0.3px), #6b5232 calc(100% / 9 + 1.2px),
+      transparent calc(100% / 9 + 1.2px) calc(200% / 9 - 1.5px), #8f7350 calc(200% / 9 - 1.5px), #fff7df calc(200% / 9 - 0.3px), #6b5232 calc(200% / 9 + 1.2px),
+      transparent calc(200% / 9 + 1.2px) calc(300% / 9)),
+    repeating-linear-gradient(to right,
+      transparent 0 calc(100% / 9 - 1.2px), #b9b2a4 calc(100% / 9 - 1.2px), #fbfaf6 calc(100% / 9), #8d8679 calc(100% / 9 + 1.2px),
+      transparent calc(100% / 9 + 1.2px) calc(200% / 9 - 1.2px), #b9b2a4 calc(200% / 9 - 1.2px), #fbfaf6 calc(200% / 9), #8d8679 calc(200% / 9 + 1.2px),
+      transparent calc(200% / 9 + 1.2px) calc(300% / 9));
+}
+[data-theme="gitaar"] .cell.selected { background: transparent; isolation: isolate; z-index: 2; } /* het plectrum ligt op de snaren */
+[data-theme="gitaar"] .cell.selected::before {
+  content: "";
+  position: absolute;
+  inset: 3%;
+  z-index: -1;
+  background: radial-gradient(90% 70% at 35% 25%, color-mix(in srgb, var(--sel) 55%, #ffffff), var(--sel) 60%, color-mix(in srgb, var(--sel) 80%, #6b3a10));
+  -webkit-mask: var(--plectrum) center / contain no-repeat;
+  mask: var(--plectrum) center / contain no-repeat;
+}
+[data-theme="gitaar"] .cell.wrong.selected::before { background: color-mix(in srgb, var(--wrong-bg) 60%, var(--sel)); }
+[data-theme="gitaar"] body { --plectrum: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C77 3 97 13 97 33C97 58 68 88 50 97C32 88 3 58 3 33C3 13 23 3 50 3Z'/%3E%3C/svg%3E"); }
+
+/* Beachvolleybal: de golf rolt heel langzaam mee. Op het speelscherm wat zachter. */
+@keyframes waves { from { background-position: 0 100%; } to { background-position: 480px 100%; } }
+[data-theme="beachvolleybal"] .board { border-radius: 14px; }
+[data-theme="beachvolleybal"] #home { padding-bottom: 72px; }
+[data-theme="beachvolleybal"] body:has(#play:not([hidden]))::before { opacity: 0.6; }
+
+/* Krant: de sudoku achter in de krant. Rechte hoeken, dunne lijnen, alles in Fraunces. */
+[data-theme="krant"] .board { border-radius: 2px; box-shadow: none; }
+[data-theme="krant"] .cell.user { font-family: "Fraunces", Georgia, serif; font-weight: 400; }
+[data-theme="krant"] .home-head { border-bottom: 4px double var(--ink); margin-bottom: 4px; }
+[data-theme="krant"] .brand { font-family: "Fraunces", Georgia, serif; font-weight: 600; letter-spacing: 0.14em; color: var(--ink); }
+[data-theme="krant"] :is(.card, .level, .nav-btn, .num, .theme-card, .install-banner, .hint-card) { border-radius: 3px; box-shadow: none; }
+[data-theme="krant"] :is(.card, .level, .nav-btn) { border-color: var(--line); }
+[data-theme="krant"] .mini-board { border-radius: 3px; }
+[data-theme="krant"] .mini-board i { border-radius: 0; }
+
+/* Krijtbord: ruwe krijtlijnen over het bord (een SVG-filter maakt ze een beetje
+   bibberig), gegeven cijfers strak en haar eigen cijfers met de hand in krijt. */
+[data-theme="krijtbord"] .board {
+  --line: transparent;
+  --line-strong: transparent;
+  position: relative;
+  border: 2px solid rgb(243 241 231 / 60%);
+  background: radial-gradient(120% 80% at 30% 20%, rgb(255 255 255 / 5%), transparent 60%), var(--surface);
+}
+[data-theme="krijtbord"] .board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--chalk-lines) 0 0 / 100% 100% no-repeat;
+}
+[data-theme="krijtbord"] body { --chalk-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' preserveAspectRatio='none'%3E%3Cfilter id='r' x='-2%25' y='-2%25' width='104%25' height='104%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='2' seed='3' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='5'/%3E%3C/filter%3E%3Cg fill='none' stroke='%23f3f1e7' stroke-linecap='round' filter='url(%23r)'%3E%3Cpath d='M100 0C97.5 300 102.8 600 99.5 900M0 100C300 97.8 600 102.9 900 99M200 0C202.4 300 197.2 600 200.7 900M0 200C300 202.1 600 197.1 900 201.1M400 0C402.2 300 397.1 600 400.9 900M0 400C300 401.9 600 397 900 401.3M500 0C497.9 300 502.9 600 499 900M0 500C300 498.2 600 503 900 498.6M700 0C698 300 703 600 698.7 900M0 700C300 698.4 600 703 900 698.4M800 0C801.9 300 797 600 801.4 900M0 800C300 801.5 600 797 900 801.7' stroke-opacity='0.42' stroke-width='2.6'/%3E%3Cpath d='M300 0C297.7 300 302.9 600 299.2 900M0 300C300 298 600 303 900 298.8M600 0C602 300 597 600 601.1 900M0 600C300 601.7 600 597 900 601.5' stroke-opacity='0.85' stroke-width='5.5'/%3E%3C/g%3E%3C/svg%3E"); }
+[data-theme="krijtbord"] .cell.given { font-weight: 500; }
+[data-theme="krijtbord"] .v.hand { opacity: 0.94; filter: drop-shadow(0 0 0.6px rgb(255 255 255 / 60%)); }
+[data-theme="krijtbord"] .cell.selected .v.hand { filter: none; opacity: 1; }
+
+/* Game Boy: vierkante hoeken, harde pixelschaduw en pixelcijfers op het bord en de
+   cijfertoetsen (zelf getekend, 5 × 7; gegeven cijfers één pixel vetter; notities
+   blijven gewone letters, zo klein zijn pixels niet te lezen). Het SVG-bestand is een masker, dus de
+   kleur komt van het vakje, net als bij het handschrift in Briefje. */
+[data-theme="gameboy"] *, [data-theme="gameboy"] *::before, [data-theme="gameboy"] *::after { border-radius: 0 !important; }
+[data-theme="gameboy"] .board { border: 4px solid var(--ink); }
+[data-theme="gameboy"] :is(.card, .level, .nav-btn, .num, .theme-card, .install-banner, .hint-card, dialog.sheet) { border: 2px solid var(--ink); }
+[data-theme="gameboy"] .btn.primary { box-shadow: 3px 3px 0 var(--ink); }
+[data-theme="gameboy"] .together { color: var(--ink); }
+[data-theme="gameboy"] .v.pixel, [data-theme="gameboy"] .num .nd {
+  display: block;
+  font-size: 0;
+  background-color: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
+}
+[data-theme="gameboy"] .v.pixel { width: calc(var(--size) / 9 * 0.46); height: calc(var(--size) / 9 * 0.56); }
+[data-theme="gameboy"] .cell.given .v.pixel { width: calc(var(--size) / 9 * 0.54); }
+[data-theme="gameboy"] .num .nd { width: 15px; height: 21px; }
+[data-theme="gameboy"] body {
+  --px1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M2 0h1v1h-1zM1 1h1v1h-1zM2 1h1v1h-1zM2 2h1v1h-1zM2 3h1v1h-1zM2 4h1v1h-1zM2 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M2 0h2v1h-2zM1 1h2v1h-2zM2 1h2v1h-2zM2 2h2v1h-2zM2 3h2v1h-2zM2 4h2v1h-2zM2 5h2v1h-2zM1 6h2v1h-2zM2 6h2v1h-2zM3 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM0 1h1v1h-1zM4 1h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1zM2 4h1v1h-1zM1 5h1v1h-1zM0 6h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M1 0h2v1h-2zM2 0h2v1h-2zM3 0h2v1h-2zM0 1h2v1h-2zM4 1h2v1h-2zM4 2h2v1h-2zM3 3h2v1h-2zM2 4h2v1h-2zM1 5h2v1h-2zM0 6h2v1h-2zM1 6h2v1h-2zM2 6h2v1h-2zM3 6h2v1h-2zM4 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM3 1h1v1h-1zM2 2h1v1h-1zM3 3h1v1h-1zM4 4h1v1h-1zM0 5h1v1h-1zM4 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h2v1h-2zM1 0h2v1h-2zM2 0h2v1h-2zM3 0h2v1h-2zM4 0h2v1h-2zM3 1h2v1h-2zM2 2h2v1h-2zM3 3h2v1h-2zM4 4h2v1h-2zM0 5h2v1h-2zM4 5h2v1h-2zM1 6h2v1h-2zM2 6h2v1h-2zM3 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h1v1h-1zM2 1h1v1h-1zM3 1h1v1h-1zM1 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM3 5h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h2v1h-2zM2 1h2v1h-2zM3 1h2v1h-2zM1 2h2v1h-2zM3 2h2v1h-2zM0 3h2v1h-2zM3 3h2v1h-2zM0 4h2v1h-2zM1 4h2v1h-2zM2 4h2v1h-2zM3 4h2v1h-2zM4 4h2v1h-2zM3 5h2v1h-2zM3 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px5: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM0 1h1v1h-1zM0 2h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 3h1v1h-1zM4 4h1v1h-1zM0 5h1v1h-1zM4 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb5: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h2v1h-2zM1 0h2v1h-2zM2 0h2v1h-2zM3 0h2v1h-2zM4 0h2v1h-2zM0 1h2v1h-2zM0 2h2v1h-2zM1 2h2v1h-2zM2 2h2v1h-2zM3 2h2v1h-2zM4 3h2v1h-2zM4 4h2v1h-2zM0 5h2v1h-2zM4 5h2v1h-2zM1 6h2v1h-2zM2 6h2v1h-2zM3 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px6: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M2 0h1v1h-1zM3 0h1v1h-1zM1 1h1v1h-1zM0 2h1v1h-1zM0 3h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM4 4h1v1h-1zM0 5h1v1h-1zM4 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb6: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M2 0h2v1h-2zM3 0h2v1h-2zM1 1h2v1h-2zM0 2h2v1h-2zM0 3h2v1h-2zM1 3h2v1h-2zM2 3h2v1h-2zM3 3h2v1h-2zM0 4h2v1h-2zM4 4h2v1h-2zM0 5h2v1h-2zM4 5h2v1h-2zM1 6h2v1h-2zM2 6h2v1h-2zM3 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px7: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM4 1h1v1h-1zM3 2h1v1h-1zM2 3h1v1h-1zM1 4h1v1h-1zM1 5h1v1h-1zM1 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb7: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h2v1h-2zM1 0h2v1h-2zM2 0h2v1h-2zM3 0h2v1h-2zM4 0h2v1h-2zM4 1h2v1h-2zM3 2h2v1h-2zM2 3h2v1h-2zM1 4h2v1h-2zM1 5h2v1h-2zM1 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px8: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM0 1h1v1h-1zM4 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM4 4h1v1h-1zM0 5h1v1h-1zM4 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb8: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M1 0h2v1h-2zM2 0h2v1h-2zM3 0h2v1h-2zM0 1h2v1h-2zM4 1h2v1h-2zM0 2h2v1h-2zM4 2h2v1h-2zM1 3h2v1h-2zM2 3h2v1h-2zM3 3h2v1h-2zM0 4h2v1h-2zM4 4h2v1h-2zM0 5h2v1h-2zM4 5h2v1h-2zM1 6h2v1h-2zM2 6h2v1h-2zM3 6h2v1h-2z'/%3E%3C/svg%3E");
+  --px9: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 7' shape-rendering='crispEdges'%3E%3Cpath d='M1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM0 1h1v1h-1zM4 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM4 4h1v1h-1zM3 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1z'/%3E%3C/svg%3E");
+  --pxb9: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath d='M1 0h2v1h-2zM2 0h2v1h-2zM3 0h2v1h-2zM0 1h2v1h-2zM4 1h2v1h-2zM0 2h2v1h-2zM4 2h2v1h-2zM1 3h2v1h-2zM2 3h2v1h-2zM3 3h2v1h-2zM4 3h2v1h-2zM4 4h2v1h-2zM3 5h2v1h-2zM1 6h2v1h-2zM2 6h2v1h-2z'/%3E%3C/svg%3E");
+}
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d1, .num .nd.d1) { -webkit-mask-image: var(--px1); mask-image: var(--px1); }
+[data-theme="gameboy"] .cell.given .v.pixel.d1 { -webkit-mask-image: var(--pxb1); mask-image: var(--pxb1); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d2, .num .nd.d2) { -webkit-mask-image: var(--px2); mask-image: var(--px2); }
+[data-theme="gameboy"] .cell.given .v.pixel.d2 { -webkit-mask-image: var(--pxb2); mask-image: var(--pxb2); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d3, .num .nd.d3) { -webkit-mask-image: var(--px3); mask-image: var(--px3); }
+[data-theme="gameboy"] .cell.given .v.pixel.d3 { -webkit-mask-image: var(--pxb3); mask-image: var(--pxb3); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d4, .num .nd.d4) { -webkit-mask-image: var(--px4); mask-image: var(--px4); }
+[data-theme="gameboy"] .cell.given .v.pixel.d4 { -webkit-mask-image: var(--pxb4); mask-image: var(--pxb4); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d5, .num .nd.d5) { -webkit-mask-image: var(--px5); mask-image: var(--px5); }
+[data-theme="gameboy"] .cell.given .v.pixel.d5 { -webkit-mask-image: var(--pxb5); mask-image: var(--pxb5); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d6, .num .nd.d6) { -webkit-mask-image: var(--px6); mask-image: var(--px6); }
+[data-theme="gameboy"] .cell.given .v.pixel.d6 { -webkit-mask-image: var(--pxb6); mask-image: var(--pxb6); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d7, .num .nd.d7) { -webkit-mask-image: var(--px7); mask-image: var(--px7); }
+[data-theme="gameboy"] .cell.given .v.pixel.d7 { -webkit-mask-image: var(--pxb7); mask-image: var(--pxb7); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d8, .num .nd.d8) { -webkit-mask-image: var(--px8); mask-image: var(--px8); }
+[data-theme="gameboy"] .cell.given .v.pixel.d8 { -webkit-mask-image: var(--pxb8); mask-image: var(--pxb8); }
+[data-theme="gameboy"] :is(.cell.user .v.pixel.d9, .num .nd.d9) { -webkit-mask-image: var(--px9); mask-image: var(--px9); }
+[data-theme="gameboy"] .cell.given .v.pixel.d9 { -webkit-mask-image: var(--pxb9); mask-image: var(--pxb9); }
+
+/* Zonnebloem: de bloem op het startscherm (zie js/fx/zonnebloem.js). */
+.home-head { position: relative; }
+.home-head.with-sunflower #greeting, .home-head.with-sunflower #subtitle { padding-right: 64px; }
+.sunflower { position: absolute; top: 4px; right: 0; width: 60px; height: 100px; padding: 0; border: 0; background: none; touch-action: manipulation; }
+.sunflower svg { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 92%; animation: sway 6s ease-in-out infinite alternate; }
+@keyframes sway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+
+/* Hoog contrast: dikkere lijnen en randen, en de selectie ook als dikke zwarte rand
+   (niet alleen een kleur). */
+[data-theme="hoog-contrast"] .board { border-width: 3px; border-radius: 8px; }
+[data-theme="hoog-contrast"] .cell:nth-child(9n + 3), [data-theme="hoog-contrast"] .cell:nth-child(9n + 6) { border-right-width: 3px; }
+[data-theme="hoog-contrast"] .cell:nth-child(n + 19):nth-child(-n + 27),
+[data-theme="hoog-contrast"] .cell:nth-child(n + 46):nth-child(-n + 54) { border-bottom-width: 3px; }
+[data-theme="hoog-contrast"] .cell.selected { box-shadow: inset 0 0 0 4px #000000; }
+[data-theme="hoog-contrast"] .cell.user { font-weight: 800; }
+[data-theme="hoog-contrast"] :is(.card, .level, .nav-btn, .num, .pill, .theme-card, .install-banner, .hint-card, dialog.sheet) { border: 2px solid #000000; }
+[data-theme="hoog-contrast"] .num.active { box-shadow: inset 0 0 0 3px #000000; }
+[data-theme="hoog-contrast"] .tool[aria-pressed="true"] { box-shadow: inset 0 0 0 3px #000000; }
+[data-theme="hoog-contrast"] :is(.muted, .card-kicker, .card-meta, .level-tag, .level-best) { color: var(--ink); }
+
 /* ---------- Minder beweging ---------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1460,6 +2059,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
   .board.reveal .cell.in-shape { animation: none; }
   .board.heartbeat, .board.pulse { animation: none; }
   .record-line { animation: none; }
+  .board.cube-turn, .sunflower svg { animation: none; }
 }
 
 /* Liggend op een telefoon: bord en bediening naast elkaar. */
