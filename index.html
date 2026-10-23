@@ -54,7 +54,7 @@
       <div id="install-slot"></div>
 
       <nav class="home-nav" aria-label="Meer">
-        <button type="button" class="nav-btn" data-open="stats-dialog"><span class="nav-icon" aria-hidden="true" data-icon="stats"></span><span class="nav-label">Statistieken</span></button>
+        <button type="button" class="nav-btn" data-open="stats-dialog"><span class="nav-icon" aria-hidden="true" data-icon="stats"></span><span class="nav-label">Statistieken</span><span class="book-dot" hidden><span class="sr-only">Nieuw in je boekje</span></span></button>
         <button type="button" class="nav-btn" id="notes-nav" data-open="notes-dialog"><span class="nav-icon ring" aria-hidden="true"><span data-icon="mail"></span></span><span class="nav-label">Berichtjes</span><span id="notes-badge" class="nav-badge" aria-hidden="true" hidden></span></button>
         <button type="button" class="nav-btn" data-open="settings-dialog"><span class="nav-icon" aria-hidden="true" data-icon="settings"></span><span class="nav-label">Instellingen</span></button>
       </nav>
@@ -173,6 +173,7 @@
     <div class="segmented stats-tabs" role="radiogroup" aria-label="Weergave">
       <label><input type="radio" name="stats-view" value="overzicht" checked><span>Overzicht</span></label>
       <label><input type="radio" name="stats-view" value="kalender"><span>Kalender</span></label>
+      <label><input type="radio" name="stats-view" value="boekje"><span>Boekje</span><span class="book-dot" hidden></span></label>
     </div>
     <div id="stats-body"></div>
     <section id="calendar" class="calendar" hidden aria-label="Kalender">
@@ -186,6 +187,7 @@
       <p class="cal-summary" id="cal-summary"></p>
       <div class="cal-detail" id="cal-detail" aria-live="polite"></div>
     </section>
+    <section id="book" class="book" hidden aria-label="Techniekenboekje"></section>
     <button type="button" class="btn primary wide" data-close>Sluiten</button>
   </dialog>
 
@@ -270,6 +272,7 @@
     <h2 id="solved-title">Opgelost!</h2>
     <p id="solved-stats" class="muted"></p>
     <p id="solved-record" class="record-line" hidden></p>
+    <p id="solved-book" class="record-line" hidden></p>
     <p id="solved-note" class="love-note"></p>
     <p id="solved-scribble" class="scribble" hidden><span class="hand-art scribble-art" role="img" aria-label="Ik vind je heel leuk!"></span></p>
     <div class="row">

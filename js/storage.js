@@ -3,6 +3,7 @@
 
 import { LOCKED_THEME_IDS } from './themes.js';
 import { isValidGameData } from './game.js';
+import { cleanTechniques } from './boekje.js';
 
 let PREFIX = 'rubys-sudoku:';
 
@@ -110,6 +111,7 @@ export function emptyStats() {
     log: [], // logboek van opgeloste puzzels, zie hieronder
     matches: {}, // per wedstrijddatum: { uitslag, warmup, herstel, pep }, zie hieronder
     wrapped: {}, // per jaar het laatst berekende Ruby Wrapped, zie hieronder
+    techniques: {}, // het Techniekenboekje: { 'x-wing': { since: '2026-10-23', hints: 2 } }, zie boekje.js
   };
 }
 
@@ -296,6 +298,8 @@ export function migrateStats(raw) {
   // (oude opslag of back-up) maken we er een van de bekende dagpuzzels.
   s.matches = cleanMatches(r.matches);
   s.wrapped = cleanWrapped(r.wrapped);
+  // Oude opslag (van vóór het boekje) heeft geen technieken: dan is het boekje gewoon nog leeg.
+  s.techniques = cleanTechniques(r.techniques);
   s.log = Array.isArray(r.log)
     ? r.log.map(cleanLogRow).filter(Boolean).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).slice(-LOG_MAX)
     : logFromDailies(s.dailyDone, s.dailyTimes);
@@ -395,6 +399,13 @@ export const loadScribbleDay = () => { const d = read('scribble', null); return 
 export const saveScribbleDay = (day) => write('scribble', day);
 // Het krabbeltje mag vandaag (nog) als het vandaag nog niet geweest is.
 export const scribbleDue = (lastDay, today) => lastDay !== today;
+
+// ---------- Techniekenboekje: wat ze al gezien heeft ----------
+
+// De technieken die ze in het boekje (of als regel op het opgelost-scherm) al zag.
+// Wat ontdekt is maar hier nog niet in staat, krijgt een stipje op de knop.
+export const loadBookSeen = () => strings(read('boekje-gezien', []));
+export const saveBookSeen = (ids) => write('boekje-gezien', [...new Set(ids)]);
 
 // ---------- Puzzelvoorraad (zodat een nieuwe puzzel meteen klaarstaat) ----------
 

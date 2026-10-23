@@ -1734,6 +1734,46 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 #install-setting { width: 100%; margin-top: 8px; }
 #install-setting[hidden] { display: none; }
 
+/* ---------- Techniekenboekje (onder Statistieken) ---------- */
+
+/* Het stipje: er staat iets nieuws in het boekje. */
+.book-dot { position: absolute; top: 8px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--heart); box-shadow: 0 0 0 2px var(--surface); }
+.stats-tabs label { position: relative; }
+.stats-tabs .book-dot { display: block; min-height: 0; top: 7px; right: 12px; width: 8px; height: 8px; }
+.book-dot[hidden] { display: none; }
+.book-count { margin: 0 0 10px; text-align: center; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 1.15rem; }
+.book-progress { height: 8px; overflow: hidden; border-radius: 999px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+.book-progress span { display: block; width: calc(var(--p, 0) * 100%); height: 100%; border-radius: inherit; background: var(--accent-strong); transition: width 0.6s ease; }
+.book-level-title { margin: 22px 0 8px; font-size: 1.05rem; }
+.book-item { margin-bottom: 10px; padding: 14px 14px 16px; border-radius: 18px; background: var(--surface-2); }
+.book-item h4 { margin: 0; font: 600 1.08rem/1.25 "Fraunces", Georgia, serif; }
+.book-since { margin: 2px 0 8px; font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); }
+.book-text { margin: 0 0 12px; font-size: 0.95rem; line-height: 1.45; }
+/* Nog niet ontdekt: rustig en gestippeld (geen doorzichtigheid, dan blijft de tekst goed leesbaar). */
+.book-item.locked { padding: 12px 14px; background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
+.book-item.locked h4 { font-size: 1rem; color: var(--ink-soft); }
+.book-lock { font-size: 0.85em; }
+.book-hint { margin: 4px 0 0; font-size: 0.88rem; color: var(--ink-soft); }
+
+/* Een mini-voorbeeld: een stukje bord met dezelfde vakjes en hint-markeringen als het echte bord. */
+.mini-sudoku {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), calc(var(--size) / 9));
+  grid-auto-rows: calc(var(--size) / 9);
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 2px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.mini-sudoku > .cell:nth-child(n) { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.mini-sudoku > .cell.mb-r:nth-child(n) { border-right: 2px solid var(--line-strong); }
+.mini-sudoku > .cell.mb-b:nth-child(n) { border-bottom: 2px solid var(--line-strong); }
+.mini-sudoku > .cell.mb-lc:nth-child(n) { border-right: 0; }
+.mini-sudoku > .cell.mb-lr:nth-child(n) { border-bottom: 0; }
+
 /* ---------- Toast & feestje ---------- */
 
 .toast {

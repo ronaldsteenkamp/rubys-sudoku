@@ -1,7 +1,8 @@
 // Maakt screenshots van het startscherm en het speelscherm in alle thema's,
 // plus de verjaardag, de hart-onthulling, Dagverloop op vier tijden, de
 // zonnebloem in elk stadium en de effecten bij het oplossen. Handig na een ontwerpwijziging.
-// Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren]   (vereist Playwright + Chromium)
+// Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren] [--boekje]   (vereist Playwright + Chromium)
+// Met --boekje alleen het Techniekenboekje (in een paar lichte en donkere thema's).
 // Met --themas alleen die thema's (start, spel en hartjespuzzel) plus een overzicht per thema.
 // De plaatjes komen in screenshots/ (staat niet in git), met per scherm een overzicht.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -100,6 +101,33 @@ async function openPlay(p, select) {
   if (select != null) await p.click(`.cell[data-i="${select}"]`);
   await p.waitForTimeout(400);
 }
+
+// Het Techniekenboekje: 7 van de 13 technieken ontdekt, in lichte en donkere thema's.
+const BOOK_STATS = { techniques: {
+  'full-house': { since: '2026-10-02', hints: 3 }, 'hidden-single': { since: '2026-10-02', hints: 9 }, 'naked-single': { since: '2026-10-05', hints: 2 },
+  pointing: { since: '2026-10-11', hints: 2 }, 'naked-pair': { since: '2026-10-18', hints: 1 }, 'hidden-pair': { since: '2026-10-21', hints: 1 }, 'x-wing': { since: '2026-10-23', hints: 1 },
+} };
+async function bookShots(themes) {
+  for (const [theme, scheme] of themes) {
+    const p = await page({ theme, scheme, query: '?vandaag=2026-10-24', extraStats: BOOK_STATS });
+    await p.click('[data-open="stats-dialog"]');
+    await p.click('.stats-tabs label:has(input[value="boekje"])');
+    await p.waitForSelector('#book .mini-sudoku');
+    await p.waitForTimeout(400);
+    await shot(p, `boekje-${theme}`, 'boekje');
+    for (const id of ['pointing', 'x-wing']) {
+      await p.locator(`#book [data-technique="${id}"]`).screenshot({ path: join(out, `boekje-${id}-${theme}.png`) });
+      shots.push({ file: `boekje-${id}-${theme}.png`, group: 'boekje', name: `${id} (${theme})` });
+    }
+    await p.evaluate(() => { document.querySelector('#stats-dialog').scrollTop = 99999; });
+    await p.waitForTimeout(200);
+    await shot(p, `boekje-onder-${theme}`, 'boekje');
+    await p.context().close();
+  }
+}
+if (process.argv.includes('--boekje')) {
+  await bookShots([['zonnig', 'light'], ['nacht', 'dark'], ['briefje', 'light'], ['rubyxcube', 'light'], ['hoog-contrast', 'light'], ['robijn', 'dark'], ['krijtbord', 'dark']]);
+} else {
 
 const game = playGame();
 const selectCell = game.values.findIndex((v, i) => v && !game.givens[i] && v === game.solution[i]);
@@ -414,6 +442,9 @@ if (allSizes) {
       await p.context().close();
     }
   }
+}
+
+await bookShots(only ? THEMES : [['zonnig', 'light'], ['nacht', 'dark']]);
 }
 
 // Overzichten: alle plaatjes van één groep naast elkaar.

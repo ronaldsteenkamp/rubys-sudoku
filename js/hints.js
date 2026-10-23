@@ -135,6 +135,7 @@ export function getHint(game, rng = Math.random) {
   if (placing && !chain.length) {
     return {
       kind: 'step',
+      id: placing.technique, // voor het Techniekenboekje (ontdekt bij stap 2)
       technique: TECHNIQUES[placing.technique].name,
       stages: [
         { text: lookHere(placing.units.slice(0, 1), rng), units: placing.units.slice(0, 1), cells: [] },
@@ -162,6 +163,7 @@ export function getHint(game, rng = Math.random) {
     const look = [...new Set([...main.units.slice(0, 2), placing.units[0]])];
     return {
       kind: 'step',
+      id: main.technique,
       technique: TECHNIQUES[main.technique].name,
       stages: [
         { text: lookHere(look, rng), units: look, cells: [] },
