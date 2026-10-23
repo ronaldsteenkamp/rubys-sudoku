@@ -2,6 +2,7 @@
 // mijlpalen, speciale dagen en wedstrijddagen. Pas gerust aan!
 
 import { LAST_MATCH, shortOpponent, matchStart } from './matches.js';
+import { TECHNIQUES } from './techniques.js';
 
 export const NICKNAMES = [
   'Ruby', 'Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje',
@@ -521,6 +522,11 @@ export const MILESTONES = [
     text: 'HONDERD PUZZELS. Je bent een legende. Ik hou van je, RubyxCube. Ook als je even vastzit 💛 Laat dit scherm zien voor één enorme knuffel. 🤗',
     unit: ['puzzel', 'puzzels'], progress: (s) => ({ current: s.totalSolved, target: 100 }),
     check: (s) => s.totalSolved >= 100 },
+  { id: 'boekje', title: 'Het hele boekje', icon: '📖',
+    hint: 'Ontdek alle 13 technieken via hints',
+    text: 'Alle dertien technieken staan in je boekje, van Laatste vakje tot XYZ-wing! Hint voor hint heb je ze leren kennen. Mijn slimme puzzelaar: er is geen sudoku meer die jou nog bang maakt 📖💛',
+    // Geen aftelling op de knop Berichtjes: hoeveel ze er kent, staat al in het boekje zelf.
+    check: (s) => Object.keys(TECHNIQUES).every((id) => s.techniques?.[id]) },
   { id: 'seizoen-uit', title: 'Seizoen uitgespeeld', icon: '🏐',
     hint: 'Doe de herstelpuzzel na de laatste wedstrijd van het seizoen',
     text: 'Het seizoen zit erop! Bij elke wedstrijd stond ik (in gedachten) langs de lijn. Op naar het volgende seizoen, nummer 33. Ik blijf je grootste fan 📣💛',

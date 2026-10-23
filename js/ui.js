@@ -11,6 +11,8 @@ import * as store from './storage.js';
 import * as M from './messages.js';
 import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
+import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
+import { TECHNIQUES } from './techniques.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -1044,6 +1046,11 @@ function advanceHint() {
   if (!hint) return;
   if (hintStage < 2) {
     hintStage++;
+    // Stap 2 laat de techniek zien: dan staat hij in het Techniekenboekje (ook als ze de puzzel niet afmaakt).
+    if (discoverFromHint(stats, hint, hintStage, dateKey(today()))) {
+      saved(store.saveStats(stats));
+      renderBookDot();
+    }
     if (hintStage === 2) applyHintAction(hint.action);
     renderHint();
     render();
@@ -1209,6 +1216,15 @@ function onSolved() {
   const recordText = counted && !g.special && !g.matchKind ? M.recordLine({ level: lvl, elapsed: g.elapsed, previousBest, firstOnLevel }) : '';
   $('#solved-record').textContent = recordText;
   $('#solved-record').hidden = !recordText;
+  // Nieuw in het boekje: een eigen regel, tenzij er al een record-, speciale-dag-,
+  // wedstrijd- of slaapberichtje staat. Dan blijft het bij het stipje op de knop.
+  const seen = store.loadBookSeen();
+  const news = unseen(stats, seen);
+  const bookLine = news.length && !recordText && !special && !g.matchKind && !asleep
+    ? `Nieuw in je boekje: ${listNames(news.map((id) => TECHNIQUES[id].name))} 📖` : '';
+  $('#solved-book').textContent = bookLine;
+  $('#solved-book').hidden = !bookLine;
+  if (bookLine) { store.saveBookSeen([...seen, ...news]); renderBookDot(); }
   $('#solved-note').textContent = note;
   $('#solved-again').textContent = 'Nog eentje';
   $('#solved-again').dataset.level = g.matchKind ? 'zondag' : g.special || g.daily ? 'koffie' : g.levelId;
@@ -1514,14 +1530,17 @@ function showStatsView(view) {
   for (const r of document.querySelectorAll('input[name="stats-view"]')) r.checked = r.value === view;
   $('#stats-body').hidden = view !== 'overzicht';
   $('#calendar').hidden = view !== 'kalender';
+  $('#book').hidden = view !== 'boekje';
   if (view === 'kalender') renderCalendar();
+  if (view === 'boekje') renderBook();
 }
 for (const r of document.querySelectorAll('input[name="stats-view"]')) r.addEventListener('change', () => showStatsView(r.value));
 
 function renderStats() {
   calMonth = null;
   calSelected = dateKey(today());
-  showStatsView(statsView);
+  // Staat er iets nieuws in het boekje, dan opent Statistieken daar.
+  showStatsView(unseen(stats, store.loadBookSeen()).length ? 'boekje' : statsView);
   const key = dateKey(today());
   const rows = LEVELS.map((l) => {
     const s = stats.levels[l.id] || {};
@@ -1542,6 +1561,92 @@ function renderStats() {
       <thead><tr><th>Niveau</th><th>Gespeeld</th><th>Opgelost</th><th>Record</th><th>Gem.</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>${wrappedListHtml()}`;
+}
+
+// ---------- Techniekenboekje ----------
+
+const listNames = (xs) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} en ${xs[xs.length - 1]}`);
+
+// Het stipje op Statistieken en op de knop Boekje: er is iets nieuws ontdekt.
+function renderBookDot() {
+  const fresh = unseen(stats, store.loadBookSeen()).length > 0;
+  for (const dot of document.querySelectorAll('.book-dot')) dot.hidden = !fresh;
+}
+
+// "sinds 23 oktober" (met het jaar erbij als dat niet dit jaar is).
+function sinceText(day) {
+  const d = new Date(`${day}T12:00`);
+  const opts = { day: 'numeric', month: 'long', ...(d.getFullYear() !== today().getFullYear() ? { year: 'numeric' } : {}) };
+  return `sinds ${d.toLocaleDateString('nl-NL', opts)}`;
+}
+
+// Een mini-voorbeeld: een uitsnede van het bord met dezelfde markeringen als een hint bij stap 2.
+function miniBoard(ex) {
+  const [r0, r1] = ex.rows, [c0, c1] = ex.cols;
+  const w = c1 - c0 + 1, h = r1 - r0 + 1;
+  const region = new Set(ex.region), focus = new Set(ex.focus);
+  const strike = new Map();
+  for (const [cell, d] of ex.strike) strike.set(cell, (strike.get(cell) || 0) | bit(d));
+  const glyph = glyphs();
+  let html = '', k = 0;
+  for (let r = r0; r <= r1; r++) {
+    for (let c = c0; c <= c1; c++, k++) {
+      const i = r * 9 + c, raw = ex.cells[k], v = Math.abs(raw), given = raw > 0;
+      const cls = ['cell'];
+      const g = v && (glyph === 'pixel' || (glyph === 'hand' && !given)) ? glyph : null;
+      if (v) cls.push(given ? 'given' : 'user', ...(g ? [g] : []));
+      if (ex.digit && v === ex.digit) cls.push('same');
+      if (region.has(i)) cls.push('hint-region');
+      if (focus.has(i)) cls.push('hint-focus');
+      // Blokranden zoals op het echte bord; aan de buitenkant geen extra lijn.
+      if (c === c1) cls.push('mb-lc'); else if (c % 3 === 2) cls.push('mb-r');
+      if (r === r1) cls.push('mb-lr'); else if (r % 3 === 2) cls.push('mb-b');
+      let inner = '';
+      if (v) inner = g === 'hand' ? `<span class="v hand d${v}"></span>` : g ? `<span class="v ${g} d${v}">${v}</span>` : `<span class="v">${v}</span>`;
+      else if (ex.notes[k]) {
+        inner = '<span class="notes">';
+        for (let d = 1; d <= 9; d++) {
+          const has = ex.notes[k] & bit(d);
+          const c2 = has ? ((strike.get(i) || 0) & bit(d) ? 'strike' : ex.digit === d ? 'hl' : '') : '';
+          inner += `<span class="${c2}">${has ? d : ''}</span>`;
+        }
+        inner += '</span>';
+      }
+      html += `<span class="${cls.join(' ')}" data-b="${Math.floor(r / 3) * 3 + Math.floor(c / 3)}">${inner}</span>`;
+    }
+  }
+  // Brede uitsneden (een hele rij of het hele bord) krijgen kleinere vakjes, zodat alles past.
+  const cell = w >= 7 ? 30 : 36;
+  return `<div class="mini-sudoku" style="--cols:${w};--rows:${h};--size:${cell * 9}px" role="img" aria-label="Voorbeeld op een stukje bord">${html}</div>`;
+}
+
+let examples = null;
+async function renderBook() {
+  const box = $('#book');
+  const known = knownCount(stats), total = TECHNIQUE_IDS.length;
+  // De voorbeelden zijn data (scripts/build-boekje.mjs); pas laden als het boekje opengaat.
+  examples ??= (await import('./boekje-voorbeelden.js')).EXAMPLES;
+  box.innerHTML = `
+    <p class="book-count">Je kent nu ${known} van de ${total} technieken</p>
+    <div class="book-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${known}" aria-label="Technieken in je boekje"><span style="--p:${known / total}"></span></div>
+    ${BOOK.map(({ level, ids }) => `<section class="book-level" aria-label="${escapeHtml(level.name)}">
+      <h3 class="book-level-title"><span aria-hidden="true">${level.emoji}</span> ${escapeHtml(level.name)}</h3>
+      ${ids.map((id) => {
+        const t = stats.techniques[id];
+        const name = escapeHtml(TECHNIQUES[id].name);
+        if (!t) {
+          return `<article class="book-item locked" data-technique="${id}"><h4><span class="book-lock" aria-hidden="true">🔒</span> ${name}</h4>
+            <p class="book-hint">${escapeHtml(lockedHint(id))}</p></article>`;
+        }
+        return `<article class="book-item" data-technique="${id}"><h4>${name}</h4>
+          <p class="book-since">${sinceText(t.since)}${t.hints > 1 ? ` · ${t.hints}× in een hint` : ''}</p>
+          <p class="book-text">${escapeHtml(TECHNIQUE_TEXT[id])}</p>
+          ${miniBoard(examples[id])}</article>`;
+      }).join('')}
+    </section>`).join('')}`;
+  // Gezien: het stipje mag weg.
+  store.saveBookSeen([...store.loadBookSeen(), ...TECHNIQUE_IDS.filter((id) => stats.techniques[id])]);
+  renderBookDot();
 }
 
 // ---------- Ruby Wrapped ----------
@@ -2007,6 +2112,7 @@ $('#daily-card').addEventListener('click', () => {
 
 applyTheme();
 applySleep();
+renderBookDot();
 if (testDate) {
   const badge = document.createElement('div');
   badge.className = 'test-badge';
