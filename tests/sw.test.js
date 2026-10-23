@@ -16,7 +16,7 @@ test('elk bestand in SHELL bestaat', () => {
 test('elk bestand dat de app gebruikt staat in SHELL (anders werkt het offline niet)', () => {
   const needed = [
     'index.html', 'manifest.webmanifest',
-    ...list('js', /\.js$/), ...list('js/fx', /\.js$/), ...list('css', /\.css$/), ...list('fonts', /\.woff2$/), ...list('hand', /\.svg$/),
+    ...list('js', /\.js$/), ...list('js/fx', /\.js$/), ...list('js/fx/lib', /\.js$/), ...list('css', /\.css$/), ...list('fonts', /\.woff2$/), ...list('hand', /\.svg$/),
   ];
   // Alles waar index.html, de css en het manifest naar verwijzen.
   const html = readFileSync(join(ROOT, 'index.html'), 'utf8');

@@ -3,6 +3,7 @@
 // zonnebloem in elk stadium en de effecten bij het oplossen. Handig na een ontwerpwijziging.
 // Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren] [--boekje]   (vereist Playwright + Chromium)
 // Met --boekje alleen het Techniekenboekje (in een paar lichte en donkere thema's).
+// Met --natuur alleen de natuurthema's: start en spel, de dieren (via ?dier=1) en de effecten bij het oplossen.
 // Met --themas alleen die thema's (start, spel en hartjespuzzel) plus een overzicht per thema.
 // De plaatjes komen in screenshots/ (staat niet in git), met per scherm een overzicht.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -125,7 +126,42 @@ async function bookShots(themes) {
     await p.context().close();
   }
 }
-if (process.argv.includes('--boekje')) {
+// Natuur: start en spel per thema, het zeehondje en het eekhoorntje (?dier=1 haalt ze
+// meteen tevoorschijn), en het opgelost-moment (blaadjes, noorderlicht, visjes).
+async function natureShots() {
+  const NATUUR = [['waddenzee', 'light'], ['bos', 'light'], ['noorderlicht', 'dark'], ['regen', 'dark'], ['onderwater', 'light']];
+  const g = playGame();
+  const sel = g.values.findIndex((v, i) => v && !g.givens[i] && v === g.solution[i]);
+  for (const [theme, scheme] of NATUUR) {
+    let p = await page({ theme, scheme, query: '?dier=1' });
+    await p.waitForTimeout(1600);
+    await shot(p, `natuur-start-${theme}`, 'natuur', false);
+    await p.context().close();
+    p = await page({ theme, scheme, game: g, query: '?dier=1' });
+    await openPlay(p, sel);
+    await p.waitForTimeout(9800); // met ?dier=1 komt het dier na ~8 s opnieuw kijken
+    await shot(p, `natuur-spel-${theme}`, 'natuur');
+    await p.context().close();
+    const a = heartGame(true);
+    p = await page({ theme, scheme, game: { ...a.game, special: null, shape: null } });
+    await openPlay(p, a.last);
+    await p.click(`.num[data-d="${heart.solution[a.last]}"]`);
+    await p.waitForTimeout(theme === 'onderwater' ? 2400 : 1500);
+    await shot(p, `natuur-opgelost-${theme}`, 'natuur');
+    await p.context().close();
+  }
+  // Met minder beweging: een stilstaand beeld.
+  for (const [theme, scheme] of [['regen', 'dark'], ['onderwater', 'light']]) {
+    const p = await page({ theme, scheme, game: g, reducedMotion: 'reduce' });
+    await openPlay(p, sel);
+    await shot(p, `natuur-stil-${theme}`, 'natuur');
+    await p.context().close();
+  }
+}
+
+if (process.argv.includes('--natuur')) {
+  await natureShots();
+} else if (process.argv.includes('--boekje')) {
   await bookShots([['zonnig', 'light'], ['nacht', 'dark'], ['briefje', 'light'], ['rubyxcube', 'light'], ['hoog-contrast', 'light'], ['robijn', 'dark'], ['krijtbord', 'dark']]);
 } else {
 
@@ -445,6 +481,7 @@ if (allSizes) {
 }
 
 await bookShots(only ? THEMES : [['zonnig', 'light'], ['nacht', 'dark']]);
+if (!only) await natureShots();
 }
 
 // Overzichten: alle plaatjes van één groep naast elkaar.

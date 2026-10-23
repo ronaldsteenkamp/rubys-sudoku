@@ -230,6 +230,8 @@ const fxCtx = {
   toast: (text, ms) => toast(text, ms),
   get board() { return $('#board'); },
   get reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; },
+  // Regenachtige dag: zachte regen als ze die aan heeft gezet en het geluid niet uit staat.
+  rainWanted: () => settings.rainSound && settings.sound !== 'uit',
   // Dagverloop heeft nieuwe kleuren gezet.
   changed({ scheme, vars }) {
     store.saveThemeToday(dayKey(today()), shownTheme.theme, shownTheme.accent, { vars, scheme });
@@ -1392,7 +1394,9 @@ function renderSettings() {
   explainErrors();
   for (const r of document.querySelectorAll('input[name="sound"]')) r.checked = r.value === settings.sound;
   for (const r of document.querySelectorAll('input[name="sleep"]')) r.checked = r.value === settings.sleep;
-  for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'haptics']) {
+  // De regen-schakelaar staat er alleen bij Regenachtige dag.
+  $('#rain-row').hidden = shownTheme.theme !== 'regen';
+  for (const name of ['autoNotes', 'highlightSame', 'showTimer', 'haptics', 'rainSound']) {
     document.querySelector(`input[name="${name}"]`).checked = Boolean(settings[name]);
   }
   $('#haptics-row').hidden = !hasHaptics;
@@ -1413,7 +1417,8 @@ $('#settings-dialog').addEventListener('change', (e) => {
   settings[name] = type === 'checkbox' ? checked : value;
   store.saveSettings(settings);
   applySleep();
-  if (name === 'theme') { applyTheme(); renderHome(); } // render() volgt hieronder
+  if (name === 'theme') { applyTheme(); renderHome(); $('#rain-row').hidden = shownTheme.theme !== 'regen'; } // render() volgt hieronder
+  if (name === 'rainSound' || name === 'sound') fx?.update?.(fxCtx);
   if (name === 'errors') { checkMarks = new Set(); explainErrors(); }
   // Even laten horen hoe het klinkt: bij Gitaar een kort akkoord.
   if (name === 'sound') feedback(value === 'gitaar' ? 'preview' : 'place');

@@ -61,6 +61,14 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
   - **Krijtbord** 🖍️ (donker): een schoolbord met krijtvegen en ruwe witte lijnen; wat Ruby invult staat er in het handschrift van Briefje, in krijt.
   - **Zonnebloem** 🌻: geel en bladgroen, met op het startscherm een zonnebloem die meegroeit met het aantal dagen dat ze gepuzzeld heeft: zaadje → kiem → steel → knop → bloem → volle bloem (helemaal groot na zo'n 60 dagen). Tik erop om te zien hoe ver hij is.
   - **Hoog contrast** 🔆: wit, zwart en fel geel, alles minstens 7:1, dikkere blokranden en de selectie ook als dikke zwarte rand. Voor fel zonlicht of in de sporthal. Wie nog het oude thema *Automatisch* had op een toestel dat om meer contrast vraagt (*prefers-contrast: more*), krijgt dit thema.
+  - **Natuur** (een eigen groepje in de kiezer), elk met een bewegende laag achter het bord:
+    - **Waddenzee** 🦭: grijsblauw wad, zilverig licht en een lage horizon met een glinsterend streepje zee onderaan. Af en toe kijkt er een zeehondje om de hoek; tik erop en hij zwaait met een flipper.
+    - **Bos** 🐿️: mosgroen, varens in de hoeken en zonlicht dat door de bladeren valt. Af en toe zit er een eekhoorntje met een nootje in een hoekje; bij het oplossen dwarrelen er blaadjes.
+    - **Noorderlicht** 🌌 (donker): sterren en heel langzaam golvende groene en paarse lichtbanen boven het bord (22–36 s per golf). Bij het oplossen laait het even op.
+    - **Regenachtige dag** ☔ (donker): blauwgrijs, warm lamplicht rond het bord en druppels die langzaam over het "raam" glijden; af en toe lopen er twee samen. Met een eigen schakelaar (*Instellingen → Geluid*, alleen in dit thema) een heel zacht regengeluid: gefilterde ruis via Web Audio, standaard uit, en stil als het geluid uit staat.
+    - **Onderwater** 🐠: turkoois naar dieper blauw, lichtstrepen van boven en opstijgende belletjes. Bij het oplossen zwemt er een klein scholetje visjes voorbij.
+
+    De dieren zijn eigen SVG-tekeningetjes. Ze komen hooguit één keer per paar minuten (willekeurig), kijken alleen om de hoek op een plek waar geen knop, bord of (liefst) tekst is, en duiken weg zodra ze ergens anders tikt of scrolt; ze kunnen dus nooit een tik op het bord onderscheppen. Alles beweegt alleen met transform en opacity, met een vast, klein aantal deeltjes (12 druppels, 12 belletjes). Is de app niet in beeld, dan staat alles stil; in de slaapstand op half tempo en zonder dieren; met *minder beweging* (prefers-reduced-motion) een stilstaand beeld zonder dieren en zonder effecten bij het oplossen. Om te testen haalt `?dier=1` het zeehondje of eekhoorntje meteen tevoorschijn (en daarna steeds opnieuw).
   - De seizoenen: Lente, Zomer, Herfst en Winter, plus de keuze *Seizoen*, die vanzelf meewisselt.
 - **Vrijspelen.** Sommige thema's moet Ruby eerst verdienen. In de kiezer staan ze met een 🔒 en een hint; zodra er een vrijkomt, verschijnt *Nieuw thema* met een eigen tekstje (en *Probeer maar!*). De regels staan als data in `js/themes.js` (`unlock`) en worden nagerekend door de pure functie `unlockRuleMet`:
 
@@ -72,8 +80,11 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
   | Koffiemonster | `{ before: 10, solves: 50 }`: 50 puzzels opgelost vóór 10:00 (uit het logboek) | *Nog 38 puzzels vóór tienen ☕* |
   | Beachvolleybal | `{ window: ['2027-08-13', '2027-08-22'] }`: de app openen tijdens het WK Beachvolleybal in Nederland; daarna blijft hij vrij | *Tijdens het WK Beachvolleybal, 13–22 aug 2027* |
   | Zonnebloem | `{ total: 25 }`: 25 puzzels, tegelijk met de mijlpaal *Kwart eeuw* 🌻 | *Nog 7 puzzels 🌻* |
+  | Bos | `{ total: 40 }`: 40 puzzels | *Nog 12 puzzels 🌰* |
+  | Noorderlicht | `{ between: [22, 2], solves: 5 }`: 5 puzzels opgelost tussen 22:00 en 02:00 (over middernacht heen, uit het logboek) | *Puzzel nog 3 keer laat op de avond 🌙* |
+  | Onderwater | `{ noHint: 10 }`: 10 puzzels zonder hints | *Nog 4 puzzels zonder hints 🫧* |
 
-  Gitaar, Dagverloop, Krant, Krijtbord en Hoog contrast zijn meteen vrij. Na elke opgeloste puzzel tellen alle regels, bij het openen van de app alleen de datumvensters. Per thema wordt de dag van vrijspelen bewaard (`stats.themeUnlockDates`); oude opslag zonder datums blijft gewoon werken.
+  Gitaar, Dagverloop, Krant, Krijtbord, Hoog contrast, Waddenzee en Regenachtige dag zijn meteen vrij. Na elke opgeloste puzzel tellen alle regels, bij het openen van de app alleen de datumvensters. Per thema wordt de dag van vrijspelen bewaard (`stats.themeUnlockDates`); oude opslag zonder datums blijft gewoon werken.
 
   <details>
   <summary>🤫 Er is ook een geheim thema</summary>
@@ -112,7 +123,8 @@ js/messages.js        bijnamen, berichtjes, mijlpalen, speciale dagen ← hier p
 js/matches.js         het wedstrijdschema van Donitas DS 14 ← hier pas je wedstrijden aan
 js/themes.js          de thema's als data, vrijspeelregels, seizoenen en dagthema's (VACATIONS) ← hier zet je vakanties
 js/theme-early.js     zet het thema van vandaag meteen bij het laden (geen flits)
-js/fx/                effecten van één thema, pas geladen als dat thema aan staat (Dagverloop, Zonnebloem, latte, kubus, Game Boy)
+js/fx/                effecten van één thema, pas geladen als dat thema aan staat (Dagverloop, Zonnebloem, latte, kubus, Game Boy, de natuurthema's)
+js/fx/lib/natuur.js   gedeeld door de natuurthema's: de effectlaag, pauzeren, en waar een dier veilig om de hoek kan kijken
 js/feedback.js        geluidjes en trillen
 js/sleep.js           slaapstand: tijdvenster en filter
 js/wrapped.js         Ruby Wrapped: het jaaroverzicht uit het logboek (puur)
@@ -144,6 +156,8 @@ Open daarna http://localhost:3000 (of :8080).
 
 **Dagthema's testen:** `?vandaag=2026-10-31` (wedstrijd op Halloween: Volleybal met Nacht-accent), `?vandaag=2026-11-14` (gewone wedstrijddag), `?vandaag=2027-10-12` (verjaardag: Zonnig), `?vandaag=2026-12-25` (Kerst), `?vandaag=2026-12-31` (oudejaarsavond) en `?vandaag=2026-11-01` (weer haar eigen thema). Met `&dagthema=uit` staan de dagthema's uit; het screenshotscript gebruikt dat om elk thema ook op speciale dagen te laten zien.
 
+**Natuurthema's testen:** `?dier=1` laat het zeehondje (Waddenzee) of eekhoorntje (Bos) meteen om de hoek kijken. Noorderlicht komt vrij na 5 puzzels laat op de avond, bijvoorbeeld met `?vandaag=2026-11-03T22:30` (met een tijd erbij staat de klok stil). `node scripts/screenshots.mjs --natuur` maakt start, spel, de dieren en het opgelost-moment van alle vijf.
+
 **Techniekenboekje testen:** open bijvoorbeeld `?vandaag=2026-11-03`, begin een puzzel en vraag om een hint. Bij *Meer uitleg* (stap 2) komt de techniek in het boekje en verschijnt het stipje op *Statistieken*; los je de puzzel op, dan staat de regel op het opgelost-scherm (tenzij er een record is). Elke testdatum heeft een eigen, lege testopslag, dus Ruby's echte boekje blijft onaangeroerd. Hogere niveaus (*Even nadenken*, *Ruby-modus*) geven sneller de zwaardere technieken.
 
 **Nieuwe thema's testen:** `?vandaag=2027-08-15` speelt Beachvolleybal vrij (het WK); `?vandaag=2027-03-03T07:30` (of `T13:00`, `T18:30`, `T22:45`) laat Dagverloop op dat tijdstip zien. Robijn, RubyxCube, Koffiemonster en Zonnebloem komen vrij na een opgeloste puzzel als de regel gehaald is.
@@ -158,9 +172,9 @@ Vereist Node 20 of nieuwer, zonder dependencies:
 npm test
 ```
 
-De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, het logboek en de recordteksten, het wedstrijdschema (ook rond zomer- en wintertijd) en de wedstrijdteksten, alle speciale dagen (ook bij samenvallen) en de figuren, het Techniekenboekje (ontdekken bij stap 2, de teller, oude opslag, back-up, het niveau in het hintje, de voorbeelden en de mijlpaal), elke vrijspeelregel (net wel en net niet, het WK-venster, de geheime tik-teller, oude opslag zonder datums), Dagverloop op alle 96 kwartieren, RubyxCube per blok, Hoog contrast (7:1), de zonnebloem in elk stadium, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
+De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, het logboek en de recordteksten, het wedstrijdschema (ook rond zomer- en wintertijd) en de wedstrijdteksten, alle speciale dagen (ook bij samenvallen) en de figuren, het Techniekenboekje (ontdekken bij stap 2, de teller, oude opslag, back-up, het niveau in het hintje, de voorbeelden en de mijlpaal), elke vrijspeelregel (net wel en net niet, ook `between` over middernacht en `noHint`, het WK-venster, de geheime tik-teller, oude opslag zonder datums), Dagverloop op alle 96 kwartieren, RubyxCube per blok, Hoog contrast (7:1), de zonnebloem in elk stadium, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
 
-Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub, een update die pas na een tik binnenkomt, de kalender na twee dagen puzzelen, een hele wedstrijddag (warming-up, uitkomst, herstel), de speciale dagen (kerstboom oplossen, de maandversary, een oud lopend hart), het Techniekenboekje (ontdekken via een hint, het stipje, de regel op het opgelost-scherm, een ontdekte en een vergrendelde techniek met voorbeeld), en de nieuwe thema's (de gitaar klinkt in Gitaar, het geheime thema via het logo, Beachvolleybal tijdens het WK, Dagverloop, de zonnebloem en de kiezer).
+Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub, een update die pas na een tik binnenkomt, de kalender na twee dagen puzzelen, een hele wedstrijddag (warming-up, uitkomst, herstel), de speciale dagen (kerstboom oplossen, de maandversary, een oud lopend hart), de natuurthema's (de effectlaag achter het bord, een dier dat niets bedekt terwijl je gewoon op het bord tikt, pauzeren als de app niet in beeld is, stilstand met minder beweging, geen dieren in de slaapstand, het zwaaiende zeehondje en de regen-schakelaar), het Techniekenboekje (ontdekken via een hint, het stipje, de regel op het opgelost-scherm, een ontdekte en een vergrendelde techniek met voorbeeld), en de nieuwe thema's (de gitaar klinkt in Gitaar, het geheime thema via het logo, Beachvolleybal tijdens het WK, Dagverloop, de zonnebloem en de kiezer).
 
 ```bash
 npm run test:e2e
