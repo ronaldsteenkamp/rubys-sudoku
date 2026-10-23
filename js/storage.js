@@ -1,7 +1,7 @@
 // Alles in localStorage, altijd met try/catch: in een privévenster of met
 // geblokkeerde opslag werkt de app gewoon door, alleen zonder geheugen.
 
-import { SEASON_THEMES } from './themes.js';
+import { LOCKED_THEME_IDS } from './themes.js';
 import { isValidGameData } from './game.js';
 
 let PREFIX = 'rubys-sudoku:';
@@ -9,7 +9,6 @@ let PREFIX = 'rubys-sudoku:';
 // Met ?vandaag= (een testdatum) gebruikt de app een aparte opslag, zodat
 // testen nooit Ruby's echte reeks, statistieken of verrassingen raakt.
 export function useTestStorage(on = true) { PREFIX = on ? 'rubys-sudoku-test:' : 'rubys-sudoku:'; }
-const SEASON_IDS = SEASON_THEMES.map((t) => t.id);
 
 function read(key, fallback) {
   let raw = null;
@@ -41,7 +40,8 @@ function remove(key) {
 
 // Het thema dat de app vandaag liet zien. js/theme-early.js zet het meteen bij
 // het laden, nog vóór de rest van de app er is: zo flitst er geen ander thema.
-export const saveThemeToday = (day, theme, accent) => write('theme-today', { day, theme, accent: accent || null });
+// Dagverloop geeft ook zijn kleuren van nu mee (`vars`, `scheme`), zodat er bij het openen niet eerst de middag flitst.
+export const saveThemeToday = (day, theme, accent, { vars = null, scheme = null } = {}) => write('theme-today', { day, theme, accent: accent || null, ...(vars ? { vars, scheme } : {}) });
 
 // ---------- Instellingen ----------
 
@@ -105,8 +105,8 @@ export function emptyStats() {
     dailyTimes: {}, // { 'JJJJ-MM-DD': ms } tijd per opgeloste dagpuzzel
     specialDone: [],
     seasonSolves: {}, // { 'herfst-2026': 2 } opgeloste puzzels per seizoen
-    unlockedThemes: [], // ontgrendelde seizoensthema's, bijv. ['herfst']
-    themeUnlockDates: {}, // { herfst: '2026-10-24' } de dag van vrijspelen (voor de dagthema's)
+    unlockedThemes: [], // vrijgespeelde thema's, bijv. ['herfst', 'robijn']
+    themeUnlockDates: {}, // { herfst: '2026-10-24' } de dag van vrijspelen (seizoenen: ook voor de dagthema's)
     log: [], // logboek van opgeloste puzzels, zie hieronder
     matches: {}, // per wedstrijddatum: { uitslag, warmup, herstel, pep }, zie hieronder
     wrapped: {}, // per jaar het laatst berekende Ruby Wrapped, zie hieronder
@@ -288,8 +288,8 @@ export function migrateStats(raw) {
       s.levels[id] = { played: count(l.played), solved: count(l.solved), best: time(l.best), totalTime: time(l.totalTime) ?? 0 };
     }
   }
-  s.unlockedThemes = Array.isArray(r.unlockedThemes) ? r.unlockedThemes.filter((t) => SEASON_IDS.includes(t)) : [];
-  // Oude opslag heeft geen datums: zo'n seizoen telt als "vóór vandaag" vrijgespeeld.
+  s.unlockedThemes = Array.isArray(r.unlockedThemes) ? [...new Set(r.unlockedThemes.filter((t) => LOCKED_THEME_IDS.includes(t)))] : [];
+  // Oude opslag heeft geen datums: zo'n thema telt als "vóór vandaag" vrijgespeeld.
   s.themeUnlockDates = Object.fromEntries(Object.entries(isObj(r.themeUnlockDates) ? r.themeUnlockDates : {})
     .filter(([id, d]) => s.unlockedThemes.includes(id) && isDay(d)));
   // Het logboek: kapotte regels eruit, op datum gesorteerd. Zonder logboek

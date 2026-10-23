@@ -44,7 +44,38 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
 
   Teksten liggen per jaar vast (na een herstart dezelfde, volgend jaar soms een andere) en gebruiken haar bijnamen.
 - **Wedstrijddag.** Ruby speelt volleybal bij Donitas DS 14 (rugnummer 33). Op een wedstrijddag staat er een kaartje op het startscherm: vóór de wedstrijd tegenstander, tijd en thuis/uit met een peptalk (steeds een andere) en een korte warming-up-puzzel (±46 gegeven cijfers, alleen eenvoudige technieken). Tijdens de wedstrijd zit de app (in gedachten) langs de lijn. Daarna vraagt hij *Hoe ging het?* (gewonnen, verloren of zeg maar niks; de app weet de uitslag zelf nooit) en volgt een rustige herstelpuzzel met verborgen timer en zachte geluiden. Na een late wedstrijd (na 22:30 afgelopen) blijft dat tot de volgende dag 12:00 staan. Beide puzzels zijn vast per wedstrijd en tellen mee als gewone puzzels (niet als dagpuzzel); in Volleybal dwarrelen er ballen. Na de herstelpuzzel van de laatste wedstrijd van het seizoen komt de mijlpaal *Seizoen uitgespeeld* vrij. Zonder wedstrijd ziet het startscherm er gewoon uit zoals altijd.
-- **Thema's.** Zonnig (geel), Nacht, Gran Canaria, Lelie, Liefde, Sterren, Volleybal en Briefje. Briefje is een blaadje ruitjespapier: wat Ruby zelf invult staat er in het echte handschrift van de maker (de SVG's in `hand/`), net als het logo, de hartjes en het opgelost-scherm. Daarnaast vier seizoensthema's (Lente, Zomer, Herfst, Winter) die vrijkomen als Ruby 3 puzzels oplost binnen dat seizoen, plus de keuze *Seizoen*, die vanzelf meewisselt.
+- **Thema's.** In de kiezer per groepje een rij voorproefjes: *Van jou*, *Sfeer* en *Seizoenen*.
+  - Zonnig (geel), Nacht, Sterren, Liefde, Lelie, Gran Canaria, Volleybal en Briefje. Briefje is een blaadje ruitjespapier: wat Ruby zelf invult staat er in het echte handschrift van de maker (de SVG's in `hand/`), net als het logo, de hartjes en het opgelost-scherm.
+  - **Robijn** 💎 (donker): diep robijnrood met geslepen facetten op de achtergrond en glanzende cijfers.
+  - **RubyxCube** 🧩: elk 3×3-blok een eigen zachte kubuskleur (geel, rood, groen / blauw, wit, oranje / groen, oranje, blauw: buren verschillen altijd). Selectie en fouten zijn op elke kleur te zien (per blok getest). Bij het oplossen draait het bord kort als een kubus.
+  - **Koffiemonster** ☕: espresso, crème en melkschuim. Bij het oplossen tekent zich een latte-art-hartje in het midden van het bord.
+  - **Gitaar** 🎸: warm hout met nerf, de dunne lijnen zijn snaren en fretten, het gekozen vakje is een plectrum. Zolang Gitaar het thema is en het geluid niet uit staat, klinkt de gitaar (ook als de geluidsinstelling *Zacht* is; die instelling blijft gewoon staan).
+  - **Beachvolleybal** 🏖️: zand, zee en zon, met een zachte golf onderaan het scherm. Op een gewone wedstrijddag in de zomer krijgt Volleybal de accentkleuren van Beachvolleybal (als dat vrij is).
+  - **Dagverloop** 🌅: de kleuren schuiven met de klok mee: ochtendroze (6–10), middagblauw (10–17), avondoranje (17–21) en nachtpaars (21–6), per kwartier gemengd. Om 6:00 wordt het licht, om 21:00 donker. Het contrast is op alle 96 kwartieren getest.
+  - **Krant** 📰: vergeeld papier, zwart en grijs, alles in Fraunces en dunne lijnen, zoals de sudoku achterin de krant.
+  - **Krijtbord** 🖍️ (donker): een schoolbord met krijtvegen en ruwe witte lijnen; wat Ruby invult staat er in het handschrift van Briefje, in krijt.
+  - **Zonnebloem** 🌻: geel en bladgroen, met op het startscherm een zonnebloem die meegroeit met het aantal dagen dat ze gepuzzeld heeft: zaadje → kiem → steel → knop → bloem → volle bloem (helemaal groot na zo'n 60 dagen). Tik erop om te zien hoe ver hij is.
+  - **Hoog contrast** 🔆: wit, zwart en fel geel, alles minstens 7:1, dikkere blokranden en de selectie ook als dikke zwarte rand. Voor fel zonlicht of in de sporthal. Wie nog het oude thema *Automatisch* had op een toestel dat om meer contrast vraagt (*prefers-contrast: more*), krijgt dit thema.
+  - De seizoenen: Lente, Zomer, Herfst en Winter, plus de keuze *Seizoen*, die vanzelf meewisselt.
+- **Vrijspelen.** Sommige thema's moet Ruby eerst verdienen. In de kiezer staan ze met een 🔒 en een hint; zodra er een vrijkomt, verschijnt *Nieuw thema* met een eigen tekstje (en *Probeer maar!*). De regels staan als data in `js/themes.js` (`unlock`) en worden nagerekend door de pure functie `unlockRuleMet`:
+
+  | Thema | Regel | Hint |
+  |---|---|---|
+  | Lente, Zomer, Herfst, Winter | `{ solves: 3 }`: 3 puzzels binnen dat seizoen | *Nog 2 puzzels deze herfst* |
+  | Robijn | `{ level: 'ruby', solves: 10 }`: 10 keer Ruby-modus | *Nog 6× Ruby-modus 🔥* |
+  | RubyxCube | `{ streak: 6 }`: 6 dagen op rij gepuzzeld (de langste reeks) | *Zes kanten, zes dagen* |
+  | Koffiemonster | `{ before: 10, solves: 50 }`: 50 puzzels opgelost vóór 10:00 (uit het logboek) | *Nog 38 puzzels vóór tienen ☕* |
+  | Beachvolleybal | `{ window: ['2027-08-13', '2027-08-22'] }`: de app openen tijdens het WK Beachvolleybal in Nederland; daarna blijft hij vrij | *Tijdens het WK Beachvolleybal, 13–22 aug 2027* |
+  | Zonnebloem | `{ total: 25 }`: 25 puzzels, tegelijk met de mijlpaal *Kwart eeuw* 🌻 | *Nog 7 puzzels 🌻* |
+
+  Gitaar, Dagverloop, Krant, Krijtbord en Hoog contrast zijn meteen vrij. Na elke opgeloste puzzel tellen alle regels, bij het openen van de app alleen de datumvensters. Per thema wordt de dag van vrijspelen bewaard (`stats.themeUnlockDates`); oude opslag zonder datums blijft gewoon werken.
+
+  <details>
+  <summary>🤫 Er is ook een geheim thema</summary>
+
+  **Game Boy** 👾: alleen de vier klassieke groentinten, vierkante hoeken, zelfgetekende pixelcijfers (5 × 7, als SVG-masker) en bij het oplossen een kort 8-bit-deuntje (blokgolf, met de gewone geluidsinstelling). Het komt vrij door **8 keer snel achter elkaar op het logo** (*Ruby's Sudoku* bovenaan het startscherm) te tikken, binnen zo'n 3 seconden. Tot dan staat het nergens in de kiezer; daarna in een eigen groepje *Geheim*.
+  </details>
+- **Effecten alleen als het thema aan staat.** De klok van Dagverloop, de zonnebloem, het latte-hartje, de kubus en het 8-bit-deuntje zitten elk in een eigen module in `js/fx/`, die `js/ui.js` pas laadt als dat thema te zien is. Een thema zonder effecten kost dus geen extra JavaScript.
 - **Dagthema's.** Op sommige dagen kiest de app het thema, niet Ruby, voor die hele kalenderdag. Haar eigen keuze blijft bewaard: de volgende dag is alles weer zoals zij het had. In de themakiezer staat dan bovenaan bijv. *"Vandaag kies ik je thema: Volleybal 🏐 Morgen mag je weer zelf."*, de keuzes zijn even dicht en haar eigen keuze blijft aangevinkt. De slaapstand werkt er gewoon overheen. Voorrang, van hoog naar laag:
 
   1. **Wedstrijddag** (een datum in `js/matches.js`): Volleybal. Is het die dag ook iets van hieronder, dan Volleybal met de accentkleuren en feest-emoji's van die dag (bijv. Volleybal met Nacht-accent en 🎃 op Halloween 31-10-2026). Dat gaat generiek: Volleybal plus de accentset van het andere thema (`html[data-accent]` in `css/style.css`).
@@ -72,8 +103,9 @@ js/game.js            spelstatus: cijfers, notities, undo/redo
 js/storage.js         localStorage: instellingen, lopende puzzel, statistieken
 js/messages.js        bijnamen, berichtjes, mijlpalen, speciale dagen ← hier pas je teksten aan
 js/matches.js         het wedstrijdschema van Donitas DS 14 ← hier pas je wedstrijden aan
-js/themes.js          de thema's als data, seizoenen, ontgrendelen en dagthema's (VACATIONS) ← hier zet je vakanties
+js/themes.js          de thema's als data, vrijspeelregels, seizoenen en dagthema's (VACATIONS) ← hier zet je vakanties
 js/theme-early.js     zet het thema van vandaag meteen bij het laden (geen flits)
+js/fx/                effecten van één thema, pas geladen als dat thema aan staat (Dagverloop, Zonnebloem, latte, kubus, Game Boy)
 js/feedback.js        geluidjes en trillen
 js/sleep.js           slaapstand: tijdvenster en filter
 js/wrapped.js         Ruby Wrapped: het jaaroverzicht uit het logboek (puur)
@@ -105,6 +137,8 @@ Open daarna http://localhost:3000 (of :8080).
 
 **Dagthema's testen:** `?vandaag=2026-10-31` (wedstrijd op Halloween: Volleybal met Nacht-accent), `?vandaag=2026-11-14` (gewone wedstrijddag), `?vandaag=2027-10-12` (verjaardag: Zonnig), `?vandaag=2026-12-25` (Kerst), `?vandaag=2026-12-31` (oudejaarsavond) en `?vandaag=2026-11-01` (weer haar eigen thema). Met `&dagthema=uit` staan de dagthema's uit; het screenshotscript gebruikt dat om elk thema ook op speciale dagen te laten zien.
 
+**Nieuwe thema's testen:** `?vandaag=2027-08-15` speelt Beachvolleybal vrij (het WK); `?vandaag=2027-03-03T07:30` (of `T13:00`, `T18:30`, `T22:45`) laat Dagverloop op dat tijdstip zien. Robijn, RubyxCube, Koffiemonster en Zonnebloem komen vrij na een opgeloste puzzel als de regel gehaald is.
+
 **Seizoensthema's testen:** `?vandaag=` bepaalt ook het seizoen. Los bijvoorbeeld op `?vandaag=2026-12-30` drie puzzels op (Zondagochtend gaat het snelst): na de derde verschijnt *Nieuw thema: Winter*. Dat kan ook verspreid over `?vandaag=2026-12-31` en `?vandaag=2027-01-02`, want december tot en met februari is één winter.
 
 ## Tests
@@ -115,9 +149,9 @@ Vereist Node 20 of nieuwer, zonder dependencies:
 npm test
 ```
 
-De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, het logboek en de recordteksten, het wedstrijdschema (ook rond zomer- en wintertijd) en de wedstrijdteksten, alle speciale dagen (ook bij samenvallen) en de figuren, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
+De tests dekken de solver, de uniciteitscheck, de generator (alle niveaus, dagpuzzel, hartjespuzzel en snelheid), elke hinttechniek, het oplossen van een Ruby-modus-puzzel met alleen hints, de spellogica, de opslag (ook als localStorage geblokkeerd of kapot is), de persoonlijke teksten, het logboek en de recordteksten, het wedstrijdschema (ook rond zomer- en wintertijd) en de wedstrijdteksten, alle speciale dagen (ook bij samenvallen) en de figuren, elke vrijspeelregel (net wel en net niet, het WK-venster, de geheime tik-teller, oude opslag zonder datums), Dagverloop op alle 96 kwartieren, RubyxCube per blok, Hoog contrast (7:1), de zonnebloem in elk stadium, en of de service worker alle bestanden kent en er na een wijziging een nieuwe release is gemaakt.
 
-Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub, een update die pas na een tik binnenkomt, de kalender na twee dagen puzzelen, een hele wedstrijddag (warming-up, uitkomst, herstel), en de speciale dagen (kerstboom oplossen, de maandversary, een oud lopend hart).
+Daarnaast zijn er e2e-tests die de app echt in een browser draaien (vereist Playwright): een puzzel oplossen, hervatten na herladen, een kapotte opslag of back-up, de 🔥-reeks rond middernacht, testdatums, offline starten, een storing bij GitHub, een update die pas na een tik binnenkomt, de kalender na twee dagen puzzelen, een hele wedstrijddag (warming-up, uitkomst, herstel), de speciale dagen (kerstboom oplossen, de maandversary, een oud lopend hart), en de nieuwe thema's (de gitaar klinkt in Gitaar, het geheime thema via het logo, Beachvolleybal tijdens het WK, Dagverloop, de zonnebloem en de kiezer).
 
 ```bash
 npm run test:e2e
@@ -156,9 +190,9 @@ De tests draaien bij elke push en pull request automatisch via GitHub Actions (`
 - **Speciale dagen:** de lijst `SPECIAL_DAYS` in `js/messages.js`; de volgorde is de voorrang, en een dag toevoegen is één regel erbij. Daar staan ook `APP_GIFT` (de dag dat Ruby de app kreeg) en `LAST_HOME_MATCH` (de laatste thuiswedstrijd; pas die aan als het schema in `js/matches.js` een nieuw seizoen krijgt, een test controleert dat ze overeenkomen).
 - **Figuren:** de tabel `SHAPES` in `js/generator.js`: 9 regels van 9 tekens, met `X` voor de figuur, `O` voor een accent (pijl, lint, gezichtje) en `.` erbuiten. `npm test` controleert of een figuur oplosbaar kan zijn (minstens 40 vakjes, en per band of stapel hooguit één lege rij of kolom) en of er snel een unieke puzzel van te maken is. De kleuren per figuur staan in `css/style.css` bij *Kleuren van de figuurpuzzels*.
 - **Wedstrijdschema:** `js/matches.js`. Bovenin staat hoe je een wedstrijd toevoegt, verzet of schrapt; `npm test` controleert het schema. Vergeet daarna `npm run release` niet.
-- **Kleuren van de thema's:** de variabelen bovenin `css/style.css`; naam, feest-emoji en voorproefkleuren in `js/themes.js`. `npm test` controleert of elk thema alle variabelen heeft, of de voorproefkleuren kloppen en of cijfers op het bord minstens 4.5:1 contrast halen.
+- **Kleuren van de thema's:** de variabelen bovenin `css/style.css`; naam, groepje, feest-emoji, voorproefkleuren en vrijspeelregel in `js/themes.js`; de tekst bij het vrijspelen in `THEME_UNLOCK_TEXT` in `js/messages.js`. Dagverloop heeft zijn paletten in `js/fx/dagverloop.js`. `npm test` controleert of elk thema alle variabelen heeft, of de voorproefkleuren kloppen en of cijfers op het bord minstens 4.5:1 contrast halen.
 - **Iconen:** pas `icons/icon.svg` of `icons/maskable.svg` aan en draai `node scripts/render-icons.mjs` (vereist Playwright).
-- **Ontwerp controleren:** `node scripts/screenshots.mjs` maakt screenshots van start- en speelscherm in alle thema's, de verjaardag en de hart-onthulling (met `--maten` ook iPhone SE, Pro Max en liggend). Ze komen in `screenshots/`, met per scherm een overzicht; die map staat niet in git. Vereist Playwright.
+- **Ontwerp controleren:** `node scripts/screenshots.mjs` maakt screenshots van start- en speelscherm in alle thema's, de verjaardag, de hart-onthulling, Dagverloop op vier tijden, de zonnebloem in elk stadium, de effecten bij het oplossen en de themakiezer (met `--maten` ook iPhone SE, Pro Max en liggend). Ze komen in `screenshots/`, met per scherm een overzicht; die map staat niet in git. Vereist Playwright.
 
 ## Goed om te weten
 

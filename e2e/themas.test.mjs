@@ -14,10 +14,10 @@ for (const [colorScheme, want] of [['light', 'zonnig'], ['dark', 'nacht']]) {
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), want);
     assert.equal((await stored(page, 'settings')).theme, want);
     await page.click('[data-open="settings-dialog"]');
-    const themes = await page.$$eval('#theme-options .theme-name', (els) => els.map((e) => e.textContent));
+    const themes = await page.$$eval('#theme-options-sfeer .theme-name', (els) => els.map((e) => e.textContent));
     assert.ok(!themes.includes('Automatisch'));
     assert.ok(themes.includes('Zonnig') && themes.includes('Nacht'));
-    const seasons = await page.$$eval('#season-options .theme-name', (els) => els.map((e) => e.textContent));
+    const seasons = await page.$$eval('#theme-options-seizoen .theme-name', (els) => els.map((e) => e.textContent));
     assert.ok(seasons.includes('Seizoen'), 'Seizoen (automatisch) blijft');
     assert.deepEqual(page.errors, []);
     await page.context().close();
