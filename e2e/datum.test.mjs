@@ -30,8 +30,8 @@ test('dagpuzzel om 23:58 begonnen en om 00:03 af: de reeks blijft heel', async (
 });
 
 test('met ?vandaag= blijven de echte statistieken onaangeroerd', async () => {
-  const page = await open(base, { query: '?vandaag=2027-09-29', storage: { stats: stats(), game: savedGame() }, prefix: TEST_PREFIX });
-  assert.match(await page.textContent('.test-badge'), /Testdatum 2027-09-29/);
+  const page = await open(base, { query: '?vandaag=2027-09-26', storage: { stats: stats(), game: savedGame() }, prefix: TEST_PREFIX });
+  assert.match(await page.textContent('.test-badge'), /Testdatum 2027-09-26/);
   assert.match(await page.textContent('#special-slot'), /Speciaal voor vandaag/);
   // Even een echte stand erbij zetten, alsof het Ruby's toestel is.
   await page.evaluate(() => localStorage.setItem('rubys-sudoku:stats', JSON.stringify({ totalSolved: 40, streak: 9, lastSolvedDay: '2026-10-21', levels: {} })));
