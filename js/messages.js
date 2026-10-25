@@ -9,8 +9,8 @@ export const NICKNAMES = [
   'Van der Vegt', 'Vegtie', 'Au Pair', 'Jonkie',
 ];
 
-// Samen sinds 29 september 2026; jarig op 12 oktober (2005).
-export const ANNIVERSARY = { year: 2026, month: 9, day: 29 };
+// Samen sinds 26 september 2026; jarig op 12 oktober (2005).
+export const ANNIVERSARY = { year: 2026, month: 9, day: 26 };
 export const BIRTHDAY = { year: 2005, month: 10, day: 12 };
 
 const pick = (list, rng = Math.random) => list[Math.floor(rng() * list.length)];
@@ -308,12 +308,12 @@ const HALVES = ['een half', 'anderhalf', 'tweeënhalf', 'drieënhalf', 'vierenha
 const months = (m) => (m === 1 ? '1 maand' : `${m} maanden`);
 const yearsText = (n) => (n === 1 ? 'een jaar' : `${n} jaar`);
 
-// Lieve zinnetjes voor de maandversary (elke 29e), vast per maand.
+// Lieve zinnetjes voor de maandversary (elke 26e), vast per maand.
 export const MONTHSARY_LINES = [
   ({ m, n }) => `Alweer ${m} samen, ${n}. Elke maand een beetje meer 💛`,
   ({ m }) => `Vandaag ${m} samen. Ik ben nog steeds net zo blij als op dag één 😊`,
   ({ m }) => `${m} samen, en je bent nog steeds mijn favoriete puzzel 🧩`,
-  ({ m }) => `Weer een 29e! ${m} met jou voelen als een zondagochtend ☀️`,
+  ({ m }) => `Weer een ${ANNIVERSARY.day}e! ${m} met jou voelen als een zondagochtend ☀️`,
   ({ m }) => `${m} samen. Zin in koffie? Ik trakteer ☕`,
   ({ m, n }) => `Fijne maandversary, ${n}: ${m} vol lachen en preitaart 🥧`,
   ({ m }) => `${m} samen, en ik word nog steeds blij als ik je zie 💛`,
@@ -404,7 +404,7 @@ export const SPECIAL_DAYS = [
     on: (y) => noon(y, 1, 1), title: ({ year }) => `Gelukkig ${year} 🎆`,
     text: ({ nick, year }) => byYear([`Gelukkig ${year}, ${nick}! Het eerste vuurwerk van het jaar is van cijfers. Op een jaar vol puzzels en ons 🎆`, `Welkom, ${year}! Ik weet nu al dat het een mooi jaar wordt, want jij zit erin 🎆`], year),
     solved: [({ year }) => `De eerste puzzel van ${year} zit erin! 🥂`, ({ year }) => `${year} begint goed. Proost op jou 🥂✨`] },
-  // Elke 29e (in februari zonder 29e de laatste dag). Geen puzzel, alleen een kaartje.
+  // Elke 26e (zou die dag in februari niet bestaan, dan de laatste dag). Geen puzzel, alleen een kaartje.
   { kind: 'maandversary', label: 'de maandversary 💛', icon: '💛', shape: null, celebrate: LOVE, perDay: true,
     matches: (d) => {
       const lastOfFeb = d.getMonth() === 1 && new Date(d.getFullYear(), 2, 0).getDate() === d.getDate();

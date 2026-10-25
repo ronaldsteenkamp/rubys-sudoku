@@ -28,8 +28,8 @@ test('wedstrijddag + Halloween (31-10-2026): Volleybal met Nacht-accent', () => 
 });
 
 test('wedstrijddag + jubileum: Volleybal met Liefde-accent', () => {
-  const matches = [{ date: '2027-09-29', time: '17:00', home: true, opponent: 'Test DS 1' }];
-  assert.deepEqual(day(at(2027, 9, 29), { matches }), { theme: 'volleybal', accent: 'liefde', reason: 'wedstrijd', kind: 'jubileum' });
+  const matches = [{ date: '2027-09-26', time: '17:00', home: true, opponent: 'Test DS 1' }];
+  assert.deepEqual(day(at(2027, 9, 26), { matches }), { theme: 'volleybal', accent: 'liefde', reason: 'wedstrijd', kind: 'jubileum' });
   // Andere combinaties gaan net zo: verjaardag = Zonnig-accent, eerste winterdag = Winter-accent.
   assert.equal(day(at(2027, 10, 12), { matches: [{ date: '2027-10-12' }] }).accent, 'zonnig');
   assert.equal(day(at(2027, 12, 1), { matches: [{ date: '2027-12-01' }], unlocked: ['winter'] }).accent, 'winter');
@@ -39,7 +39,7 @@ test('wedstrijddag + jubileum: Volleybal met Liefde-accent', () => {
 
 test('persoonlijke dagen en feestdagen', () => {
   const cases = [
-    [at(2027, 9, 29), 'liefde', 'jubileum'], [at(2027, 3, 29), 'liefde', 'halfjaar'], [at(2027, 1, 7), 'liefde', 'honderd'],
+    [at(2027, 9, 26), 'liefde', 'jubileum'], [at(2027, 3, 26), 'liefde', 'halfjaar'], [at(2027, 1, 4), 'liefde', 'honderd'],
     [at(2027, 2, 14), 'liefde', 'valentijn'], [at(2027, 10, 12), 'zonnig', 'verjaardag'], [at(2027, 10, 21), 'briefje', 'app-verjaardag'],
     [at(2026, 12, 31), 'sterren', 'oudjaar'], [at(2027, 1, 1), 'sterren', 'nieuwjaar'], [at(2027, 10, 31), 'nacht', 'halloween'],
     [at(2027, 4, 27), 'zonnig', 'koningsdag'],

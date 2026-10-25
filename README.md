@@ -32,12 +32,12 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
 
   | Dag | Wanneer | Figuur |
   |---|---|---|
-  | Jubileum | 29 september | hart |
+  | Jubileum | 26 september | hart |
   | Verjaardag | 12 oktober | hart |
-  | Half jaar samen | 29 maart (een half, anderhalf, tweeënhalf … jaar) | half hart: de linkerhelft vol cijfers, rechts alleen de omtrek |
-  | 100 dagen samen | 7 januari 2027 (eenmalig) | ballon |
+  | Half jaar samen | 26 maart (een half, anderhalf, tweeënhalf … jaar) | half hart: de linkerhelft vol cijfers, rechts alleen de omtrek |
+  | 100 dagen samen | 4 januari 2027 (eenmalig) | ballon |
   | App-verjaardag | 21 oktober, vanaf 2027, met haar eigen cijfers | cadeautje met strik |
-  | Laatste thuiswedstrijd | 17 april 2027 (die dag ook 200 dagen samen) | volleybal, in plaats van de warming-up |
+  | Laatste thuiswedstrijd | 17 april 2027 | volleybal, in plaats van de warming-up |
   | Valentijnsdag | 14 februari | hart met pijl |
   | Pasen | eerste paasdag (Meeus/Butcher) | paasei |
   | Koningsdag | 27 april (op zondag: 26 april) | kroon |
@@ -45,7 +45,7 @@ Gewoon HTML, CSS en JavaScript (ES modules), zonder framework en zonder build-st
   | Sinterklaas | 5 december, met een gedichtje van de Sint | chocoladeletter R |
   | Kerst / Tweede kerstdag | 25 / 26 december | kerstboom / ster |
   | Nieuwjaar | 1 januari | vuurwerk |
-  | Maandversary | elke 29e (februari zonder 29e: de laatste dag) | geen puzzel, alleen een lief kaartje |
+  | Maandversary | elke 26e (valt hij op een andere speciale dag, zoals Tweede kerstdag, dan gaat die voor) | geen puzzel, alleen een lief kaartje |
 
   Teksten liggen per jaar vast (na een herstart dezelfde, volgend jaar soms een andere) en gebruiken haar bijnamen.
 - **Wedstrijddag.** Ruby speelt volleybal bij Donitas DS 14 (rugnummer 33). Op een wedstrijddag staat er een kaartje op het startscherm: vóór de wedstrijd tegenstander, tijd en thuis/uit met een peptalk (steeds een andere) en een korte warming-up-puzzel (±46 gegeven cijfers, alleen eenvoudige technieken). Tijdens de wedstrijd zit de app (in gedachten) langs de lijn. Daarna vraagt hij *Hoe ging het?* (gewonnen, verloren of zeg maar niks; de app weet de uitslag zelf nooit) en volgt een rustige herstelpuzzel met verborgen timer en zachte geluiden. Na een late wedstrijd (na 22:30 afgelopen) blijft dat tot de volgende dag 12:00 staan. Beide puzzels zijn vast per wedstrijd en tellen mee als gewone puzzels (niet als dagpuzzel); in Volleybal dwarrelen er ballen. Na de herstelpuzzel van de laatste wedstrijd van het seizoen komt de mijlpaal *Seizoen uitgespeeld* vrij. Zonder wedstrijd ziet het startscherm er gewoon uit zoals altijd.
@@ -149,7 +149,7 @@ npx serve .            # of: python3 -m http.server 8080
 
 Open daarna http://localhost:3000 (of :8080).
 
-**Speciale dagen testen:** voeg `?vandaag=` met de datum aan de URL toe: `2027-09-29` (jubileum), `2027-10-12` (verjaardag), `2027-03-29` (half jaar), `2027-01-07` (100 dagen), `2027-10-21` (app-verjaardag), `2027-04-17T09:00` (laatste thuiswedstrijd, met het wedstrijdkaartje), `2027-02-14` (Valentijn), `2027-03-28` (Pasen), `2027-04-27` (Koningsdag), `2026-10-31` (Halloween), `2026-12-05` (Sinterklaas), `2026-12-25` en `2026-12-26` (kerst), `2027-01-01` (Nieuwjaar) en `2026-11-29` (maandversary). Met een testdatum gebruikt de app een eigen, aparte opslag (onderin staat dan *Testdatum … · aparte opslag*). Testen raakt dus nooit de echte reeks, statistieken of verrassingen, ook niet op Ruby's toestel.
+**Speciale dagen testen:** voeg `?vandaag=` met de datum aan de URL toe: `2027-09-26` (jubileum), `2027-10-12` (verjaardag), `2027-03-26` (half jaar), `2027-01-04` (100 dagen), `2027-10-21` (app-verjaardag), `2027-04-17T09:00` (laatste thuiswedstrijd, met het wedstrijdkaartje), `2027-02-14` (Valentijn), `2027-03-28` (Pasen), `2027-04-27` (Koningsdag), `2026-10-31` (Halloween), `2026-12-05` (Sinterklaas), `2026-12-25` en `2026-12-26` (kerst), `2027-01-01` (Nieuwjaar) en `2026-11-26` (maandversary). Met een testdatum gebruikt de app een eigen, aparte opslag (onderin staat dan *Testdatum … · aparte opslag*). Testen raakt dus nooit de echte reeks, statistieken of verrassingen, ook niet op Ruby's toestel.
 
 **Wedstrijddagen testen:** zet er ook een tijd bij, dan staat de klok stil op dat moment: `?vandaag=2026-11-28T09:30` (vóór de ochtendwedstrijd tegen Kroton, met peptalk en warming-up), `?vandaag=2026-11-28T11:30` (tijdens) en `?vandaag=2026-11-28T14:00` (*Hoe ging het?* en de herstelpuzzel). De late wedstrijd van 22 oktober (21:00) loopt door tot `?vandaag=2026-10-23T11:59`. Ook dit gebruikt de aparte testopslag.
 

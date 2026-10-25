@@ -43,7 +43,7 @@ test('kerst: de kerstboom oplossen, met het eigen berichtje en feest, en daarna 
 });
 
 test('maandversary: alleen een lief kaartje, geen spel', async () => {
-  const page = await open(base, { query: '?vandaag=2026-11-29T09:00', prefix: TEST_PREFIX });
+  const page = await open(base, { query: '?vandaag=2026-11-26T09:00', prefix: TEST_PREFIX });
   const card = page.locator('#special-slot .card.special.small');
   assert.equal(await card.count(), 1);
   assert.match(await card.textContent(), /Maandversary 💛/);
