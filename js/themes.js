@@ -52,7 +52,7 @@ export const THEMES = [
     id: 'robijn', name: 'Robijn', scheme: 'dark', group: 'jij', emoji: '💎', icon: '💎',
     unlock: { level: 'ruby', solves: 10 }, hint: (left) => `Nog ${left}× Ruby-modus 🔥`,
     celebrate: ['💎', '❤️', '✨', '🔥'],
-    swatch: { bg: '#1c0610', surface: '#2a0a17', accent: '#ff4f7e', digit: '#ffa3bd' },
+    swatch: { bg: '#14040b', surface: '#22060f', accent: '#d9a441', digit: '#f2c879' },
   },
   {
     id: 'rubyxcube', name: 'RubyxCube', scheme: 'light', group: 'jij', emoji: '🧩', icon: '🧩', fx: 'kubus',
