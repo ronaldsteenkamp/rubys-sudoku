@@ -19,7 +19,7 @@ export const PALETTES = {
     scheme: 'light',
     bg: '#fff2f2', 'bg-2': '#ffd9e0', surface: '#ffffff', 'surface-2': '#fdeef0', ink: '#3d1f2b', 'ink-soft': '#6a4452',
     line: '#f2dde2', 'line-strong': '#b0647d', accent: '#f4a3b8', 'accent-strong': '#e07a98', 'accent-ink': '#3a1422', 'accent-soft': '#fde0e7',
-    user: '#9a3358', given: '#3d1f2b', sel: '#f4a3b8', 'sel-ink': '#3a1422', peer: '#fdf0f3', same: '#fde5a0',
+    user: '#9a3358', given: '#3d1f2b', sel: '#f4a3b8', 'sel-ink': '#3a1422', peer: '#fce6eb', same: '#fde5a0',
     hint: '#e0874f', wrong: '#a8321a', 'wrong-bg': '#fcd9c4',
     heart: '#c8456b', 'heart-fill': '#efdcfa', 'heart-edge': '#e5cbf7', 'heart-ink': '#6e2a7a', 'heart-solved': '#c2365a', 'heart-solved-ink': '#ffffff',
   },
@@ -28,7 +28,7 @@ export const PALETTES = {
     scheme: 'light',
     bg: '#eef5ff', 'bg-2': '#d5e7ff', surface: '#ffffff', 'surface-2': '#e8f1fc', ink: '#142a4c', 'ink-soft': '#3e5372',
     line: '#d5e1f0', 'line-strong': '#4b6fa6', accent: '#7db6f2', 'accent-strong': '#3f86d6', 'accent-ink': '#0c2242', 'accent-soft': '#d6e8fc',
-    user: '#1f57a8', given: '#142a4c', sel: '#7db6f2', 'sel-ink': '#0c2242', peer: '#eaf3fd', same: '#c4dbf6',
+    user: '#1f57a8', given: '#142a4c', sel: '#7db6f2', 'sel-ink': '#0c2242', peer: '#e1eefc', same: '#bad4f4',
     hint: '#e07a3f', wrong: '#b02e20', 'wrong-bg': '#fcd5c6',
     heart: '#d24e78', 'heart-fill': '#efdcfa', 'heart-edge': '#e5cbf7', 'heart-ink': '#6e2a7a', 'heart-solved': '#c8324f', 'heart-solved-ink': '#ffffff',
   },
@@ -37,7 +37,7 @@ export const PALETTES = {
     scheme: 'light',
     bg: '#fff3e6', 'bg-2': '#ffd9b3', surface: '#fffcf8', 'surface-2': '#fdebd9', ink: '#3a220f', 'ink-soft': '#66462c',
     line: '#f0dcc6', 'line-strong': '#b8662a', accent: '#f59a4a', 'accent-strong': '#d97526', 'accent-ink': '#331804', 'accent-soft': '#fde0c4',
-    user: '#944510', given: '#3a220f', sel: '#f59a4a', 'sel-ink': '#331804', peer: '#fdf0e2', same: '#fbcf9e',
+    user: '#944510', given: '#3a220f', sel: '#f59a4a', 'sel-ink': '#331804', peer: '#fcebd8', same: '#fbcf9e',
     hint: '#d9562b', wrong: '#a3201a', 'wrong-bg': '#f9cfd0',
     heart: '#c8456b', 'heart-fill': '#efdcfa', 'heart-edge': '#e5cbf7', 'heart-ink': '#6e2a7a', 'heart-solved': '#c2365a', 'heart-solved-ink': '#ffffff',
   },
@@ -46,7 +46,7 @@ export const PALETTES = {
     scheme: 'light',
     bg: '#ffe8d4', 'bg-2': '#ffc28f', surface: '#fff8f0', 'surface-2': '#fbdfc8', ink: '#36200f', 'ink-soft': '#5f3f28',
     line: '#ecd0b6', 'line-strong': '#a95420', accent: '#f2843a', 'accent-strong': '#c9631c', 'accent-ink': '#2e1404', 'accent-soft': '#fbd5b4',
-    user: '#8a3c0c', given: '#36200f', sel: '#f2843a', 'sel-ink': '#2e1404', peer: '#fcebd9', same: '#f9cda3',
+    user: '#8a3c0c', given: '#36200f', sel: '#f2843a', 'sel-ink': '#2e1404', peer: '#fbe6d0', same: '#f9cda3',
     hint: '#c94a22', wrong: '#a3201a', 'wrong-bg': '#f6c9d2',
     heart: '#c23a5c', 'heart-fill': '#efdcfa', 'heart-edge': '#e5cbf7', 'heart-ink': '#6e2a7a', 'heart-solved': '#b8283f', 'heart-solved-ink': '#ffffff',
   },
@@ -55,7 +55,7 @@ export const PALETTES = {
     scheme: 'dark',
     bg: '#241a35', 'bg-2': '#3a2650', surface: '#2c2140', 'surface-2': '#372a4f', ink: '#f5ecff', 'ink-soft': '#d3c4e6',
     line: '#44365e', 'line-strong': '#9b86c4', accent: '#f5a97a', 'accent-strong': '#ffc29e', 'accent-ink': '#2a1608', 'accent-soft': '#4a3352',
-    user: '#ffc9a3', given: '#f5ecff', sel: '#f5a97a', 'sel-ink': '#2a1608', peer: '#392b52', same: '#4d3a6b',
+    user: '#ffc9a3', given: '#f5ecff', sel: '#f5a97a', 'sel-ink': '#2a1608', peer: '#3f305b', same: '#4d3a6b',
     hint: '#ffa77f', wrong: '#ffc08a', 'wrong-bg': '#4a2a12',
     heart: '#ff8fb1', 'heart-fill': '#4f2346', 'heart-edge': '#6a2d5d', 'heart-ink': '#ffd0e4', 'heart-solved': '#c43450', 'heart-solved-ink': '#ffffff',
   },
@@ -64,7 +64,7 @@ export const PALETTES = {
     scheme: 'dark',
     bg: '#140f24', 'bg-2': '#221838', surface: '#1d1631', 'surface-2': '#281f40', ink: '#ece6ff', 'ink-soft': '#c2b8e0',
     line: '#332a4d', 'line-strong': '#8676b8', accent: '#c4a7ff', 'accent-strong': '#d9c6ff', 'accent-ink': '#1a1030', 'accent-soft': '#352a55',
-    user: '#d9c6ff', given: '#ece6ff', sel: '#c4a7ff', 'sel-ink': '#1a1030', peer: '#2a2145', same: '#3d3163',
+    user: '#d9c6ff', given: '#ece6ff', sel: '#c4a7ff', 'sel-ink': '#1a1030', peer: '#2e244b', same: '#3d3163',
     hint: '#ffb38a', wrong: '#ffc08a', 'wrong-bg': '#4a2a12',
     heart: '#ff8fb1', 'heart-fill': '#4f2346', 'heart-edge': '#6a2d5d', 'heart-ink': '#ffd0e4', 'heart-solved': '#c43450', 'heart-solved-ink': '#ffffff',
   },
@@ -73,7 +73,7 @@ export const PALETTES = {
     scheme: 'dark',
     bg: '#22182f', 'bg-2': '#3d2340', surface: '#2a1e37', 'surface-2': '#362744', ink: '#fbeaf2', 'ink-soft': '#dcc0d2',
     line: '#45324f', 'line-strong': '#b083a8', accent: '#f2a0c0', 'accent-strong': '#ffbfd6', 'accent-ink': '#2a0f1c', 'accent-soft': '#4a2c48',
-    user: '#ffc2dc', given: '#fbeaf2', sel: '#f2a0c0', 'sel-ink': '#2a0f1c', peer: '#382848', same: '#523a5e',
+    user: '#ffc2dc', given: '#fbeaf2', sel: '#f2a0c0', 'sel-ink': '#2a0f1c', peer: '#3f2d51', same: '#523a5e',
     hint: '#ffb38a', wrong: '#ffc08a', 'wrong-bg': '#4a2a12',
     heart: '#ff8fb1', 'heart-fill': '#4f2346', 'heart-edge': '#6a2d5d', 'heart-ink': '#ffd0e4', 'heart-solved': '#c43450', 'heart-solved-ink': '#ffffff',
   },
@@ -91,6 +91,9 @@ export const DAY_POINTS = [
 const hex = (c) => { const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
 const mixHex = (a, b, t) => `#${hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t).toString(16).padStart(2, '0')).join('')}`;
 
+// `base` plus het verschil tussen `from` en `to`.
+const shift = (base, from, to) => `#${hex(base).map((v, i) => Math.max(0, Math.min(255, v + hex(to)[i] - hex(from)[i])).toString(16).padStart(2, '0')).join('')}`;
+
 // Het kwartier van de dag (0–95) van `date`.
 export const quarterOf = (date) => Math.floor((date.getHours() * 60 + date.getMinutes()) / 15);
 
@@ -105,6 +108,10 @@ export function dagverloopAt(date = new Date()) {
   const t = a.scheme === b.scheme && m1 > m0 ? (minute - m0) / (m1 - m0) : 0;
   const vars = {};
   for (const key of Object.keys(a)) if (key !== 'scheme') vars[key] = mixHex(a[key], b[key], t);
+  // Roze + blauw (of blauw + oranje) gemengd wordt bijna grijs: dan valt de rij/kolom-kleur
+  // weg. Daarom de tint van het palet dat nu het zwaarst weegt, over het gemengde vakje.
+  const main = t < 0.5 ? a : b;
+  vars.peer = shift(vars.surface, main.surface, main.peer);
   const dark = a.scheme === 'dark';
   vars['same-ring'] = dark ? `color-mix(in srgb, ${vars.sel} 60%, transparent)` : 'transparent';
   vars.shadow = dark ? DARK_SHADOW : LIGHT_SHADOW;

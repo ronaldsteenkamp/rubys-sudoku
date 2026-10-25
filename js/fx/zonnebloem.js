@@ -28,17 +28,20 @@ const r1 = (n) => Math.round(n * 10) / 10;
 
 // De bloem als SVG (60 × 100). Hoe hoger `step`, hoe langer de steel en hoe groter de bloem.
 export function sunflowerSvg({ stage, step }) {
-  const ground = 92;
-  const soil = '<ellipse cx="30" cy="94" rx="20" ry="5" fill="#7a5418"/><ellipse cx="30" cy="92.5" rx="16" ry="3" fill="#946a2a"/>';
+  const ground = 86;
+  // Een terracotta potje met aarde erin: zo zie je meteen dat het een plantje is.
+  const pot = '<path d="M15 89H45L41.5 99.5H18.5Z" fill="#b85c34"/><path d="M15.6 91H44.4L44 92.4H16Z" fill="#8f4424" opacity="0.5"/>'
+    + '<rect x="12.5" y="84.5" width="35" height="5" rx="1.6" fill="#cf6f43"/><ellipse cx="30" cy="85.4" rx="15.5" ry="2.2" fill="#4a3012"/>';
   if (stage === 'zaadje') {
-    return `${soil}<g transform="translate(30 88) rotate(-20)"><ellipse rx="3.4" ry="5" fill="#3d2a14"/><path d="M-1.2-4V4M1.2-4V4" stroke="#e8dcc0" stroke-width="0.7"/></g>`;
+    // Het zaadje zit half in de aarde.
+    return `${pot}<g transform="translate(30 83.4) rotate(-20)"><ellipse rx="3.2" ry="4.6" fill="#3d2a14"/><path d="M-1.1-3.7V3.7M1.1-3.7V3.7" stroke="#e8dcc0" stroke-width="0.7"/></g><path d="M21 85.8Q30 82.6 39 85.8Z" fill="#4a3012"/>`;
   }
   const h = stage === 'kiem' ? 10 : 18 + step * 4;
   const top = ground - h;
   const lean = r1(Math.min(3, step * 0.3));
   const stem = `<path d="M30 ${ground}C${30 - lean} ${r1(ground - h * 0.4)} ${30 + lean} ${r1(ground - h * 0.7)} 30 ${r1(top)}" fill="none" stroke="#4f7a1e" stroke-width="${r1(2 + step * 0.12)}" stroke-linecap="round"/>`;
   if (stage === 'kiem') {
-    return `${soil}${stem}<ellipse cx="25.5" cy="${top + 1}" rx="5" ry="2.8" fill="#7fb03a" transform="rotate(-25 25.5 ${top + 1})"/><ellipse cx="34.5" cy="${top + 1}" rx="5" ry="2.8" fill="#6fa02e" transform="rotate(25 34.5 ${top + 1})"/>`;
+    return `${pot}<g class="plant">${stem}<ellipse cx="25.5" cy="${top + 1}" rx="5" ry="2.8" fill="#7fb03a" transform="rotate(-25 25.5 ${top + 1})"/><ellipse cx="34.5" cy="${top + 1}" rx="5" ry="2.8" fill="#6fa02e" transform="rotate(25 34.5 ${top + 1})"/></g>`;
   }
   // Blaadjes langs de steel, om en om links en rechts.
   let leaves = '';
@@ -62,7 +65,17 @@ export function sunflowerSvg({ stage, step }) {
     if (full) for (let k = 0; k < 14; k++) { const a = k * 2.4, rr = Math.sqrt(k / 14) * R * 0.5; seeds += `<circle cx="${r1(Math.cos(a) * rr)}" cy="${r1(Math.sin(a) * rr)}" r="0.7" fill="#c9952a"/>`; }
     head = `<g transform="translate(30 ${r1(top)})">${full ? `<g fill="#f2a900" transform="rotate(10)">${petals}</g>` : ''}<g fill="#ffc816">${petals}</g><circle r="${r1(R * 0.62)}" fill="#6b4416"/>${seeds}</g>`;
   }
-  return `${soil}${leaves}${stem}${head}`;
+  return `${pot}<g class="plant">${leaves}${stem}${head}</g>`;
+}
+
+// Waar het plantje begint, in procenten van de hoogte van de tekening: daarboven
+// mag de tekst gewoon doorlopen (shape-outside in style.css).
+export function plantTop({ stage, step }) {
+  if (stage === 'zaadje') return 78;
+  if (stage === 'kiem') return 70;
+  const top = 86 - (18 + step * 4);
+  const head = stage === 'knop' ? (4.5 + (step - 3) * 0.7) * 1.7 : stage === 'steel' ? 2 : (stage === 'volle-bloem' ? 9 + (step - 9) * 0.9 : 6 + (step - 6) * 0.6) * 1.7;
+  return Math.max(0, Math.floor(top - head - 2));
 }
 
 // ---------- In de app ----------
@@ -86,11 +99,13 @@ export function home({ stats, toast }) {
     btn.type = 'button';
     btn.className = 'sunflower';
     btn.addEventListener('click', () => toast(btn.dataset.text, 4200));
-    head.append(btn);
+    // Vooraan en rechts zwevend: de tekst loopt er alleen naast zolang de bloem ernaast staat.
+    head.prepend(btn);
     head.classList.add('with-sunflower');
   }
   const g = sunflowerGrowth(playedDays(stats()));
   btn.dataset.stage = g.stage;
+  btn.style.setProperty('--plant-top', `${plantTop(g)}%`);
   btn.dataset.text = text(g);
   btn.setAttribute('aria-label', `Je zonnebloem. ${text(g)}`);
   btn.innerHTML = `<svg viewBox="0 0 60 100" aria-hidden="true">${sunflowerSvg(g)}</svg>`;

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { sunflowerGrowth, sunflowerSvg, playedDays, STAGES, FULL_DAYS } from '../js/fx/zonnebloem.js';
+import { sunflowerGrowth, sunflowerSvg, plantTop, playedDays, STAGES, FULL_DAYS } from '../js/fx/zonnebloem.js';
 import { JINGLE } from '../js/fx/gameboy.js';
 import { THEMES } from '../js/themes.js';
 
@@ -44,12 +44,18 @@ test('elk groeistadium is een tekening, en de steel wordt steeds langer', () => 
   for (const d of [0, 1, 5, 10, 15, 25, 30, 40, 45, 60]) {
     const svg = sunflowerSvg(sunflowerGrowth(d));
     assert.ok(svg.length > 60 && !svg.includes('NaN') && !svg.includes('undefined'), `dag ${d}`);
-    const m = /<path d="M30 92C[^"]* 30 ([\d.]+)"/.exec(svg);
+    const m = /<path d="M30 86C[^"]* 30 ([\d.]+)"/.exec(svg);
     if (m) tops.push(Number(m[1]));
   }
   for (let k = 1; k < tops.length; k++) assert.ok(tops[k] <= tops[k - 1], `steel ${k}`);
   assert.ok(sunflowerSvg(sunflowerGrowth(60)).includes('#ffc816'), 'gele blaadjes');
   assert.ok(!sunflowerSvg(sunflowerGrowth(20)).includes('<ellipse cx="0" cy="-'), 'een knop heeft nog geen blaadjes');
+});
+
+test('de tekst wijkt alleen voor het plantje zelf: hoe groter de bloem, hoe hoger hij begint', () => {
+  const tops = [0, 1, 5, 10, 15, 25, 30, 40, 45, 60].map((d) => plantTop(sunflowerGrowth(d)));
+  for (const t of tops) assert.ok(t >= 0 && t < 100, String(t));
+  for (let k = 1; k < tops.length; k++) assert.ok(tops[k] <= tops[k - 1], `stap ${k}: ${tops}`);
 });
 
 test('het 8-bit-deuntje van Game Boy is kort en klinkt', () => {

@@ -97,6 +97,14 @@ test('selectie, peers, gelijke cijfers, fout en hart zijn duidelijk van elkaar t
   assert.deepEqual(fails, []);
 });
 
+// De rij, kolom en het blok van het gekozen vakje moeten echt opvallen tegen een gewoon vakje.
+const PEER_MIN = 10;
+test(`rij, kolom en blok van het gekozen vakje vallen op: --peer en --surface minstens ΔE ${PEER_MIN}`, () => {
+  const fails = THEMES.map((t) => [t.id, deltaE(vars[t.id].peer, vars[t.id].surface)]).filter(([, d]) => d < PEER_MIN)
+    .map(([id, d]) => `${id}: ΔE ${d.toFixed(1)}`);
+  assert.deepEqual(fails, []);
+});
+
 // De kalender in Statistieken en de recordregel op het opgelost-scherm.
 // Tekst minstens 4.5:1; het hartje en het randje om vandaag (geen tekst) minstens 3:1.
 const CALENDAR_TEXT = [
@@ -304,6 +312,8 @@ async function colourFails(label, v, scheme, min = 4.5) {
       if (d < 8) fails.push(`${label}: --${keys[a]} en --${keys[b]} lijken te veel op elkaar (ΔE ${d.toFixed(1)})`);
     }
   }
+  const dp = deltaE(v.peer, v.surface);
+  if (dp < PEER_MIN) fails.push(`${label}: --peer valt te weinig op tegen --surface (ΔE ${dp.toFixed(1)})`);
   const fam = scheme === 'dark' ? FAMILY_DARK : FAMILY_LIGHT;
   for (const f of FAMILIES) for (const k of ['fill', 'edge']) if (!(contrast(v.user, fam[`${f}-${k}`]) >= 4.5)) fails.push(`${label}: --user op ${f}-${k}`);
   return fails;
@@ -369,6 +379,11 @@ test('RubyxCube: in elk blok klopt het contrast en zijn selectie, buren en foute
 test('Hoog contrast: alle tekst en cijfers minstens 7:1', async () => {
   assert.deepEqual(await colourFails('hoog-contrast', vars['hoog-contrast'], 'light', 7), []);
   assert.ok(/\[data-theme="hoog-contrast"\] \.cell\.selected \{ box-shadow: inset 0 0 0 4px/.test(css), 'selectie ook als rand, niet alleen kleur');
+});
+
+test('Krant: het gekozen vakje is een dikke rand, geen zwart blok; emoji in grijs', () => {
+  assert.ok(/\[data-theme="krant"\] \.cell\.selected \{[^}]*box-shadow: inset 0 0 0 3px var\(--ink\)/.test(css));
+  assert.ok(/\[data-theme="krant"\] :is\(\.emo[^{]*\{ filter: grayscale\(1\)/.test(css));
 });
 
 test("'auto' kiest Hoog contrast als het toestel om meer contrast vraagt", () => {
