@@ -5,7 +5,7 @@ import { LEVELS, levelById, dateKey, dailyLevelFor, SHAPES, SHAPE_CELLS, shapeCo
 import { currentMatch, MATCHES } from './matches.js';
 import { sleepActive, SLEEP_VOLUME } from './sleep.js';
 import { wrapped, wrappedYearOn, wrappedYears } from './wrapped.js';
-import { getHint, stageCells } from './hints.js';
+import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
@@ -696,7 +696,7 @@ function buildBoard() {
     b.type = 'button';
     b.className = 'tool';
     b.id = `tool-${id}`;
-    b.innerHTML = `${icon}<span>${label}${id === 'notes' ? ' <span class="tool-state">uit</span>' : ''}</span>`;
+    b.innerHTML = `${icon}<span>${label}${id === 'notes' ? ' <span class="tool-state">uit</span>' : ''}</span>${id === 'hint' ? `<b class="tool-count" aria-hidden="true">${MAX_HINTS}</b>` : ''}`;
     b.addEventListener('click', fn);
     toolsEl.append(b);
   }
@@ -838,7 +838,13 @@ function render() {
   $('#tool-undo').disabled = !game.history.length || game.solved;
   $('#tool-redo').disabled = !game.future.length || game.solved;
   $('#tool-erase').disabled = game.solved;
-  $('#tool-hint').disabled = game.solved;
+  // Hooguit 3 hints per puzzel: de knop telt af. Zijn ze op, dan wordt hij dof (maar een
+  // tik geeft nog een lief berichtje, en een hint die open staat kan ze gewoon afmaken).
+  const hb = $('#tool-hint'), hintsToGo = hintsLeft(game);
+  hb.disabled = game.solved;
+  hb.querySelector('.tool-count').textContent = hintsToGo;
+  hb.classList.toggle('used-up', !hintsToGo && !hint);
+  hb.setAttribute('aria-label', hintsToGo ? `Hint, nog ${hintsToGo} over` : 'Hint, op voor deze puzzel');
   const nb = $('#tool-notes');
   nb.setAttribute('aria-pressed', String(notesMode));
   nb.querySelector('.tool-state').textContent = notesMode ? 'aan' : 'uit';
@@ -1021,6 +1027,7 @@ window.addEventListener('pagehide', saveGame);
 function showHint() {
   if (!game || game.solved || paused) return;
   if (hint) { advanceHint(); return; }
+  if (!hintsLeft(game)) { toast(M.HINTS_UP_LINES[Math.floor(Math.random() * M.HINTS_UP_LINES.length)], 3200); return; }
   hint = getHint(game);
   if (!hint) return;
   hintStage = 0;

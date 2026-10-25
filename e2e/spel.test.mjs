@@ -105,3 +105,25 @@ test('lang drukken op tekst selecteert niets: geen tekstselectie en geen kopieer
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });
+
+test('hooguit 3 hints per puzzel: de knop telt af, daarna een lief berichtje en geen hint meer', async () => {
+  const page = await open(base, { storage: { game: savedGame({ hints: 2 }) } });
+  await page.click('#continue-slot .card');
+  assert.equal(await page.textContent('#tool-hint .tool-count'), '1');
+  // De laatste hint: alle drie de stappen.
+  await page.click('#tool-hint');
+  for (let k = 0; k < 3; k++) await page.click('#hint-next');
+  assert.equal(await page.isHidden('#hint-card'), true);
+  assert.equal(await page.textContent('#tool-hint .tool-count'), '0');
+  assert.equal(await page.getAttribute('#tool-hint', 'aria-label'), 'Hint, op voor deze puzzel');
+  assert.ok(await page.$eval('#tool-hint', (b) => b.classList.contains('used-up')));
+  // Nog een keer: geen hint, wel een berichtje. Ook niet via de toets h.
+  await page.click('#tool-hint');
+  assert.equal(await page.isHidden('#hint-card'), true);
+  assert.match(await page.textContent('#toast'), /hint/i);
+  await page.keyboard.press('h');
+  assert.equal(await page.isHidden('#hint-card'), true);
+  assert.equal((await stored(page, 'game')).hints, 3);
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
