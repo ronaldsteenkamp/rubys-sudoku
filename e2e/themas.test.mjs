@@ -35,3 +35,12 @@ test('een vrijgespeeld thema heeft in de kiezer geen ondertitel (geen hint en ze
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });
+
+test('de begroeting: het emoji staat vast aan het laatste woord en in een eigen span', async () => {
+  const page = await open(base, { clock: new Date(2026, 10, 3, 12), storage: { settings: { theme: 'krant' } } });
+  const html = await page.innerHTML('#greeting');
+  assert.match(html, /\u00a0<span class="emo">|&nbsp;<span class="emo">/);
+  assert.equal(await page.$eval('#greeting .emo', (el) => getComputedStyle(el).filter), 'grayscale(1)');
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});

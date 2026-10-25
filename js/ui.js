@@ -134,6 +134,10 @@ function formatTime(ms) {
 }
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Tekst als HTML met elk emoji in een eigen <span class="emo">, zodat een thema alleen de emoji
+// kan aanpassen (zwart-wit in Krant en Krijtbord, groen in Game Boy).
+const EMOJI = /\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*\uFE0F?/gu;
+const withEmoji = (s) => escapeHtml(s).replace(EMOJI, '<span class="emo">$&</span>');
 
 let toastTimer = null;
 function toast(text, ms = 2600) {
@@ -405,10 +409,11 @@ function renderHome() {
   $('.brand').innerHTML = hand
     ? '<span class="hand-art hart-1 brand-heart" aria-hidden="true"></span><span class="hand-art logo" role="img" aria-label="Ruby\'s Sudoku"></span>'
     : BRAND_HTML;
-  $('#greeting').textContent = M.greeting(now);
+  // Het emoji aan het laatste woord vast, zodat het nooit in zijn eentje op een nieuwe regel staat.
+  $('#greeting').innerHTML = withEmoji(M.greeting(now).replace(/ (\S+)$/, '\u00a0$1'));
   $('#subtitle').textContent = M.subtitle(now);
   const days = M.daysTogether(now);
-  const heart = hand ? '<span class="hand-art hart-2 together-heart" role="img" aria-label="hartje"></span>' : '💛';
+  const heart = hand ? '<span class="hand-art hart-2 together-heart" role="img" aria-label="hartje"></span>' : '<span class="emo">💛</span>';
   $('#together').innerHTML = days > 0 ? `Al ${days} ${days === 1 ? 'dag' : 'dagen'} samen ${heart}` : '';
 
   // Speciale dag
@@ -456,7 +461,7 @@ function renderHome() {
     btn.className = 'card continue';
     const what = game.special ? 'Speciale puzzel' : game.daily ? 'Dagpuzzel' : `${lvl.emoji} ${lvl.name}`; // ook Warming-up of Herstelpuzzel
     btn.innerHTML = `<span class="card-kicker">Verder puzzelen</span>
-      <span class="card-title">${escapeHtml(what)}</span>
+      <span class="card-title">${withEmoji(what)}</span>
       <span class="card-meta">${settings.showTimer ? formatTime(game.elapsed) + ' · ' : ''}${game.values.filter(Boolean).length} van 81 vakjes</span>`;
     btn.addEventListener('click', () => enterPlay());
     cont.append(btn);
@@ -475,7 +480,7 @@ function renderHome() {
   const busy = game && !game.solved && game.daily === key;
   const streak = store.currentStreak(stats, key);
   $('#daily-title').textContent = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
-  $('#daily-meta').textContent = `${dl.emoji} ${dl.name}`;
+  $('#daily-meta').innerHTML = withEmoji(`${dl.emoji} ${dl.name}`);
   const streakEl = $('#daily-streak');
   streakEl.hidden = !streak;
   streakEl.textContent = streak ? `🔥 ${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij` : '';
@@ -634,7 +639,7 @@ async function startGame({ kind, levelId, special, match }) {
 function enterPlay() {
   if (!game) return;
   const lvl = levelById(game.levelId);
-  $('#play-title').textContent = game.special ? `Speciaal voor jou ${M.specialById(game.special)?.icon || '❤️'}` : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`;
+  $('#play-title').innerHTML = withEmoji(game.special ? `Speciaal voor jou ${M.specialById(game.special)?.icon || '❤️'}` : game.daily ? `Dagpuzzel · ${lvl.name}` : `${lvl.emoji} ${lvl.name}`);
   // Herstelpuzzel: rustig aan. Timer standaard verborgen, en alleen zachte geluiden.
   recovery = game.matchKind === 'herstel';
   timerShownInRecovery = false;

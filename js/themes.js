@@ -71,7 +71,7 @@ export const THEMES = [
     // Zolang Gitaar het thema is, klinkt de gitaar (zie applyFeedback in ui.js).
     id: 'gitaar', name: 'Gitaar', scheme: 'light', group: 'jij',
     celebrate: ['🎸', '🎶', '💛', '🎵'],
-    swatch: { bg: '#ecd5b0', surface: '#fbf0dc', accent: '#e8932e', digit: '#8a3414' },
+    swatch: { bg: '#ecd5b0', surface: '#fbf0dc', accent: '#e8932e', digit: '#1d5a63' },
   },
   {
     id: 'beachvolleybal', name: 'Beachvolleybal', scheme: 'light', group: 'jij', emoji: '🏖️', icon: '🏐',
@@ -116,7 +116,7 @@ export const THEMES = [
     // Af en toe kijkt er een zeehondje om de hoek; tik erop en hij zwaait.
     id: 'waddenzee', name: 'Waddenzee', scheme: 'light', group: 'natuur', fx: 'waddenzee',
     celebrate: ['🦭', '🌊', '🐚', '💙'],
-    swatch: { bg: '#eef3f5', surface: '#fbfdfe', accent: '#8fb3c4', digit: '#2d5f78' },
+    swatch: { bg: '#eef3f5', surface: '#fbfdfe', accent: '#8fb3c4', digit: '#27546c' },
   },
   {
     id: 'bos', name: 'Bos', scheme: 'light', group: 'natuur', emoji: '🐿️', icon: '🌰', fx: 'bos',
