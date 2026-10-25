@@ -454,38 +454,38 @@
 
 /* ---------- Nieuwe thema's ---------- */
 
-/* Robijn: diep robijnrood met geslepen facetten. */
+/* Robijn: een juweeldoosje. Fluweel in diep wijnrood, goud, en een geslepen robijn. */
 [data-theme="robijn"] {
-  --bg: #1c0610;
-  --bg-2: #3a0b1f;
-  --surface: #2a0a17;
-  --surface-2: #3a1122;
-  --ink: #fdebf0;
-  --ink-soft: #e8bccb;
-  --line: #4d1a2c;
-  --line-strong: #c0506f;
-  --accent: #ff4f7e;
-  --accent-strong: #ff7a9c;
-  --accent-ink: #2a0612;
-  --accent-soft: #4f1328;
-  --user: #ffa3bd;
-  --given: #fdebf0;
-  --sel: #ff6b92;
-  --sel-ink: #2a0612;
-  --peer: #431226;
-  --same: #5c1a36;
-  --same-ring: color-mix(in srgb, #ff6b92 65%, transparent);
+  --bg: #14040b;
+  --bg-2: #2a0716;
+  --surface: #22060f;
+  --surface-2: #300b18;
+  --ink: #fbefe6;
+  --ink-soft: #e2c3b4;
+  --line: #3d1424;
+  --line-strong: #d4a64a;
+  --accent: #d9a441;
+  --accent-strong: #f0c46a;
+  --accent-ink: #1e0e02;
+  --accent-soft: #4a0f22;
+  --user: #f2c879;
+  --given: #fbefe6;
+  --sel: #c8143f;
+  --sel-ink: #fff4f6;
+  --peer: #3a1222;
+  --same: #4a1828;
+  --same-ring: color-mix(in srgb,#d9a441 75%,transparent);
   --hint: #ffb070;
   --wrong: #ffd6a6;
-  --wrong-bg: #7a2a0c;
-  --heart: #ff8fb1;
+  --wrong-bg: #6b2a08;
+  --heart: #f0c46a;
   --heart-fill: #3d1a4a;
   --heart-edge: #55245f;
   --heart-ink: #f4d0ff;
   --heart-solved: #c43450;
   --heart-solved-ink: #ffffff;
   --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(40 0 12 / 50%);
-  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='208'%3E%3Cpolygon points='-30 0 0 -52 30 0' fill='%23ffffff' fill-opacity='0.015'/%3E%3Cpolygon points='0 -52 60 -52 30 0' fill='%23ff7aa0' fill-opacity='0.032'/%3E%3Cpolygon points='30 0 60 -52 90 0' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='60 -52 120 -52 90 0' fill='%23ffffff' fill-opacity='0.035'/%3E%3Cpolygon points='90 0 120 -52 150 0' fill='%23ffffff' fill-opacity='0.060'/%3E%3Cpolygon points='120 -52 180 -52 150 0' fill='%23ffffff' fill-opacity='0.056'/%3E%3Cpolygon points='150 0 180 -52 210 0' fill='%23ff7aa0' fill-opacity='0.064'/%3E%3Cpolygon points='180 -52 240 -52 210 0' fill='%23ffffff' fill-opacity='0.037'/%3E%3Cpolygon points='210 0 240 -52 270 0' fill='%23ff7aa0' fill-opacity='0.057'/%3E%3Cpolygon points='240 -52 300 -52 270 0' fill='%23ffffff' fill-opacity='0.056'/%3E%3Cpolygon points='270 0 300 -52 330 0' fill='%23ffffff' fill-opacity='0.070'/%3E%3Cpolygon points='300 -52 360 -52 330 0' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='330 0 360 -52 390 0' fill='%23ffffff' fill-opacity='0.070'/%3E%3Cpolygon points='360 -52 420 -52 390 0' fill='%23ffffff' fill-opacity='0.054'/%3E%3Cpolygon points='-60 52 -30 0 0 52' fill='%23ffffff' fill-opacity='0.070'/%3E%3Cpolygon points='-30 0 30 0 0 52' fill='%23ff7aa0' fill-opacity='0.037'/%3E%3Cpolygon points='0 52 30 0 60 52' fill='%23ff7aa0' fill-opacity='0.065'/%3E%3Cpolygon points='30 0 90 0 60 52' fill='%23ff7aa0' fill-opacity='0.024'/%3E%3Cpolygon points='60 52 90 0 120 52' fill='%23ff7aa0' fill-opacity='0.041'/%3E%3Cpolygon points='90 0 150 0 120 52' fill='%23ffffff' fill-opacity='0.071'/%3E%3Cpolygon points='120 52 150 0 180 52' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='150 0 210 0 180 52' fill='%23ff7aa0' fill-opacity='0.019'/%3E%3Cpolygon points='180 52 210 0 240 52' fill='%23ffffff' fill-opacity='0.049'/%3E%3Cpolygon points='210 0 270 0 240 52' fill='%23ff7aa0' fill-opacity='0.040'/%3E%3Cpolygon points='240 52 270 0 300 52' fill='%23ff7aa0' fill-opacity='0.070'/%3E%3Cpolygon points='270 0 330 0 300 52' fill='%23ff7aa0' fill-opacity='0.037'/%3E%3Cpolygon points='300 52 330 0 360 52' fill='%23ffffff' fill-opacity='0.055'/%3E%3Cpolygon points='330 0 390 0 360 52' fill='%23ff7aa0' fill-opacity='0.046'/%3E%3Cpolygon points='-30 104 0 52 30 104' fill='%23ff7aa0' fill-opacity='0.039'/%3E%3Cpolygon points='0 52 60 52 30 104' fill='%23ffffff' fill-opacity='0.037'/%3E%3Cpolygon points='30 104 60 52 90 104' fill='%23ffffff' fill-opacity='0.035'/%3E%3Cpolygon points='60 52 120 52 90 104' fill='%23ff7aa0' fill-opacity='0.052'/%3E%3Cpolygon points='90 104 120 52 150 104' fill='%23ffffff' fill-opacity='0.069'/%3E%3Cpolygon points='120 52 180 52 150 104' fill='%23ffffff' fill-opacity='0.067'/%3E%3Cpolygon points='150 104 180 52 210 104' fill='%23ffffff' fill-opacity='0.053'/%3E%3Cpolygon points='180 52 240 52 210 104' fill='%23ffffff' fill-opacity='0.045'/%3E%3Cpolygon points='210 104 240 52 270 104' fill='%23ffffff' fill-opacity='0.071'/%3E%3Cpolygon points='240 52 300 52 270 104' fill='%23ff7aa0' fill-opacity='0.057'/%3E%3Cpolygon points='270 104 300 52 330 104' fill='%23ffffff' fill-opacity='0.050'/%3E%3Cpolygon points='300 52 360 52 330 104' fill='%23ffffff' fill-opacity='0.035'/%3E%3Cpolygon points='330 104 360 52 390 104' fill='%23ffffff' fill-opacity='0.063'/%3E%3Cpolygon points='360 52 420 52 390 104' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='-60 156 -30 104 0 156' fill='%23ffffff' fill-opacity='0.020'/%3E%3Cpolygon points='-30 104 30 104 0 156' fill='%23ff7aa0' fill-opacity='0.024'/%3E%3Cpolygon points='0 156 30 104 60 156' fill='%23ff7aa0' fill-opacity='0.075'/%3E%3Cpolygon points='30 104 90 104 60 156' fill='%23ff7aa0' fill-opacity='0.053'/%3E%3Cpolygon points='60 156 90 104 120 156' fill='%23ffffff' fill-opacity='0.042'/%3E%3Cpolygon points='90 104 150 104 120 156' fill='%23ffffff' fill-opacity='0.023'/%3E%3Cpolygon points='120 156 150 104 180 156' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='150 104 210 104 180 156' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='180 156 210 104 240 156' fill='%23ff7aa0' fill-opacity='0.061'/%3E%3Cpolygon points='210 104 270 104 240 156' fill='%23ff7aa0' fill-opacity='0.016'/%3E%3Cpolygon points='240 156 270 104 300 156' fill='%23ff7aa0' fill-opacity='0.020'/%3E%3Cpolygon points='270 104 330 104 300 156' fill='%23ff7aa0' fill-opacity='0.052'/%3E%3Cpolygon points='300 156 330 104 360 156' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='330 104 390 104 360 156' fill='%23ff7aa0' fill-opacity='0.056'/%3E%3Cpolygon points='-30 208 0 156 30 208' fill='%23ff7aa0' fill-opacity='0.068'/%3E%3Cpolygon points='0 156 60 156 30 208' fill='%23ffffff' fill-opacity='0.037'/%3E%3Cpolygon points='30 208 60 156 90 208' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='60 156 120 156 90 208' fill='%23ffffff' fill-opacity='0.015'/%3E%3Cpolygon points='90 208 120 156 150 208' fill='%23ffffff' fill-opacity='0.053'/%3E%3Cpolygon points='120 156 180 156 150 208' fill='%23ffffff' fill-opacity='0.016'/%3E%3Cpolygon points='150 208 180 156 210 208' fill='%23ffffff' fill-opacity='0.026'/%3E%3Cpolygon points='180 156 240 156 210 208' fill='%23ffffff' fill-opacity='0.049'/%3E%3Cpolygon points='210 208 240 156 270 208' fill='%23ff7aa0' fill-opacity='0.031'/%3E%3Cpolygon points='240 156 300 156 270 208' fill='%23ffffff' fill-opacity='0.028'/%3E%3Cpolygon points='270 208 300 156 330 208' fill='%23ffffff' fill-opacity='0.018'/%3E%3Cpolygon points='300 156 360 156 330 208' fill='%23ffffff' fill-opacity='0.057'/%3E%3Cpolygon points='330 208 360 156 390 208' fill='%23ff7aa0' fill-opacity='0.045'/%3E%3Cpolygon points='360 156 420 156 390 208' fill='%23ffffff' fill-opacity='0.022'/%3E%3Cpolygon points='-60 260 -30 208 0 260' fill='%23ffffff' fill-opacity='0.023'/%3E%3Cpolygon points='-30 208 30 208 0 260' fill='%23ff7aa0' fill-opacity='0.069'/%3E%3Cpolygon points='0 260 30 208 60 260' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='30 208 90 208 60 260' fill='%23ffffff' fill-opacity='0.075'/%3E%3Cpolygon points='60 260 90 208 120 260' fill='%23ffffff' fill-opacity='0.061'/%3E%3Cpolygon points='90 208 150 208 120 260' fill='%23ffffff' fill-opacity='0.030'/%3E%3Cpolygon points='120 260 150 208 180 260' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='150 208 210 208 180 260' fill='%23ffffff' fill-opacity='0.029'/%3E%3Cpolygon points='180 260 210 208 240 260' fill='%23ffffff' fill-opacity='0.068'/%3E%3Cpolygon points='210 208 270 208 240 260' fill='%23ffffff' fill-opacity='0.036'/%3E%3Cpolygon points='240 260 270 208 300 260' fill='%23ff7aa0' fill-opacity='0.059'/%3E%3Cpolygon points='270 208 330 208 300 260' fill='%23ffffff' fill-opacity='0.059'/%3E%3Cpolygon points='300 260 330 208 360 260' fill='%23ff7aa0' fill-opacity='0.027'/%3E%3Cpolygon points='330 208 390 208 360 260' fill='%23ffffff' fill-opacity='0.074'/%3E%3C/svg%3E") 0 0 / 240px 208px repeat, radial-gradient(90% 50% at 85% 0%, rgb(255 79 126 / 18%), transparent 70%) no-repeat;
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.6 0 0 0 0 0.1 0 0 0 0 0.25 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23v)'/%3E%3C/svg%3E") 0 0 / 200px 200px repeat, radial-gradient(70% 45% at 50% 0%, rgb(200 20 63 / 28%), transparent 70%) no-repeat;
   color-scheme: dark;
 }
 
@@ -1057,7 +1057,7 @@ html[data-accent="lente"] { --accent: #f2a7bf; --accent-strong: #e07f9f; --accen
 html[data-accent="zomer"] { --accent: #f0607a; --accent-strong: #d94661; --accent-ink: #2d0d14; --sel: #7cc47f; --sel-ink: #10260f; }
 html[data-accent="herfst"] { --accent: #c8662b; --accent-strong: #ad5320; --accent-ink: #1f0f05; --sel: #d9783d; --sel-ink: #1f0f05; }
 html[data-accent="winter"] { --accent: #7fb0dc; --accent-strong: #5b95c9; --accent-ink: #10213a; --sel: #7fb0dc; --sel-ink: #10213a; }
-html[data-accent="robijn"] { --accent: #ff4f7e; --accent-strong: #ff7a9c; --accent-ink: #2a0612; --sel: #ff6b92; --sel-ink: #2a0612; }
+html[data-accent="robijn"] { --accent: #d9a441; --accent-strong: #f0c46a; --accent-ink: #1e0e02; --sel: #c8143f; --sel-ink: #fff4f6; }
 html[data-accent="rubyxcube"] { --accent: #ffcf1f; --accent-strong: #1e5bd6; --accent-ink: #1b1d2a; --sel: #1b1d2a; --sel-ink: #ffffff; }
 html[data-accent="koffiemonster"] { --accent: #c98b4f; --accent-strong: #a96a31; --accent-ink: #24130a; --sel: #d9a46b; --sel-ink: #24130a; }
 html[data-accent="gitaar"] { --accent: #e8932e; --accent-strong: #b8641a; --accent-ink: #2b1a0c; --sel: #f0a63a; --sel-ink: #2b1a0c; }
@@ -2105,11 +2105,15 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 /* ---------- Nieuwe thema's: alles behalve de kleuren ---------- */
 
 /* Robijn: de cijfers met een zachte glans, alsof het licht erop valt. */
-[data-theme="robijn"] .cell .v { text-shadow: 0 0 10px color-mix(in srgb, currentColor 40%, transparent), 0 -1px 0 rgb(255 255 255 / 22%); }
+/* Een gouden lijst om het bord; het gekozen vakje is een glanzende robijn met een gouden randje. */
+[data-theme="robijn"] .board { background: var(--surface); box-shadow: 0 0 0 4px var(--surface), 0 0 0 5px rgb(212 166 74 / 45%), var(--shadow); }
+[data-theme="robijn"] .cell.selected { background: radial-gradient(circle at 35% 30%, #ff5d86, #c8143f 55%, #7a0a26); outline: 2px solid #f0c46a; outline-offset: -2px; }
+[data-theme="robijn"] .cell.wrong.selected { background: color-mix(in srgb, var(--wrong-bg) 60%, var(--sel)); }
+[data-theme="robijn"] .card.daily { border-color: rgb(212 166 74 / 55%); background: radial-gradient(120% 90% at 90% 10%, rgb(255 93 134 / 22%), transparent 60%), linear-gradient(150deg, #4a0f22, #2a0814); }
+/* De geslepen robijn rechtsboven, alleen op het startscherm (tijdens het spelen staan daar de knoppen). */
+[data-theme="robijn"] body:has(#home:not([hidden])) { --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='-60 -60 120 120'%3E%3Cg opacity='0.95'%3E%3Cpolygon points='-34,-18 -18,-34 18,-34 34,-18 34,18 18,34 -18,34 -34,18' fill='%239e0f33'/%3E%3Cpolygon points='-34,-18 -18,-34 0,-14 -14,0' fill='%23ff5d86'/%3E%3Cpolygon points='-18,-34 18,-34 0,-14' fill='%23ff8aa7'/%3E%3Cpolygon points='18,-34 34,-18 14,0 0,-14' fill='%23e0264f'/%3E%3Cpolygon points='34,-18 34,18 14,0' fill='%23b8133a'/%3E%3Cpolygon points='34,18 18,34 0,14 14,0' fill='%237a0a26'/%3E%3Cpolygon points='18,34 -18,34 0,14' fill='%238e0c2e'/%3E%3Cpolygon points='-18,34 -34,18 -14,0 0,14' fill='%23c41a44'/%3E%3Cpolygon points='-34,18 -34,-18 -14,0' fill='%23e8395f'/%3E%3Cpolygon points='0,-14 14,0 0,14 -14,0' fill='%23ff2d5f'/%3E%3Cpolygon points='0,-14 14,0 0,0' fill='%23ff7d9d'/%3E%3Cpolygon points='-34,-18 -18,-34 18,-34 34,-18 34,18 18,34 -18,34 -34,18' fill='none' stroke='%23ffd1dc' stroke-opacity='0.5' stroke-width='1.2'/%3E%3Cpath d='M-22-26L-12-30' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' opacity='0.8'/%3E%3C/g%3E%3C/svg%3E") right 12px top 8px / 72px 72px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.6 0 0 0 0 0.1 0 0 0 0 0.25 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23v)'/%3E%3C/svg%3E") 0 0 / 200px 200px repeat, radial-gradient(70% 45% at 50% 0%, rgb(200 20 63 / 28%), transparent 70%) no-repeat; }
 /* Fout: in Robijn en Noorderlicht ook een randje, zodat het niet op een markering lijkt. */
 :is([data-theme="robijn"], [data-theme="noorderlicht"]) .cell.wrong { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wrong) 60%, transparent); }
-[data-theme="robijn"] .cell.selected .v { text-shadow: 0 1px 0 rgb(255 255 255 / 30%); }
-[data-theme="robijn"] .board { background: linear-gradient(135deg, #3a0f20, #2a0a17 45%, #33091a); }
 
 /* RubyxCube: zwarte kubusrand en een korte draai bij het oplossen (zie js/fx/kubus.js). */
 [data-theme="rubyxcube"] .board { border-width: 3px; border-radius: 12px; }
