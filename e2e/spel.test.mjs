@@ -93,3 +93,15 @@ test('op haar verjaardag gaat een tik op de kaart verder met het halve hart, in 
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });
+
+test('lang drukken op tekst selecteert niets: geen tekstselectie en geen kopieermenu', async () => {
+  const page = await open(base);
+  for (const sel of ['#greeting', '#subtitle', '#daily-card', '#levels .level']) {
+    assert.equal(await page.$eval(sel, (el) => getComputedStyle(el).webkitUserSelect || getComputedStyle(el).userSelect), 'none', sel);
+  }
+  // Ook een dubbeltik (zoals lang drukken: een woord kiezen) laat niets geselecteerd achter.
+  await page.dblclick('#subtitle');
+  assert.equal(await page.evaluate(() => String(getSelection())), '');
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
