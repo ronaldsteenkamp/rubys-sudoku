@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parseGrid, solve, bit } from '../js/solver.js';
 import { computeCandidates } from '../js/techniques.js';
 import { Game } from '../js/game.js';
-import { getHint, unitName } from '../js/hints.js';
+import { getHint, unitName, hintsLeft, MAX_HINTS } from '../js/hints.js';
 import { generateHeart } from '../js/generator.js';
 import { BANK } from '../js/bank.js';
 import { EASY, EASY_SOLUTION } from './fixtures.js';
@@ -149,4 +149,13 @@ test('elke soort hint noemt haar bij een bijnaam', () => {
     const hard = gameFrom(parseGrid('8..........36......7..9.2...5...7.......457.....1...3...1....68..85...1..9....4..'));
     assert.ok(hasNick(getHint(hard, r).stages[0].text), 'cadeautje');
   }
+});
+
+test('hooguit 3 hints per puzzel', () => {
+  assert.equal(MAX_HINTS, 3);
+  assert.equal(hintsLeft({ hints: 0 }), 3);
+  assert.equal(hintsLeft({ hints: 2 }), 1);
+  assert.equal(hintsLeft({ hints: 3 }), 0);
+  assert.equal(hintsLeft({ hints: 7 }), 0, 'een oud spel met meer hints: gewoon 0');
+  assert.equal(hintsLeft({}), 3);
 });

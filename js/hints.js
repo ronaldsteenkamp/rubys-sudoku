@@ -83,6 +83,10 @@ function placementOutro(placing, viaElimination, rng) {
   return `Daardoor blijft voor dit vakje alleen de ${digit} over. ${cheer}`;
 }
 
+// Hooguit 3 hints per puzzel (een hint is de hele reeks van drie stappen).
+export const MAX_HINTS = 3;
+export const hintsLeft = (game) => Math.max(0, MAX_HINTS - (game?.hints || 0));
+
 const regionCells = (units) => [...new Set(units.flatMap((u) => UNITS[u]))];
 
 export function getHint(game, rng = Math.random) {

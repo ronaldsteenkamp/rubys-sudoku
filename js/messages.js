@@ -874,6 +874,14 @@ export const LOADING_LINES = [
   'Koffie zetten voor de puzzel… ☕',
 ];
 
+// Als de 3 hints van een puzzel op zijn.
+export const HINTS_UP_LINES = [
+  'Je 3 hints zijn op voor deze puzzel. Jij kan dit! 💪',
+  'Geen hints meer, wel heel veel vertrouwen in jou 💛',
+  'Hints op! Even wegkijken en opnieuw kijken helpt echt 🌿',
+  'Vanaf hier ben jij de hint 🧩',
+];
+
 export const PAUSE_LINES = [
   'Even pauze. Neem rustig je tijd 🌼',
   'Pauze! Tijd om een hond te aaien 🐶',
