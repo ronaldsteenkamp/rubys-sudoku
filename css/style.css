@@ -1089,6 +1089,10 @@ html[data-theme-pending] body { visibility: hidden; animation: theme-reveal 0s 1
    tegen de rand ligt. Daarom: de themakleur expliciet op html, en geen lege
    schermvullende vaste lagen (zie body::before en .confetti). */
 html { -webkit-text-size-adjust: 100%; background-color: var(--bg); transition: background-color 0.4s ease, filter 2s ease; }
+/* Een app, geen webpagina: lang drukken op een woord selecteert niets en opent geen
+   kopieermenu. Alleen in invoervelden mag je tekst selecteren. */
+body { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+:is(input, textarea, [contenteditable]) { user-select: text; -webkit-user-select: text; -webkit-touch-callout: default; }
 /* Slaapstand (zie sleep.js): alles zwart-wit. De overgang duurt 2 seconden,
    zonder melding. Een
    filter op html maakt geen nieuw blok voor vaste elementen (toast, feestje). */
