@@ -1,26 +1,44 @@
-// Regenachtige dag: zachte druppels glijden langzaam over het scherm (achter het
-// bord), af en toe lopen er twee samen. Met de eigen schakelaar (settings.rainSound,
-// standaard uit) ook een heel zacht regengeluid: gefilterde ruis via Web Audio,
-// alleen als het geluid aan staat en de app in beeld is.
+// Regenachtige dag: achter het "raam" valt de regen schuin naar beneden (twee lagen
+// strepen: ver weg dun en vaag, dichtbij iets helderder), op het glas zitten
+// stilstaande parels en glijden druppels met een spoortje naar beneden; af en toe
+// lopen er twee samen. Met de eigen schakelaar (settings.rainSound, standaard uit)
+// ook een heel zacht regengeluid: gefilterde ruis via Web Audio, alleen als het
+// geluid aan staat en de app in beeld is.
 // Alleen geladen als Regenachtige dag het thema is (zie loadFx in ui.js).
 
 import { createLayer, removeLayer, seeded } from './lib/natuur.js';
 import { audioOutput } from '../feedback.js';
 
-const MAX_DROPS = 12;
+const MAX_DROPS = 10;       // druppels die over het glas glijden
+const STREAKS = [44, 20];   // regenstrepen: ver weg, dichtbij
+const BEADS = 28;           // stilstaande parels op het glas
 
-// ---------- Druppels ----------
+// ---------- Regen en druppels ----------
+
+const f = (n, d = 1) => n.toFixed(d);
+
+// Eén laag vallende regen. --y is waar een streep staat als er niks beweegt (minder beweging).
+function shower(cls, n, rnd, [h0, h1], [d0, d1]) {
+  let html = '';
+  for (let k = 0; k < n; k++) {
+    html += `<b style="left:${f(rnd() * 100)}%;--h:${f(h0 + rnd() * (h1 - h0), 0)}px;--y:${f(rnd() * 120, 0)}vh;--d:${f(d0 + rnd() * (d1 - d0), 2)}s;animation-delay:-${f(rnd() * 3, 2)}s"></b>`;
+  }
+  return `<i class="bui ${cls}">${html}</i>`;
+}
 
 function drops() {
   const rnd = seeded(5);
-  let html = '';
+  let html = shower('ver', STREAKS[0], rnd, [40, 70], [1.1, 1.6]) + shower('dichtbij', STREAKS[1], rnd, [70, 120], [0.7, 1]);
+  for (let k = 0; k < BEADS; k++) {
+    html += `<i class="parel" style="left:${f(rnd() * 98)}%;top:${f(rnd() * 98)}%;--s:${f(2 + rnd() * 4)}px"></i>`;
+  }
   for (let k = 0; k < MAX_DROPS; k++) {
-    html += `<i class="druppel" style="left:${(rnd() * 96).toFixed(1)}%;top:${(rnd() * 70 - 5).toFixed(0)}%;--s:${(8 + rnd() * 8).toFixed(1)}px;--d:${(16 + rnd() * 14).toFixed(1)}s;animation-delay:-${(rnd() * 20).toFixed(1)}s"></i>`;
+    html += `<i class="druppel" style="left:${f(rnd() * 96)}%;top:${f(rnd() * 60 - 5, 0)}%;--s:${f(7 + rnd() * 6)}px;--d:${f(14 + rnd() * 12)}s;animation-delay:-${f(rnd() * 20)}s"></i>`;
   }
   // Twee keer een paartje: het kleine druppeltje haalt het grote in en ze gaan samen verder.
   for (const [left, top, delay] of [[18, 8, -3], [74, 22, -14]]) {
-    html += `<i class="druppel groot" style="left:${left}%;top:${top}%;--s:14px;--d:22s;animation-delay:${delay}s"></i>`;
-    html += `<i class="druppel klein" style="left:${left + 0.6}%;top:${top - 4}%;--s:9px;--d:22s;animation-delay:${delay}s"></i>`;
+    html += `<i class="druppel groot" style="left:${left}%;top:${top}%;--s:12px;--d:22s;animation-delay:${delay}s"></i>`;
+    html += `<i class="druppel klein" style="left:${left + 0.5}%;top:${top - 4}%;--s:8px;--d:22s;animation-delay:${delay}s"></i>`;
   }
   return html;
 }

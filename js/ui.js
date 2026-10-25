@@ -1383,7 +1383,7 @@ function renderSettings() {
   const seasonNow = resolveTheme('seizoen', today(), own);
   $('#theme-picker').innerHTML = THEME_GROUPS.map((g) => {
     const items = THEMES.filter((t) => t.group === g.id && !(t.unlock?.secret && !own.includes(t.id)))
-      .map((t) => (!t.unlock || own.includes(t.id) ? themeChoice({ ...t, previews: [t.id] }) : lockedTheme(t)));
+      .map((t) => (!t.unlock || own.includes(t.id) ? themeChoice({ id: t.id, name: t.name, previews: [t.id] }) : lockedTheme(t)));
     // 'Seizoen (automatisch)' pas zodra er minstens één seizoen vrij is.
     if (g.id === 'seizoen' && THEMES.some((t) => t.season && own.includes(t.id))) items.unshift(themeChoice({ ...SEASON_AUTO, previews: [seasonNow], hint: 'automatisch' }));
     if (!items.length) return '';
