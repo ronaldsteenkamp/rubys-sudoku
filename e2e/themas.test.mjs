@@ -23,3 +23,15 @@ for (const [colorScheme, want] of [['light', 'zonnig'], ['dark', 'nacht']]) {
     await page.context().close();
   });
 }
+
+test('een vrijgespeeld thema heeft in de kiezer geen ondertitel (geen hint en zeker geen code)', async () => {
+  const page = await open(base, { clock: new Date(2026, 10, 3, 12), storage: { settings: { theme: 'zonnig' }, stats: { unlockedThemes: ['robijn', 'bos', 'herfst'] } } });
+  await page.click('[data-open="settings-dialog"]');
+  for (const id of ['robijn', 'bos', 'herfst']) {
+    assert.equal(await page.locator(`label.theme-opt:has(input[value="${id}"]) .theme-hint`).count(), 0, id);
+  }
+  // Een vergrendeld thema houdt zijn hint.
+  assert.match(await page.textContent('.theme-opt.locked .theme-hint'), /\S/);
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
