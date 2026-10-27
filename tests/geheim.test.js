@@ -1,7 +1,7 @@
 // De geheime thema's: elke trigger is pure logica (net wel en net niet), los van de DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN, tapCounter, PIE_TAPS, PALM_TAPS, holdProgress, HOLD_MS } from '../js/themes.js';
+import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN, tapCounter, PIE_TAPS, PALM_TAPS, holdProgress, HOLD_MS, pawCatcher, PAW_CATCH } from '../js/themes.js';
 import { THEME_UNLOCK_TEXT, THEME_EMOJI, GREETINGS, PIE_GREETING, pieGreeting } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
@@ -159,4 +159,22 @@ test('Onzichtbare inkt: drie seconden ingedrukt houden, 2,999 s is net te kort',
   assert.equal(holdProgress(1000, 99999), 1, 'nooit meer dan 1');
   assert.equal(holdProgress(null, 5000), 0, 'losgelaten');
   assert.equal(holdProgress(5000, 4000), 0, 'nooit minder dan 0');
+});
+
+// ---------- Wandeltijd: vang ze! ----------
+
+test('Wandeltijd: vijf verschillende pootjes vangen, vier is een pootje te weinig', () => {
+  assert.equal(PAW_CATCH, 5);
+  const paw = pawCatcher();
+  assert.deepEqual([1, 5, 9, 13].map((id) => paw(id).done), [false, false, false, false]);
+  assert.deepEqual(paw(17), { count: 5, done: true });
+  assert.deepEqual(paw(21), { count: 5, done: false }, 'daarna niet nog eens');
+  // Hetzelfde pootje twee keer telt één keer.
+  const twice = pawCatcher();
+  for (const id of [1, 1, 5, 5, 9, 13]) twice(id);
+  assert.equal(twice(13).count, 4);
+  // Elk opgelost-scherm begint opnieuw (een nieuwe teller).
+  assert.equal(pawCatcher()(1).count, 1);
+  // In de confetti van Zonnig (en Wandeltijd zelf) zitten pootjes.
+  for (const id of ['zonnig', 'wandeltijd']) assert.ok(themeById(id).celebrate.includes('🐾'), id);
 });

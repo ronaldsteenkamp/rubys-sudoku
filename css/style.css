@@ -953,6 +953,43 @@
   color-scheme: dark;
 }
 
+/* Wandeltijd (geheim): grasgroen en warm. Af en toe kwispelt er een staartje om de
+   hoek (js/fx/wandeltijd.js), het gekozen vakje is een pootafdruk en wat Ruby
+   invult is hondenbruin. */
+[data-theme="wandeltijd"] {
+  --bg: #edf4dd;
+  --bg-2: #f8fbee;
+  --surface: #fffdf5;
+  --surface-2: #eff5e0;
+  --ink: #24331a;
+  --ink-soft: #4f5f3f;
+  --line: #e1e9cf;
+  --line-strong: #6b8f3e;
+  --accent: #8cc152;
+  --accent-strong: #5a9628;
+  --accent-ink: #182a0a;
+  --accent-soft: #dcefc3;
+  --user: #7a4416;
+  --given: #24331a;
+  --sel: #e8bc84;
+  --sel-ink: #2a1a08;
+  --peer: #e3f0cd;
+  --same: #c6e09c;
+  --same-ring: transparent;
+  --hint: #e0874f;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
+  --heart: #c2456b;
+  --heart-fill: #fde0ea;
+  --heart-edge: #f9cbdb;
+  --heart-ink: #8f1f3d;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(40 70 20 / 7%), 0 8px 24px rgb(40 70 20 / 10%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='90' viewBox='0 0 600 90'%3E%3Cpath d='M0 40C100 20 200 30 300 38S500 50 600 34V90H0Z' fill='%23a8cf72' fill-opacity='0.35'/%3E%3Cpath d='M0 60C120 48 240 56 360 62S520 66 600 56V90H0Z' fill='%238cc152' fill-opacity='0.35'/%3E%3C/svg%3E") 50% 100% / 600px 90px repeat-x fixed;
+  color-scheme: light;
+}
+
 /* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
 [data-theme="zonnebloem"] {
   --bg: #fffae3;
@@ -1255,6 +1292,7 @@ html[data-accent="kampvuur"] { --accent: #ff9a3c; --accent-strong: #ffb866; --ac
 html[data-accent="preitaart"] { --accent: #eaa93a; --accent-strong: #b97a1c; --accent-ink: #2e1d06; --sel: #d3ebaf; --sel-ink: #1f3d10; }
 html[data-accent="vertrekhal"] { --accent: #ffd23f; --accent-strong: #ffe07a; --accent-ink: #141414; --sel: #ffd23f; --sel-ink: #141414; }
 html[data-accent="onzichtbare-inkt"] { --accent: #b37bff; --accent-strong: #cfa6ff; --accent-ink: #160a28; --sel: #b37bff; --sel-ink: #160a28; }
+html[data-accent="wandeltijd"] { --accent: #8cc152; --accent-strong: #5a9628; --accent-ink: #182a0a; --sel: #e8bc84; --sel-ink: #2a1a08; }
 html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
 html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
 html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
@@ -2466,6 +2504,35 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
    houdt (--uv gaat van 0 naar 1 in 3 seconden; het geheim van Onzichtbare inkt). */
 .solved-heart { --uv: 0; touch-action: none; color: color-mix(in srgb, #9b4dff calc(var(--uv) * 100%), var(--heart)); filter: drop-shadow(0 0 calc(var(--uv) * 12px) rgb(155 77 255 / 80%)); }
 
+/* Wandeltijd: het gekozen vakje is een pootafdruk (een groot kussentje en vier
+   teentjes, in --sel), het cijfer staat er donker en goed leesbaar op. */
+[data-theme="wandeltijd"] .cell.selected { background: var(--surface); isolation: isolate; }
+[data-theme="wandeltijd"] .cell.selected::before {
+  content: ""; position: absolute; inset: 4%; z-index: -1; background: var(--sel);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cellipse cx='20' cy='26' rx='12' ry='10.5'/%3E%3Cellipse cx='6.5' cy='15' rx='4.2' ry='5.4'/%3E%3Cellipse cx='14.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='25.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='33.5' cy='15' rx='4.2' ry='5.4'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cellipse cx='20' cy='26' rx='12' ry='10.5'/%3E%3Cellipse cx='6.5' cy='15' rx='4.2' ry='5.4'/%3E%3Cellipse cx='14.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='25.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='33.5' cy='15' rx='4.2' ry='5.4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="wandeltijd"] .cell.selected .v { transform: translateY(12%); }
+[data-theme="wandeltijd"] .cell.wrong.selected::before { background: var(--wrong-bg); }
+
+/* Pootjes vangen: de 🐾 uit de confetti als knopjes in het opgelost-scherm (zie
+   pawButton in ui.js). Ze liggen onder de knoppen, dus die blijven altijd te raken. */
+#solved-dialog .row { position: relative; z-index: 2; }
+.paw-layer { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; border-radius: inherit; }
+.paw-catch {
+  position: absolute; bottom: -50px; display: grid; place-items: center; width: 44px; height: 44px; margin-left: -22px;
+  padding: 0; border: 0; background: none; font-size: var(--s, 28px); line-height: 1; pointer-events: auto; touch-action: manipulation;
+  animation: paw-up var(--d, 5s) linear var(--delay, 0s) both;
+}
+@keyframes paw-up {
+  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: translate(var(--x, 0), -600px) rotate(var(--r, 20deg)); opacity: 0.6; }
+}
+/* Gevangen: vanaf waar hij was (--at, gezet in ui.js) springt hij even op en verdwijnt. */
+.paw-catch.gevangen { pointer-events: none; animation: pootje-hup 0.7s ease-out both; }
+@keyframes pootje-hup { 0% { opacity: 1; transform: var(--at); } 40% { opacity: 1; transform: var(--at) translateY(-40px) scale(1.6); } 100% { opacity: 0; transform: var(--at) translateY(-28px) scale(1.2); } }
+
 /* Beachvolleybal: de golf rolt heel langzaam mee. Op het speelscherm wat zachter. */
 @keyframes waves { from { background-position: 0 100%; } to { background-position: 480px 100%; } }
 [data-theme="beachvolleybal"] .board { border-radius: 14px; }
@@ -2798,6 +2865,13 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
 .fx-kampvuur.oplaaien .gloed { opacity: 1; animation-duration: calc(0.5s * var(--fx-tempo)); }
 .fx-kampvuur.oplaaien .vonk { animation-duration: calc(1.6s * var(--fx-tempo)); }
 
+/* Wandeltijd: de hond die bij het oplossen voorbij rent. */
+.fx-hond i { left: 0; top: 10%; width: 110px; animation: ren calc(3.6s * var(--fx-tempo)) linear both; }
+.fx-hond .poten { animation: draf calc(0.24s * var(--fx-tempo)) ease-in-out infinite alternate; transform-box: view-box; transform-origin: 50px 50px; }
+.fx-hond .p2 { animation-direction: alternate-reverse; }
+@keyframes ren { from { transform: translateX(-130px); } to { transform: translateX(calc(100vw + 20px)); } }
+@keyframes draf { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+
 /* De dieren: ze kijken om de hoek (aan de rand, op een plek zonder knoppen). */
 .fx-animal { position: fixed; z-index: 6; padding: 0; border: 0; background: none; touch-action: manipulation; transition: transform 0.8s cubic-bezier(0.3, 0.9, 0.4, 1); }
 .fx-animal.from-left { left: 0; transform: translateX(-100%); }
@@ -2805,6 +2879,10 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
 .fx-animal.from-right { right: 0; transform: translateX(100%) scaleX(-1); }
 .fx-animal.from-right.in { transform: translateX(calc(100% - var(--w))) scaleX(-1); }
 .fx-zeehondje { width: 88px; }
+.fx-staartje { width: 46px; }
+.fx-staartje .kwispel { transform-box: view-box; transform-origin: 16px 44px; }
+.fx-staartje.in .kwispel { animation: kwispel calc(0.3s * var(--fx-tempo)) ease-in-out infinite alternate; }
+@keyframes kwispel { from { transform: rotate(-14deg); } to { transform: rotate(16deg); } }
 .fx-eekhoorntje { width: 70px; }
 .fx-zeehondje .flipper { transform-box: view-box; transform-origin: 46px 50px; }
 .fx-zeehondje.zwaai .flipper { animation: zwaai 0.4s ease-in-out 4 alternate; }

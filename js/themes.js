@@ -212,6 +212,13 @@ export const THEMES = [
     celebrate: ['🔦', '💜', '✨', '✉️'],
     swatch: { bg: '#110f18', surface: '#191622', accent: '#b37bff', digit: '#c6b2f2' },
   },
+  {
+    // Vrij door na het oplossen vijf pootjes 🐾 uit de confetti te vangen (zie pawCatcher).
+    id: 'wandeltijd', name: 'Wandeltijd', scheme: 'light', group: 'geheim', emoji: '🐶', icon: '🐶', fx: 'wandeltijd',
+    unlock: { secret: true },
+    celebrate: ['🐶', '🐾', '🦴', '💛'],
+    swatch: { bg: '#edf4dd', surface: '#fffdf5', accent: '#8cc152', digit: '#7a4416' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
@@ -395,6 +402,19 @@ export function stringRun({ length = STRING_RUN.length, within = STRING_RUN.with
 // het hartje ingedrukt houdt; bij 1 (na HOLD_MS) is het gelukt. Losgelaten = null.
 export const HOLD_MS = 3000;
 export const holdProgress = (start, now, need = HOLD_MS) => (start == null ? 0 : Math.min(1, Math.max(0, (now - start) / need)));
+
+// Wandeltijd: pootjes vangen. Na het oplossen zijn de pootjes 🐾 in de confetti
+// tikbaar; vang er `need` (verschillende) tijdens één opgelost-scherm. Geeft een
+// functie die je het nummer van een gevangen pootje geeft; die zegt { count, done }.
+export const PAW_CATCH = 5;
+export function pawCatcher(need = PAW_CATCH) {
+  const caught = new Set();
+  return (id) => {
+    const fresh = !caught.has(id) && caught.size < need;
+    if (fresh) caught.add(id);
+    return { count: caught.size, done: fresh && caught.size === need };
+  };
+}
 
 // Vroeger kon het thema 'auto' zijn (licht of donker zoals het toestel). Dat
 // bestaat niet meer: wie het had, houdt het thema dat ze op dat moment zag.

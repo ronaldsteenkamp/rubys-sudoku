@@ -9,7 +9,7 @@ import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS, pawCatcher } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
@@ -1144,7 +1144,13 @@ function celebrate(special, jersey = false, handHearts = true) {
   const hand = handwritten() && handHearts;
   // In de slaapstand rustiger: minder deeltjes, en langzamer.
   const calm = sleeping();
+  // Wandeltijd: de pootjes 🐾 zijn te vangen. Ze dwarrelen als knopjes in het
+  // opgelost-scherm zelf (daarbuiten is alles even niet aan te tikken), onder de knoppen.
+  const paws = document.createElement('div');
+  paws.className = 'paw-layer';
+  const catchPaw = pawCatcher();
   for (let k = 0; k < (calm ? 10 : 28); k++) {
+    if (!hand && set[k % set.length] === '🐾') { paws.append(pawButton(k, catchPaw, calm)); continue; }
     const s = document.createElement('span');
     // Briefje: zijn twee getekende hartjes, om en om in rood en balpenblauw.
     if (hand) {
@@ -1162,7 +1168,32 @@ function celebrate(special, jersey = false, handHearts = true) {
     s.style.setProperty('--r', `${(Math.random() - 0.5) * 90}deg`);
     box.append(s);
   }
+  $('#solved-dialog .paw-layer')?.remove();
+  if (paws.children.length) $('#solved-dialog').append(paws);
   setTimeout(() => { box.innerHTML = ''; }, 7000);
+}
+
+// Een pootje uit de confetti als knopje. Gevangen: hij springt even op (en telt mee).
+function pawButton(k, catchPaw, calm) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'paw-catch';
+  b.textContent = '🐾';
+  b.setAttribute('aria-label', 'Een pootje');
+  b.style.left = `${4 + Math.random() * 84}%`;
+  b.style.setProperty('--s', `${24 + Math.random() * 14}px`);
+  // Iets trager dan de rest, zodat ze te vangen zijn; pas als het opgelost-scherm er staat.
+  b.style.setProperty('--d', `${(4.6 + Math.random() * 2.4) * (calm ? 1.6 : 1)}s`);
+  b.style.setProperty('--delay', `${0.3 + Math.random() * 2.2}s`);
+  b.style.setProperty('--x', `${(Math.random() - 0.5) * 100}px`);
+  b.addEventListener('click', () => {
+    if (b.classList.contains('gevangen')) return;
+    const at = getComputedStyle(b).transform;
+    b.style.setProperty('--at', at === 'none' ? 'translate(0, 0)' : at);
+    b.classList.add('gevangen');
+    if (catchPaw(k).done) unlockSecret('wandeltijd');
+  });
+  return b;
 }
 
 let solvedHandled = null;
@@ -1270,6 +1301,7 @@ function onSolved() {
   setTimeout(() => {
     const d = openDialog('solved-dialog');
     d.addEventListener('close', async () => {
+      d.querySelector('.paw-layer')?.remove();
       for (const m of fresh) {
         feedback('unlock');
         await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });

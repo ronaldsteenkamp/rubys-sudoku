@@ -11,7 +11,7 @@ after(async () => { await shutdown(); server.close(); });
 const theme = (page) => page.getAttribute('html', 'data-theme');
 // Een gewone dag zonder dagthema (geen wedstrijd, feestdag of seizoensbegin).
 const GEWOON = new Date(2026, 10, 3, 12);
-const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart', 'Vertrekhal', 'Onzichtbare inkt'];
+const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart', 'Vertrekhal', 'Onzichtbare inkt', 'Wandeltijd'];
 
 // Na het vinden: "Probeer maar!", dan staat het thema aan en in het groepje Geheim.
 async function acceptAndCheck(page, id, name) {
@@ -184,6 +184,23 @@ test('Onzichtbare inkt: in Briefje het hartje op het opgelost-scherm 3 seconden 
   await page.clock.runFor(3100);
   await page.mouse.up();
   await acceptAndCheck(page, 'onzichtbare-inkt', 'Onzichtbare inkt');
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
+
+test('Wandeltijd: na het oplossen vijf pootjes uit de confetti vangen (de knoppen blijven bovenop)', async () => {
+  const a = almostSolved();
+  const page = await open(base, { clock: GEWOON, storage: { settings: { theme: 'zonnig' }, game: a.game } });
+  await solveLast(page, a);
+  const paws = page.locator('#solved-dialog .paw-catch');
+  assert.ok(await paws.count() >= 5, 'genoeg pootjes');
+  // De knoppen van het opgelost-scherm liggen boven de pootjes.
+  assert.ok(await page.$eval('#solved-dialog', (d) => Number(getComputedStyle(d.querySelector('.row')).zIndex) > Number(getComputedStyle(d.querySelector('.paw-layer')).zIndex)));
+  for (let k = 0; k < 4; k++) await paws.nth(k).dispatchEvent('click');
+  await paws.nth(0).dispatchEvent('click'); // hetzelfde pootje telt niet nog eens
+  assert.equal(await page.isVisible('#confirm-dialog'), false, 'vier is te weinig');
+  await paws.nth(4).dispatchEvent('click');
+  await acceptAndCheck(page, 'wandeltijd', 'Wandeltijd');
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });
