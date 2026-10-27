@@ -2,7 +2,7 @@
 // in het groepje Geheim. Vóór het vinden staan ze nergens in de kiezer.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { start, open, shutdown, stored, savedGame } from './helpers.mjs';
+import { start, open, shutdown, stored, savedGame, solve } from './helpers.mjs';
 
 let server, base;
 before(async () => ({ server, base } = await start()));
@@ -11,7 +11,7 @@ after(async () => { await shutdown(); server.close(); });
 const theme = (page) => page.getAttribute('html', 'data-theme');
 // Een gewone dag zonder dagthema (geen wedstrijd, feestdag of seizoensbegin).
 const GEWOON = new Date(2026, 10, 3, 12);
-const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart'];
+const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart', 'Vertrekhal'];
 
 // Na het vinden: "Probeer maar!", dan staat het thema aan en in het groepje Geheim.
 async function acceptAndCheck(page, id, name) {
@@ -32,10 +32,12 @@ async function openSettings(page) {
   else await page.click('#home [data-open="settings-dialog"]');
 }
 
-// Ligt `sel` nergens over een knop of het bord?
+// Ligt `sel` nergens over een knop of het bord? (De onderdelen van het geheimpje
+// zelf, zoals de palmboom en zijn kokosnoot, tellen niet.)
 const coversNothing = (page, sel) => page.$eval(sel, (el) => {
   const r = el.getBoundingClientRect();
-  const hit = [...document.querySelectorAll('button, .board, .card, .level, .num, .tool')].filter((b) => b !== el && !el.contains(b) && !b.contains(el))
+  const own = el.closest('.palm, .keepup') || el;
+  const hit = [...document.querySelectorAll('button, .board, .card, .level, .num, .tool')].filter((b) => !own.contains(b) && !b.contains(el))
     .filter((b) => { const q = b.getBoundingClientRect(); return q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top; });
   return hit.map((b) => b.className || b.id);
 });
@@ -112,6 +114,31 @@ test('Preitaart: drie keer op de 🥧 in de begroeting tikken (met ?begroeting=p
   await page.goto(base);
   await page.waitForSelector('#levels .level');
   assert.equal(await page.locator('#greeting .pie-tap').count(), (await page.textContent('#greeting')).includes('🥧') ? 1 : 0);
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
+
+test('Vertrekhal: in Gran Canaria vijf keer op de palmboom en dan op de kokosnoot', async () => {
+  const page = await open(base, { clock: GEWOON, storage: { settings: { theme: 'gran-canaria' }, game: savedGame() } });
+  const palm = page.locator('.palm-tree');
+  await palm.waitFor();
+  assert.deepEqual(await coversNothing(page, '.palm'), []);
+  for (let k = 0; k < 4; k++) await palm.click();
+  assert.equal(await page.locator('.kokosnoot').count(), 0, 'vier keer is te weinig');
+  await palm.click();
+  const nut = page.locator('.kokosnoot');
+  await nut.waitFor();
+  await page.waitForTimeout(800);
+  assert.deepEqual(await coversNothing(page, '.kokosnoot'), []);
+  assert.equal(await page.isVisible('#confirm-dialog'), false, 'pas bij de kokosnoot');
+  await nut.click();
+  await acceptAndCheck(page, 'vertrekhal', 'Vertrekhal');
+  // Het vertrekbord: ON TIME, en na het oplossen BOARDING.
+  await page.click('.card.continue');
+  assert.equal(await page.getAttribute('.flapstatus', 'data-text'), 'LAS PALMAS · ON TIME');
+  await solve(page);
+  await page.waitForSelector('#solved-dialog[open]');
+  assert.equal(await page.getAttribute('.flapstatus', 'data-text'), 'BOARDING 💛');
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });

@@ -228,6 +228,7 @@ function updateThemeColor() {
 //   start(ctx) / stop()   thema aan of uit
 //   home(ctx)             het startscherm is (opnieuw) getekend
 //   solved(ctx)           puzzel opgelost; geeft { sound: true } als hij zelf geluid maakte
+//   placed(ctx, { cell, digit })  ze heeft net een cijfer gezet (alleen voor de show)
 let fx = null, fxName = null;
 const fxCtx = {
   now: () => today(),
@@ -895,6 +896,8 @@ function inputDigit(d, { note = false } = {}) {
     else feedback('place', { digit: d });
   }
   afterChange();
+  // Het thema kan iets doen met een net gezet cijfer (Vertrekhal laat het doorratelen).
+  if (!r.removed) fx?.placed?.(fxCtx, { cell: selected, digit: d });
   if (r.solved) onSolved();
   else if (!r.removed && game.isFull()) almostThere();
 }

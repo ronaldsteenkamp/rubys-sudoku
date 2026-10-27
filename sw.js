@@ -43,6 +43,8 @@ const SHELL = [
   'js/fx/sporthal.js',
   'js/fx/kampvuur.js',
   'js/fx/preitaart.js',
+  'js/fx/vertrekhal.js',
+  'js/fx/gran-canaria.js',
   'js/fx/lib/natuur.js',
   'js/fx/lib/klank.js',
   'js/boekje.js',

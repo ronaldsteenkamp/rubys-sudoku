@@ -1,7 +1,7 @@
 // De geheime thema's: elke trigger is pure logica (net wel en net niet), los van de DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN, tapCounter, PIE_TAPS } from '../js/themes.js';
+import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN, tapCounter, PIE_TAPS, PALM_TAPS } from '../js/themes.js';
 import { THEME_UNLOCK_TEXT, THEME_EMOJI, GREETINGS, PIE_GREETING, pieGreeting } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
@@ -121,4 +121,29 @@ test('Preitaart: drie tikken op de 🥧 (binnen 3 seconden), twee is te weinig',
   // Te langzaam: de eerste tik is dan al vergeten.
   const slow = tapCounter(PIE_TAPS);
   assert.deepEqual([0, 1600, 3000, 3100].map(slow), [false, false, false, true]);
+});
+
+// ---------- Vertrekhal: de kokosnoot ----------
+
+test('Vertrekhal: vijf tikken op de palmboom laten een kokosnoot vallen, vier niet', () => {
+  assert.equal(PALM_TAPS.taps, 5);
+  const palm = tapCounter(PALM_TAPS);
+  assert.deepEqual([0, 500, 1000, 1500].map(palm), [false, false, false, false]);
+  assert.equal(palm(2000), true);
+  const slow = tapCounter(PALM_TAPS);
+  assert.ok([0, 1300, 2600, 3900, 5200].map(slow).every((x) => !x), 'te langzaam (meer dan 5 s)');
+  assert.equal(themeById('gran-canaria').fx, 'gran-canaria');
+});
+
+test('Vertrekhal: het klapbordje ratelt door en eindigt op het goede cijfer', async () => {
+  const { flapRun, FLAPS, ON_TIME, BOARDING } = await import('../js/fx/vertrekhal.js');
+  for (let d = 1; d <= 9; d++) {
+    const run = flapRun(d);
+    assert.equal(run.length, FLAPS + 1);
+    assert.equal(run.at(-1), d);
+    assert.ok(run.every((x) => x >= 1 && x <= 9));
+    for (let k = 1; k < run.length; k++) assert.equal(run[k], (run[k - 1] % 9) + 1, 'op volgorde, zoals een echt bord');
+  }
+  assert.equal(ON_TIME, 'LAS PALMAS · ON TIME');
+  assert.match(BOARDING, /^BOARDING/);
 });

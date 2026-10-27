@@ -16,7 +16,7 @@ test('elk vergrendeld thema heeft een regel, een hint en een tekst voor het "Nie
     assert.ok(t.emoji && t.icon, `${t.id}: emoji`);
     if (!t.unlock.secret) assert.ok(unlockHint(t, emptyStats(), at(2026, 11, 3)), `${t.id}: hint`);
   }
-  assert.deepEqual(LOCKED_THEME_IDS.sort(), ['beachvolleybal', 'bos', 'gameboy', 'herfst', 'kampvuur', 'koffiemonster', 'lente', 'noorderlicht', 'onderwater', 'preitaart', 'robijn', 'rubyxcube', 'sporthal', 'winter', 'zomer', 'zonnebloem']);
+  assert.deepEqual(LOCKED_THEME_IDS.sort(), ['beachvolleybal', 'bos', 'gameboy', 'herfst', 'kampvuur', 'koffiemonster', 'lente', 'noorderlicht', 'onderwater', 'preitaart', 'robijn', 'rubyxcube', 'sporthal', 'vertrekhal', 'winter', 'zomer', 'zonnebloem']);
   // Meteen vrij:
   for (const id of ['gitaar', 'dagverloop', 'krant', 'krijtbord', 'hoog-contrast', 'waddenzee', 'regen']) assert.equal(themeById(id).unlock, undefined, id);
 });

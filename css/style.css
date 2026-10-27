@@ -881,6 +881,42 @@
   color-scheme: light;
 }
 
+/* Vertrekhal (geheim): een donker vertrekbord. Elk vakje is een klapbordje met een
+   naad in het midden, ingevulde cijfers zijn Solari-geel en ratelen even door
+   (js/fx/vertrekhal.js). Bovenaan LAS PALMAS · ON TIME. */
+[data-theme="vertrekhal"] {
+  --bg: #0c1016;
+  --bg-2: #141a23;
+  --surface: #181d25;
+  --surface-2: #222833;
+  --ink: #f1f0e8;
+  --ink-soft: #c2c4c4;
+  --line: #2b323d;
+  --line-strong: #6b7685;
+  --accent: #ffd23f;
+  --accent-strong: #ffe07a;
+  --accent-ink: #141414;
+  --accent-soft: #3d3418;
+  --user: #ffd23f;
+  --given: #f1f0e8;
+  --sel: #ffd23f;
+  --sel-ink: #141414;
+  --peer: #2c3442;
+  --same: #4d4422;
+  --same-ring: transparent;
+  --hint: #5cc8ff;
+  --wrong: #ff8f80;
+  --wrong-bg: #521c1a;
+  --heart: #ff7a9a;
+  --heart-fill: #3a2340;
+  --heart-edge: #4c2c52;
+  --heart-ink: #ffd3df;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 45%);
+  color-scheme: dark;
+}
+
 /* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
 [data-theme="zonnebloem"] {
   --bg: #fffae3;
@@ -1181,6 +1217,7 @@ html[data-accent="gameboy"] { --accent: #88c070; --accent-strong: #081820; --acc
 html[data-accent="sporthal"] { --accent: #ffcf33; --accent-strong: #d99a00; --accent-ink: #2a1f14; --sel: #2f6fd1; --sel-ink: #ffffff; }
 html[data-accent="kampvuur"] { --accent: #ff9a3c; --accent-strong: #ffb866; --accent-ink: #2a1205; --sel: #fff1df; --sel-ink: #3a1d0c; }
 html[data-accent="preitaart"] { --accent: #eaa93a; --accent-strong: #b97a1c; --accent-ink: #2e1d06; --sel: #d3ebaf; --sel-ink: #1f3d10; }
+html[data-accent="vertrekhal"] { --accent: #ffd23f; --accent-strong: #ffe07a; --accent-ink: #141414; --sel: #ffd23f; --sel-ink: #141414; }
 html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
 html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
 html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
@@ -2349,6 +2386,32 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .pie-tap.wiebel { animation: wiebel 0.45s ease; }
 @keyframes wiebel { 25% { transform: rotate(-14deg) scale(1.1); } 60% { transform: rotate(10deg) scale(1.1); } }
 
+/* Vertrekhal: elk vakje een klapbordje met een naad in het midden, en het
+   statusbordje boven het bord (zie js/fx/vertrekhal.js). Een cijfer dat
+   doorratelt klapt even om (.klap, alleen transform). */
+[data-theme="vertrekhal"] .board { border: 3px solid #2b323d; border-radius: 10px; }
+[data-theme="vertrekhal"] .cell::before { content: ""; position: absolute; left: 6%; right: 6%; top: calc(50% - 0.5px); height: 1px; background: rgb(0 0 0 / 55%); pointer-events: none; }
+[data-theme="vertrekhal"] .cell .v { font-family: "Nunito", sans-serif; font-weight: 800; }
+[data-theme="vertrekhal"] .cell .v.klap { animation: klap 0.11s ease-in-out; }
+@keyframes klap { 50% { transform: scaleY(0.15); } }
+.flapstatus { position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); display: flex; gap: 2px; white-space: nowrap; }
+.flapstatus span { display: inline-grid; place-items: center; min-width: 15px; height: 24px; padding: 0 2px; border-radius: 3px; background: #1c222b; box-shadow: inset 0 -12px 0 rgb(0 0 0 / 18%); color: #ffd23f; font-weight: 800; font-size: 0.85rem; }
+.flapstatus span.leeg { background: transparent; box-shadow: none; }
+.flapstatus span.klap { animation: klap 0.18s ease-in-out both; }
+
+/* Gran Canaria: de palmboom rechtsboven op het startscherm (js/fx/gran-canaria.js).
+   Tik vijf keer en er valt een kokosnoot naast de stam. */
+.palm { float: right; position: relative; width: 84px; height: 132px; margin: -6px -6px 4px 8px; }
+.palm-tree { position: absolute; inset: 0 0 0 4px; padding: 0; border: 0; background: none; touch-action: manipulation; }
+.palm-tree svg { display: block; width: 100%; height: 100%; }
+.palm-tree .kroon { transform-box: view-box; transform-origin: 45px 36px; }
+.palm-tree.wiegen .kroon { animation: wiegen 0.6s ease-in-out; }
+@keyframes wiegen { 30% { transform: rotate(-7deg); } 70% { transform: rotate(5deg); } }
+.kokosnoot { position: absolute; left: -6px; bottom: -6px; width: 44px; height: 44px; padding: 8px; border: 0; background: none; touch-action: manipulation; animation: kokos-valt 0.7s cubic-bezier(0.5, 0, 0.8, 0.6) both; transition: opacity 0.3s ease, transform 0.3s ease; }
+.kokosnoot svg { display: block; width: 100%; height: 100%; }
+.kokosnoot.weg { opacity: 0; transform: scale(1.4); }
+@keyframes kokos-valt { 0% { transform: translate(36px, -96px); } 80% { transform: translate(0, 0); } 90% { transform: translate(0, -6px); } 100% { transform: none; } }
+
 /* Beachvolleybal: de golf rolt heel langzaam mee. Op het speelscherm wat zachter. */
 @keyframes waves { from { background-position: 0 100%; } to { background-position: 480px 100%; } }
 [data-theme="beachvolleybal"] .board { border-radius: 14px; }
@@ -2500,7 +2563,7 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 html[data-theme="zonnig"] body:has(#home:not([hidden])) { --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cg transform='translate(140 60)'%3E%3Ccircle r='38' fill='%23ffd54a' fill-opacity='0.32'/%3E%3Ccircle r='26' fill='%23ffd54a' fill-opacity='0.3'/%3E%3Cpath d='M48.3 12.9L67.6 18.0M35.4 35.3L49.6 49.4M13.0 48.3L18.2 67.6M-12.9 48.3L-18.0 67.6M-35.3 35.4L-49.4 49.6M-48.3 13.0L-67.6 18.2M-48.3 -12.9L-67.6 -18.0M-35.4 -35.3L-49.6 -49.4M-13.0 -48.3L-18.2 -67.6M12.9 -48.3L18.0 -67.6M35.3 -35.4L49.4 -49.6M48.3 -13.0L67.6 -18.2' stroke='%23f5c02e' stroke-opacity='0.38' stroke-width='5' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E") right -50px top -60px / 200px 200px no-repeat; }
 html[data-theme="nacht"] body:has(#home:not([hidden])) { --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='120'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='150' height='120' fill='white'/%3E%3Ccircle cx='112' cy='38' r='22' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Ccircle cx='100' cy='46' r='24' fill='%23f5c451' fill-opacity='0.55' mask='url(%23m)'/%3E%3Cg fill='%23ffd772' fill-opacity='0.6'%3E%3Cpath transform='translate(40 30) scale(1)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3Cpath transform='translate(62 82) scale(0.7)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3Cpath transform='translate(132 92) scale(0.8)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3Cpath transform='translate(20 70) scale(0.6)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3C/g%3E%3C/svg%3E") right 0 top 0 / 150px 120px no-repeat; }
 html[data-theme="lelie"] body { --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='240' viewBox='0 0 220 240'%3E%3Cg opacity='0.55'%3E%3Cpath d='M60 240C66 200 78 160 96 128' stroke='%238fae7e' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M70 236C40 214 22 186 18 156C44 168 64 196 74 228Z' fill='%23a9c497'/%3E%3Cpath d='M80 238C104 222 130 214 160 216C140 232 112 242 84 242Z' fill='%239bb98a'/%3E%3Cg transform='translate(98 124)'%3E%3Cpath transform='rotate(-62) scale(0.95)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(62) scale(0.95)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(-28) scale(1)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(28) scale(1)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(0) scale(1.05)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cg stroke='%23c98a3e' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M0 0L-6-22M0 0L0-26M0 0L6-22'/%3E%3C/g%3E%3Cg fill='%23c0703a'%3E%3Ccircle cx='-6' cy='-23' r='1.8'/%3E%3Ccircle cx='0' cy='-27' r='1.8'/%3E%3Ccircle cx='6' cy='-23' r='1.8'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left -26px bottom -18px / 180px auto no-repeat; --decor-layer: block; }
-html[data-theme="gran-canaria"] body { --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cg transform='translate(392 8)' fill='%232f7f6f' fill-opacity='0.32'%3E%3Cpath d='M-2 100C2 70 8 44 6 18L12 18C14 46 10 72 6 100Z' fill='%238a6a44' fill-opacity='0.35'/%3E%3Cpath transform='translate(9 16) rotate(-170)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-140)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-100)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-40)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-10)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(20)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3C/g%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") right 0 bottom 0 / 480px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") 0 100% / 480px 120px repeat-x; --decor-layer: block; }
+html[data-theme="gran-canaria"] body { --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") right 0 bottom 0 / 480px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") 0 100% / 480px 120px repeat-x; --decor-layer: block; }
 
 /* Emoji in de stijl van het thema: zwart-wit in Krant en Krijtbord, groen in Game Boy
    (de .emo-spans komen uit withEmoji in ui.js). */
@@ -2705,6 +2768,7 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
 @media (prefers-reduced-motion: reduce) {
   body::before { animation: none; }
   .taartpunt { display: none; }
+  .palm-tree .kroon, .kokosnoot { animation: none !important; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

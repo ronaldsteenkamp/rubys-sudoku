@@ -872,6 +872,7 @@ export const THEME_UNLOCK_TEXT = {
   sporthal: 'Drieëndertig keer hooggehouden, net als het nummer op je shirt! De tribune staat op z’n kop 📣 Welkom in de sporthal, nummer 33. (Ssst, geheim.)',
   kampvuur: 'Alle zes snaren, van laag naar hoog! Daar gaat het vuurtje aan 🔥 Pak een dekentje en een marshmallow, liefje. Ik zing vals mee.',
   preitaart: 'Je hebt de preitaart gevonden! 🥧 Bladerdeeg, romige vulling en een ringetje prei, net als bij ons thuis. Eet smakelijk, Gehaktballetje.',
+  vertrekhal: 'Een kokosnoot! Dat kan maar één ding betekenen: we gaan weer naar Las Palmas ✈️ Je instapkaart ligt klaar, Schatje. Gate 33, on time 💛',
 };
 
 // ---------- Kleine tekstjes ----------
@@ -903,7 +904,7 @@ export const THEME_EMOJI = {
   zonnig: '☀️', nacht: '🌙', sterren: '⭐', liefde: '❤️', lelie: '🌸', 'gran-canaria': '🌴',
   volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
   robijn: '💎', rubyxcube: '🧩', koffiemonster: '☕', gitaar: '🎸', beachvolleybal: '🏖️', dagverloop: '🌅',
-  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐', kampvuur: '🔥', preitaart: '🥧',
+  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐', kampvuur: '🔥', preitaart: '🥧', vertrekhal: '✈️',
   waddenzee: '🦭', bos: '🐿️', noorderlicht: '🌌', regen: '☔', onderwater: '🐠',
 };
 

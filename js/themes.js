@@ -33,7 +33,8 @@ export const THEMES = [
     swatch: { bg: '#fbf6f7', surface: '#ffffff', accent: '#eab3c4', digit: '#96305a' },
   },
   {
-    id: 'gran-canaria', name: 'Gran Canaria', scheme: 'light', group: 'jij',
+    // De palmboom op het startscherm is tikbaar (js/fx/gran-canaria.js): het geheim van Vertrekhal.
+    id: 'gran-canaria', name: 'Gran Canaria', scheme: 'light', group: 'jij', fx: 'gran-canaria',
     celebrate: ['🌴', '🐚', '💛', '🌺'],
     swatch: { bg: '#fbf3e6', surface: '#fffdf8', accent: '#f29b74', digit: '#17606f' },
   },
@@ -197,6 +198,13 @@ export const THEMES = [
     celebrate: ['🥧', '🧀', '🥚', '💛'],
     swatch: { bg: '#f3e8d2', surface: '#fff3c9', accent: '#eaa93a', digit: '#285f1a' },
   },
+  {
+    // Vrij door in Gran Canaria vijf keer op de palmboom te tikken en dan op de kokosnoot die valt.
+    id: 'vertrekhal', name: 'Vertrekhal', scheme: 'dark', group: 'geheim', emoji: '✈️', icon: '✈️', fx: 'vertrekhal',
+    unlock: { secret: true },
+    celebrate: ['✈️', '🌴', '🧳', '💛'],
+    swatch: { bg: '#0c1016', surface: '#181d25', accent: '#ffd23f', digit: '#ffd23f' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
@@ -330,6 +338,8 @@ export function unlockHint(theme, stats, date = new Date()) {
 export const SECRET_TAPS = { taps: 8, within: 3000 };
 // Preitaart: drie tikken op de 🥧 in de begroeting.
 export const PIE_TAPS = { taps: 3, within: 3000 };
+// Vertrekhal: vijf tikken op de palmboom in Gran Canaria, dan valt er een kokosnoot.
+export const PALM_TAPS = { taps: 5, within: 5000 };
 export function tapCounter({ taps = SECRET_TAPS.taps, within = SECRET_TAPS.within } = {}) {
   let times = [];
   return (t) => {
