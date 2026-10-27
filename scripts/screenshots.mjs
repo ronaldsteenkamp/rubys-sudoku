@@ -4,6 +4,7 @@
 // Gebruik: node scripts/screenshots.mjs [--maten] [--themas=liefde,sterren] [--boekje]   (vereist Playwright + Chromium)
 // Met --boekje alleen het Techniekenboekje (in een paar lichte en donkere thema's).
 // Met --natuur alleen de natuurthema's: start en spel, de dieren (via ?dier=1) en de effecten bij het oplossen.
+// Met --geheim alleen de geheime thema's: start, spel en opgelost per thema, plus elke trigger en de teller.
 // Met --themas alleen die thema's (start, spel en hartjespuzzel) plus een overzicht per thema.
 // De plaatjes komen in screenshots/ (staat niet in git), met per scherm een overzicht.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -159,7 +160,74 @@ async function natureShots() {
   }
 }
 
-if (process.argv.includes('--natuur')) {
+// De geheime thema's: start, spel en het opgelost-moment, en elke trigger in actie.
+async function secretShots() {
+  const SECRET = ALL_THEMES.filter((t) => t.unlock?.secret).map((t) => [t.id, t.scheme]);
+  const g = playGame();
+  const sel = g.values.findIndex((v, i) => !v && !g.notes[i]);
+  const solvedMoment = async (theme, scheme, name, wait = 2400) => {
+    const a = heartGame(true);
+    const p = await page({ theme, scheme, game: { ...a.game, special: null, shape: null } });
+    // Geen mijlpaal-berichtjes over het opgelost-moment heen.
+    await p.evaluate(() => localStorage.setItem('rubys-sudoku:unlocked', JSON.stringify(['eerste', 'dag1', 'zonderhint', 'tien', 'streak3', 'vijfentwintig', 'geheimen'])));
+    await p.reload();
+    await p.waitForTimeout(450);
+    await openPlay(p, a.last);
+    await p.click(`.num[data-d="${heart.solution[a.last]}"]`);
+    await p.waitForTimeout(wait);
+    return p;
+  };
+  for (const [theme, scheme] of SECRET) {
+    let p = await page({ theme, scheme });
+    await shot(p, `geheim-start-${theme}`, 'geheim');
+    await p.context().close();
+    p = await page({ theme, scheme, game: g });
+    await openPlay(p, sel);
+    await p.waitForTimeout(theme === 'kampvuur' ? 3000 : 300);
+    await shot(p, `geheim-spel-${theme}`, 'geheim');
+    await p.context().close();
+    p = await solvedMoment(theme, scheme, theme, { vertrekhal: 2200, preitaart: 900, 'onzichtbare-inkt': 2000, wandeltijd: 1300 }[theme] ?? 1600);
+    // Het opgelost-scherm even weg, zodat het effect op het bord te zien is.
+    await p.evaluate(() => document.querySelector('#solved-dialog')?.close());
+    await shot(p, `geheim-opgelost-${theme}`, 'geheim');
+    await p.context().close();
+  }
+  // De triggers.
+  let p = await page({ theme: 'volleybal', scheme: 'light', query: '?bal=1' });
+  await p.click('.keepup-ball');
+  await p.click('.keepup-ball', { force: true });
+  await p.evaluate(() => window.scrollTo(0, 0));
+  await p.waitForTimeout(400);
+  await shot(p, 'geheim-trigger-sporthal-bal', 'geheim');
+  await p.context().close();
+  p = await page({ theme: 'gran-canaria', scheme: 'light' });
+  for (let k = 0; k < 5; k++) await p.click('.palm-tree');
+  await p.waitForTimeout(900);
+  await shot(p, 'geheim-trigger-vertrekhal-kokosnoot', 'geheim');
+  await p.context().close();
+  p = await page({ theme: 'zonnig', scheme: 'light', query: '?begroeting=preitaart' });
+  await shot(p, 'geheim-trigger-preitaart-begroeting', 'geheim');
+  await p.context().close();
+  p = await solvedMoment('briefje', 'light', 'briefje', 2400);
+  await p.evaluate(() => document.querySelector('.solved-heart')?.style.setProperty('--uv', '0.7'));
+  await shot(p, 'geheim-trigger-onzichtbare-inkt-hartje', 'geheim');
+  await p.context().close();
+  p = await solvedMoment('zonnig', 'light', 'zonnig', 4200);
+  await shot(p, 'geheim-trigger-wandeltijd-pootjes', 'geheim');
+  await p.context().close();
+  // De teller onder Statistieken, met een paar geheimen gevonden.
+  p = await page({ theme: 'nacht', scheme: 'dark', extraStats: { unlockedThemes: ['gameboy', 'kampvuur', 'preitaart'], themeUnlockDates: { gameboy: '2026-10-30', kampvuur: '2026-11-02' } } });
+  await p.click('[data-open="stats-dialog"]');
+  await p.click('.secrets-line');
+  await p.evaluate(() => { const d = document.querySelector('#stats-dialog'); d.scrollTop = d.scrollHeight; });
+  await p.waitForTimeout(300);
+  await shot(p, 'geheim-teller', 'geheim');
+  await p.context().close();
+}
+
+if (process.argv.includes('--geheim')) {
+  await secretShots();
+} else if (process.argv.includes('--natuur')) {
   await natureShots();
 } else if (process.argv.includes('--boekje')) {
   await bookShots([['zonnig', 'light'], ['nacht', 'dark'], ['briefje', 'light'], ['rubyxcube', 'light'], ['hoog-contrast', 'light'], ['robijn', 'dark'], ['krijtbord', 'dark']]);

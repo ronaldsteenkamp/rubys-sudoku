@@ -100,6 +100,11 @@ export function audioOutput() {
   return a ? { ctx: a, out: master } : null;
 }
 
+// Voor de eigen geluiden van een thema (een fluitje, een klokslag…): zoals
+// audioOutput, maar null als het geluid uit staat. Zo volgt alles de gewone
+// geluidsinstelling en het halve volume van de slaapstand.
+export const themeAudio = () => (enabled.sound === 'uit' ? null : audioOutput());
+
 // Een 8-bit-deuntje in blokgolven (Game Boy), als het geluid aan staat.
 // `notes`: [[Hz, start (s), duur (s)], …]. Geeft true als het klinkt.
 export function chiptune(notes) {
@@ -117,8 +122,8 @@ export function feedback(kind, opts = {}) {
     if (opts.sound === false) { /* stil */ } else if (enabled.sound === 'zacht') SOUNDS[kind]?.();
     else if (enabled.sound === 'gitaar') playGuitar(kind, opts);
   } catch { /* geen geluid, geen probleem */ }
-  // 'unlock' en 'preview' zijn alleen geluid; de trilling blijft zoals hij was.
-  if (enabled.haptics && kind !== 'unlock' && kind !== 'preview') {
+  // 'unlock', 'preview' en 'chord' zijn alleen geluid; de trilling blijft zoals hij was.
+  if (enabled.haptics && !['unlock', 'preview', 'chord'].includes(kind)) {
     try {
       if (canVibrate) navigator.vibrate(PATTERNS[kind] ?? 6);
       else if (isIOS && kind !== 'note') iosTick();

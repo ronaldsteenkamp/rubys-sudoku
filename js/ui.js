@@ -9,7 +9,7 @@ import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS, pawCatcher, midnightMinute, secretsFound } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
@@ -179,11 +179,12 @@ function themePreview(id) {
 // Briefje: zijn handschrift ook in het logo, de hartjes en "Goed zo!" (hand/*.svg, zie style.css).
 const handwritten = () => document.documentElement.dataset.theme === 'briefje';
 // Cijfers als plaatje: in Briefje en Krijtbord staat wat Ruby zelf invult er
-// met de hand (de gegeven cijfers blijven strak), in Game Boy zijn alle cijfers pixels.
-function glyphs() {
-  const t = document.documentElement.dataset.theme;
-  return t === 'gameboy' ? 'pixel' : t === 'briefje' || t === 'krijtbord' ? 'hand' : null;
-}
+// met de hand (de gegeven cijfers blijven strak), in Game Boy zijn alle cijfers
+// pixels en in Sporthal ledcijfers van een scorebord.
+const GLYPHS = { gameboy: 'pixel', sporthal: 'led', briefje: 'hand', krijtbord: 'hand' };
+const glyphs = () => GLYPHS[document.documentElement.dataset.theme] || null;
+// Alle cijfers als plaatje (niet alleen wat zij invult)?
+const allGlyphs = (glyph) => glyph === 'pixel' || glyph === 'led';
 
 // Het thema van nu: op een dagthema-dag kiest de app (zie themeForDay in
 // themes.js), anders haar eigen keuze. settings.theme verandert daarbij nooit.
@@ -227,6 +228,7 @@ function updateThemeColor() {
 //   start(ctx) / stop()   thema aan of uit
 //   home(ctx)             het startscherm is (opnieuw) getekend
 //   solved(ctx)           puzzel opgelost; geeft { sound: true } als hij zelf geluid maakte
+//   placed(ctx, { cell, digit })  ze heeft net een cijfer gezet (alleen voor de show)
 let fx = null, fxName = null;
 const fxCtx = {
   now: () => today(),
@@ -236,6 +238,8 @@ const fxCtx = {
   get reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; },
   // Regenachtige dag: zachte regen als ze die aan heeft gezet en het geluid niet uit staat.
   rainWanted: () => settings.rainSound && settings.sound !== 'uit',
+  // Een geheim thema is gevonden (de bal in Volleybal, de kokosnoot in Gran Canaria…).
+  secret: (id) => unlockSecret(id),
   // Dagverloop heeft nieuwe kleuren gezet.
   changed({ scheme, vars }) {
     store.saveThemeToday(dayKey(today()), shownTheme.theme, shownTheme.accent, { vars, scheme });
@@ -410,7 +414,10 @@ function renderHome() {
     ? '<span class="hand-art hart-1 brand-heart" aria-hidden="true"></span><span class="hand-art logo" role="img" aria-label="Ruby\'s Sudoku"></span>'
     : BRAND_HTML;
   // Het emoji aan het laatste woord vast, zodat het nooit in zijn eentje op een nieuwe regel staat.
-  $('#greeting').innerHTML = withEmoji(M.greeting(now).replace(/ (\S+)$/, '\u00a0$1'));
+  // In de begroeting met de preitaart is de 🥧 een knopje (het geheime thema Preitaart).
+  const hello = params.get('begroeting') === 'preitaart' ? M.pieGreeting() : M.greeting(now);
+  $('#greeting').innerHTML = withEmoji(hello.replace(/ (\S+)$/, '\u00a0$1'))
+    .replace(/<span class="emo">🥧<\/span>$/, '<button type="button" class="emo pie-tap" aria-label="Preitaart">🥧</button>');
   $('#subtitle').textContent = M.subtitle(now);
   const days = M.daysTogether(now);
   const heart = hand ? '<span class="hand-art hart-2 together-heart" role="img" aria-label="hartje"></span>' : '<span class="emo">💛</span>';
@@ -777,8 +784,8 @@ function render() {
     const given = game.isGiven(i);
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
-    // Met de hand alleen wat zij invult; pixels voor alle cijfers.
-    const g = v && (glyph === 'pixel' || (glyph === 'hand' && !given)) ? glyph : null;
+    // Met de hand alleen wat zij invult; pixels en ledcijfers voor alle cijfers.
+    const g = v && (allGlyphs(glyph) || (glyph === 'hand' && !given)) ? glyph : null;
     if (v) cls.push(given ? 'given' : 'user', ...(g ? [g] : []));
     // Een figuur met accenten (pijl, lint, naden…) tekent die in de donkerdere tint; anders de omtrek.
     if (shape?.mask[i]) {
@@ -863,6 +870,8 @@ function inputDigit(d, { note = false } = {}) {
   if (!game || paused || game.solved) return;
   closeHint(false);
   if (selected == null || game.isGiven(selected) || (game.values[selected] && (notesMode || note))) {
+    // Geen vakje gekozen: in Gitaar klinkt dan de snaar van dit cijfer (zie playString).
+    if (selected == null || game.isGiven(selected)) playString(d);
     // Geen bewerkbaar vakje: dan markeren we gewoon dit cijfer op het bord.
     focusDigit = focusDigit === d ? null : d;
     if (selected != null && game.isGiven(selected)) selected = null;
@@ -887,8 +896,23 @@ function inputDigit(d, { note = false } = {}) {
     else feedback('place', { digit: d });
   }
   afterChange();
+  // Het thema kan iets doen met een net gezet cijfer (Vertrekhal laat het doorratelen).
+  if (!r.removed) fx?.placed?.(fxCtx, { cell: selected, digit: d });
   if (r.solved) onSolved();
   else if (!r.removed && game.isFull()) almostThere();
+}
+
+// Gitaar: op het cijferpad tikken zonder gekozen vakje laat de snaar van dat cijfer
+// klinken (er verandert niets aan de puzzel). Zes oplopende tonen achter elkaar, elk
+// binnen 2 seconden, en het vuurtje gaat aan: het geheime thema Kampvuur.
+const strings = stringRun();
+function playString(d) {
+  if (shownTheme.theme !== 'gitaar') return;
+  feedback('place', { digit: d });
+  if (strings(d, performance.now()) && !(stats.unlockedThemes || []).includes('kampvuur')) {
+    feedback('chord');
+    unlockSecret('kampvuur');
+  }
 }
 
 // Alles staat vol, maar er klopt nog iets niet: dat zeggen we zacht, in elke
@@ -1120,7 +1144,13 @@ function celebrate(special, jersey = false, handHearts = true) {
   const hand = handwritten() && handHearts;
   // In de slaapstand rustiger: minder deeltjes, en langzamer.
   const calm = sleeping();
+  // Wandeltijd: de pootjes 🐾 zijn te vangen. Ze dwarrelen als knopjes in het
+  // opgelost-scherm zelf (daarbuiten is alles even niet aan te tikken), onder de knoppen.
+  const paws = document.createElement('div');
+  paws.className = 'paw-layer';
+  const catchPaw = pawCatcher();
   for (let k = 0; k < (calm ? 10 : 28); k++) {
+    if (!hand && set[k % set.length] === '🐾') { paws.append(pawButton(k, catchPaw, calm)); continue; }
     const s = document.createElement('span');
     // Briefje: zijn twee getekende hartjes, om en om in rood en balpenblauw.
     if (hand) {
@@ -1138,7 +1168,32 @@ function celebrate(special, jersey = false, handHearts = true) {
     s.style.setProperty('--r', `${(Math.random() - 0.5) * 90}deg`);
     box.append(s);
   }
+  $('#solved-dialog .paw-layer')?.remove();
+  if (paws.children.length) $('#solved-dialog').append(paws);
   setTimeout(() => { box.innerHTML = ''; }, 7000);
+}
+
+// Een pootje uit de confetti als knopje. Gevangen: hij springt even op (en telt mee).
+function pawButton(k, catchPaw, calm) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'paw-catch';
+  b.textContent = '🐾';
+  b.setAttribute('aria-label', 'Een pootje');
+  b.style.left = `${4 + Math.random() * 84}%`;
+  b.style.setProperty('--s', `${24 + Math.random() * 14}px`);
+  // Iets trager dan de rest, zodat ze te vangen zijn; pas als het opgelost-scherm er staat.
+  b.style.setProperty('--d', `${(4.6 + Math.random() * 2.4) * (calm ? 1.6 : 1)}s`);
+  b.style.setProperty('--delay', `${0.3 + Math.random() * 2.2}s`);
+  b.style.setProperty('--x', `${(Math.random() - 0.5) * 100}px`);
+  b.addEventListener('click', () => {
+    if (b.classList.contains('gevangen')) return;
+    const at = getComputedStyle(b).transform;
+    b.style.setProperty('--at', at === 'none' ? 'translate(0, 0)' : at);
+    b.classList.add('gevangen');
+    if (catchPaw(k).done) unlockSecret('wandeltijd');
+  });
+  return b;
 }
 
 let solvedHandled = null;
@@ -1156,6 +1211,8 @@ function onSolved() {
   if (counted) recordSeasonSolve(stats, today());
   // Komt er een thema vrij (seizoen, aantal puzzels, reeks, Ruby-modus, vóór tienen…)?
   const freshThemes = checkThemeUnlocks(stats, today());
+  // Het geheime thema Middernacht: opgelost terwijl de klok tussen 00:00 en 00:01 staat.
+  if (midnightMinute(today()) && unlockTheme(stats, 'middernacht', today())) freshThemes.push('middernacht');
   // Vrijgespeeld seizoen: vandaag meteen dat seizoen (een dagthema, zie themeForDay).
   if (freshThemes.length) applyTheme();
   // Pas de puzzel opruimen als de statistieken echt bewaard zijn; anders staat
@@ -1246,6 +1303,7 @@ function onSolved() {
   setTimeout(() => {
     const d = openDialog('solved-dialog');
     d.addEventListener('close', async () => {
+      d.querySelector('.paw-layer')?.remove();
       for (const m of fresh) {
         feedback('unlock');
         await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
@@ -1279,13 +1337,74 @@ async function checkOpeningUnlocks() {
   for (const id of fresh) await offerTheme(id);
 }
 
-// Het geheime thema: 8 keer snel op het logo tikken.
+// Een geheim thema gevonden: vrijspelen en meteen aanbieden. Was het al vrij,
+// dan gebeurt er niets extra's. Geeft true als het nieuw was.
+function unlockSecret(id) {
+  if (!unlockTheme(stats, id, today())) return false;
+  saved(store.saveStats(stats));
+  offerTheme(id).then(showFreshMilestones);
+  return true;
+}
+
+// Mijlpalen die buiten een opgeloste puzzel om vrijkomen (zoals Alle geheimen).
+async function showFreshMilestones() {
+  const fresh = M.newMilestones(stats, unlocked);
+  if (!fresh.length) return;
+  unlocked = [...unlocked, ...fresh.map((m) => m.id)];
+  store.saveUnlocked(unlocked);
+  for (const m of fresh) {
+    feedback('unlock');
+    await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
+  }
+}
+
+// Het geheime thema Game Boy: 8 keer snel op het logo tikken.
 const logoTap = tapCounter();
 $('.brand').addEventListener('click', () => {
-  if (!logoTap(performance.now()) || !unlockTheme(stats, 'gameboy', today())) return;
-  saved(store.saveStats(stats));
-  offerTheme('gameboy');
+  if (logoTap(performance.now())) unlockSecret('gameboy');
 });
+
+// Preitaart: drie keer op de 🥧 in de begroeting tikken. Elke tik wiebelt hij even.
+const pieTap = tapCounter(PIE_TAPS);
+$('#greeting').addEventListener('click', (e) => {
+  const pie = e.target.closest('.pie-tap');
+  if (!pie) return;
+  pie.classList.remove('wiebel');
+  void pie.offsetWidth;
+  pie.classList.add('wiebel');
+  if (pieTap(performance.now())) unlockSecret('preitaart');
+});
+
+// Onzichtbare inkt: in Briefje het getekende hartje op het opgelost-scherm 3 seconden
+// ingedrukt houden. Intussen licht het hartje langzaam paars op (--uv, 0–1), zodat ze
+// merkt dat er iets gebeurt. Loslaten: weer van voren af aan.
+let holdStart = null, holdTimer = null;
+function holdFrame() {
+  const heart = $('.solved-heart');
+  if (!heart || holdStart == null) return;
+  heart.style.setProperty('--uv', holdProgress(holdStart, performance.now()).toFixed(3));
+  requestAnimationFrame(holdFrame);
+}
+function holdEnd() {
+  holdStart = null;
+  clearTimeout(holdTimer);
+  $('.solved-heart')?.style.setProperty('--uv', '0');
+}
+$('.solved-emoji').addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('.solved-heart')) return;
+  e.preventDefault();
+  holdStart = performance.now();
+  requestAnimationFrame(holdFrame);
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(() => {
+    if (holdProgress(holdStart, performance.now()) < 1) return;
+    $('.solved-heart')?.style.setProperty('--uv', '1');
+    holdStart = null;
+    unlockSecret('onzichtbare-inkt');
+  }, HOLD_MS);
+});
+for (const t of ['pointerup', 'pointercancel', 'pointerleave']) $('.solved-emoji').addEventListener(t, holdEnd);
+$('.solved-emoji').addEventListener('contextmenu', (e) => e.preventDefault());
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
 $('#solved-again-small').addEventListener('click', () => $('#solved-dialog').close('again'));
@@ -1577,8 +1696,30 @@ function renderStats() {
     <table class="stat-table">
       <thead><tr><th>Niveau</th><th>Gespeeld</th><th>Opgelost</th><th>Record</th><th>Gem.</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>${wrappedListHtml()}`;
+    </table>${secretsHtml()}${wrappedListHtml()}`;
 }
+
+// "2 van 8 geheimen gevonden 🤫", pas als ze er minstens één heeft. Tik erop voor het
+// lijstje: gevonden met naam en datum, de rest als ??? met een vaag zinnetje.
+function secretsHtml() {
+  const all = secretsFound(stats);
+  const found = all.filter((x) => x.found).length;
+  if (!found) return '';
+  const items = all.map((x) => (x.found
+    ? `<li><span class="secret-emoji" aria-hidden="true">${x.emoji}</span><div><b>${escapeHtml(x.name)}</b>${x.date ? `<small>${escapeHtml(foundText(x.date))}</small>` : ''}</div></li>`
+    : `<li class="locked"><span class="secret-emoji" aria-hidden="true">❔</span><div><b>???</b><small>${escapeHtml(M.SECRET_CLUES[x.id] || '')}</small></div></li>`)).join('');
+  return `<div class="secrets"><button type="button" class="secrets-line" aria-expanded="false" aria-controls="secret-list">${withEmoji(M.secretsLine(found, all.length))}</button>
+    <ul id="secret-list" class="secret-list" hidden>${items}</ul></div>`;
+}
+// "gevonden op 3 november" (met het jaar erbij als dat niet dit jaar is).
+const foundText = (day) => sinceText(day).replace(/^sinds /, 'gevonden op ');
+$('#stats-body').addEventListener('click', (e) => {
+  const line = e.target.closest('.secrets-line');
+  if (!line) return;
+  const open = line.getAttribute('aria-expanded') !== 'true';
+  line.setAttribute('aria-expanded', String(open));
+  $('#secret-list').hidden = !open;
+});
 
 // ---------- Techniekenboekje ----------
 
@@ -1610,7 +1751,7 @@ function miniBoard(ex) {
     for (let c = c0; c <= c1; c++, k++) {
       const i = r * 9 + c, raw = ex.cells[k], v = Math.abs(raw), given = raw > 0;
       const cls = ['cell'];
-      const g = v && (glyph === 'pixel' || (glyph === 'hand' && !given)) ? glyph : null;
+      const g = v && (allGlyphs(glyph) || (glyph === 'hand' && !given)) ? glyph : null;
       if (v) cls.push(given ? 'given' : 'user', ...(g ? [g] : []));
       if (ex.digit && v === ex.digit) cls.push('same');
       if (region.has(i)) cls.push('hint-region');

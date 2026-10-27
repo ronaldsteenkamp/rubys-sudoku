@@ -771,6 +771,261 @@
   color-scheme: light;
 }
 
+/* Sporthal (geheim): een lichte parketvloer met gekleurde veldlijnen, rode
+   scorebordcijfers (zie verderop) en een scorebordje om de timer. Een fout is
+   paars met een randje, zodat hij niet op een (rood) ingevuld cijfer lijkt. */
+[data-theme="sporthal"] {
+  --bg: #f0dcb4;
+  --bg-2: #f8ead0;
+  --surface: #fffaf0;
+  --surface-2: #f6e8cc;
+  --ink: #2a1f14;
+  --ink-soft: #5a4632;
+  --line: #ecdcbc;
+  --line-strong: #2f6fd1;
+  --accent: #ffcf33;
+  --accent-strong: #d99a00;
+  --accent-ink: #2a1f14;
+  --accent-soft: #ffefb5;
+  --user: #b01f18;
+  --given: #2a1f14;
+  --sel: #2f6fd1;
+  --sel-ink: #ffffff;
+  --peer: #e2ebfa;
+  --same: #ffe27a;
+  --same-ring: transparent;
+  --hint: #e0662a;
+  --wrong: #5b2bb0;
+  --wrong-bg: #eedcff;
+  --heart: #c2365a;
+  --heart-fill: #ffe0e2;
+  --heart-edge: #fbcdd2;
+  --heart-ink: #8f1f3d;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(90 60 20 / 8%), 0 8px 24px rgb(90 60 20 / 12%);
+  --decor: repeating-linear-gradient(90deg, transparent 0 55px, rgb(140 90 30 / 12%) 55px 56px), repeating-linear-gradient(90deg, transparent 0 56px, rgb(170 110 40 / 6%) 56px 112px), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='900' viewBox='0 0 600 900' fill='none' stroke-width='5'%3E%3Cpath d='M0 640H600' stroke='%232f6fd1' stroke-opacity='0.35'/%3E%3Cpath d='M-40 900A340 340 0 0 1 640 900' stroke='%23e0662a' stroke-opacity='0.3'/%3E%3Cpath d='M70 0V900' stroke='%23ffcf33' stroke-opacity='0.45'/%3E%3Cpath d='M0 160H600' stroke='%232fa35a' stroke-opacity='0.25'/%3E%3C/svg%3E") 50% 0 / 600px 900px no-repeat;
+  color-scheme: light;
+}
+
+/* Kampvuur (geheim): een sterrenhemel, onderaan een warm flakkerende gloed met
+   opstijgende vonkjes (js/fx/kampvuur.js). Het gekozen vakje is een marshmallow
+   die langzaam goudbruin kleurt. Een fout is roze met een randje. */
+[data-theme="kampvuur"] {
+  --bg: #120d16;
+  --bg-2: #1c1424;
+  --surface: #211a20;
+  --surface-2: #2c2229;
+  --ink: #f8ead9;
+  --ink-soft: #d2bca7;
+  --line: #3a2e34;
+  --line-strong: #a5714c;
+  --accent: #ff9a3c;
+  --accent-strong: #ffb866;
+  --accent-ink: #2a1205;
+  --accent-soft: #4a2c16;
+  --user: #ffc37e;
+  --given: #f8ead9;
+  --sel: #fff1df;
+  --sel-ink: #3a1d0c;
+  --peer: #3c2a27;
+  --same: #6a4521;
+  --same-ring: transparent;
+  --hint: #ff7a3c;
+  --wrong: #ff8fae;
+  --wrong-bg: #5a1430;
+  --heart: #ff7397;
+  --heart-fill: #3e2440;
+  --heart-edge: #4f2c50;
+  --heart-ink: #ffd3df;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
+/* Preitaart (geheim): een rand van bladerdeeg met ruitjespatroon om het bord,
+   vakjes in romig eigeel en het gekozen vakje als een groen preiringetje. Wat Ruby
+   invult is preigroen. Bij het oplossen gaat er een punt uit (js/fx/preitaart.js). */
+[data-theme="preitaart"] {
+  --bg: #f3e8d2;
+  --bg-2: #fbf3e2;
+  --surface: #fff3c9;
+  --surface-2: #fbe7b4;
+  --ink: #3b2a12;
+  --ink-soft: #63502c;
+  --line: #ecd496;
+  --line-strong: #b07a2a;
+  --accent: #eaa93a;
+  --accent-strong: #b97a1c;
+  --accent-ink: #2e1d06;
+  --accent-soft: #fde2a2;
+  --user: #285f1a;
+  --given: #3b2a12;
+  --sel: #d3ebaf;
+  --sel-ink: #1f3d10;
+  --peer: #f8dc93;
+  --same: #f5d27e;
+  --same-ring: #b97a1c;
+  --hint: #cf6a2a;
+  --wrong: #a8321a;
+  --wrong-bg: #ffd2c7;
+  --heart: #c2456b;
+  --heart-fill: #ffe2ea;
+  --heart-edge: #fbd0dc;
+  --heart-ink: #8f1f3d;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(110 70 10 / 8%), 0 8px 24px rgb(110 70 10 / 12%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 24H48M24 0V48' stroke='%23c9a46a' stroke-opacity='0.13' stroke-width='10'/%3E%3C/svg%3E") 0 0 / 48px 48px repeat;
+  color-scheme: light;
+}
+
+/* Vertrekhal (geheim): een donker vertrekbord. Elk vakje is een klapbordje met een
+   naad in het midden, ingevulde cijfers zijn Solari-geel en ratelen even door
+   (js/fx/vertrekhal.js). Bovenaan LAS PALMAS · ON TIME. */
+[data-theme="vertrekhal"] {
+  --bg: #0c1016;
+  --bg-2: #141a23;
+  --surface: #181d25;
+  --surface-2: #222833;
+  --ink: #f1f0e8;
+  --ink-soft: #c2c4c4;
+  --line: #2b323d;
+  --line-strong: #6b7685;
+  --accent: #ffd23f;
+  --accent-strong: #ffe07a;
+  --accent-ink: #141414;
+  --accent-soft: #3d3418;
+  --user: #ffd23f;
+  --given: #f1f0e8;
+  --sel: #ffd23f;
+  --sel-ink: #141414;
+  --peer: #2c3442;
+  --same: #4d4422;
+  --same-ring: transparent;
+  --hint: #5cc8ff;
+  --wrong: #ff8f80;
+  --wrong-bg: #521c1a;
+  --heart: #ff7a9a;
+  --heart-fill: #3a2340;
+  --heart-edge: #4c2c52;
+  --heart-ink: #ffd3df;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 45%);
+  color-scheme: dark;
+}
+
+/* Onzichtbare inkt (geheim): donker papier en een uv-lampje. Rond het gekozen vakje
+   (de rij, kolom en het blok) gloeien de cijfers paars op; de rest is iets zwakker,
+   maar haalt overal nog 4.5:1 (de gloed is extra). Een fout is oranje met een randje. */
+[data-theme="onzichtbare-inkt"] {
+  --bg: #110f18;
+  --bg-2: #1a1625;
+  --surface: #191622;
+  --surface-2: #231e2f;
+  --ink: #ece6f7;
+  --ink-soft: #bcb3cf;
+  --line: #2c2739;
+  --line-strong: #6b5f8a;
+  --accent: #b37bff;
+  --accent-strong: #cfa6ff;
+  --accent-ink: #160a28;
+  --accent-soft: #34254f;
+  --user: #c6b2f2;
+  --given: #b8b2c8;
+  --sel: #b37bff;
+  --sel-ink: #160a28;
+  --peer: #2b2342;
+  --same: #44336a;
+  --same-ring: transparent;
+  --hint: #5ce1e6;
+  --wrong: #ffb27a;
+  --wrong-bg: #4a2a12;
+  --heart: #ff7aa8;
+  --heart-fill: #3f2131;
+  --heart-edge: #512a3f;
+  --heart-ink: #ffd3e2;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
+/* Wandeltijd (geheim): grasgroen en warm. Af en toe kwispelt er een staartje om de
+   hoek (js/fx/wandeltijd.js), het gekozen vakje is een pootafdruk en wat Ruby
+   invult is hondenbruin. */
+[data-theme="wandeltijd"] {
+  --bg: #edf4dd;
+  --bg-2: #f8fbee;
+  --surface: #fffdf5;
+  --surface-2: #eff5e0;
+  --ink: #24331a;
+  --ink-soft: #4f5f3f;
+  --line: #e1e9cf;
+  --line-strong: #6b8f3e;
+  --accent: #8cc152;
+  --accent-strong: #5a9628;
+  --accent-ink: #182a0a;
+  --accent-soft: #dcefc3;
+  --user: #7a4416;
+  --given: #24331a;
+  --sel: #e8bc84;
+  --sel-ink: #2a1a08;
+  --peer: #e3f0cd;
+  --same: #c6e09c;
+  --same-ring: transparent;
+  --hint: #e0874f;
+  --wrong: #b02e20;
+  --wrong-bg: #fcd5c6;
+  --heart: #c2456b;
+  --heart-fill: #fde0ea;
+  --heart-edge: #f9cbdb;
+  --heart-ink: #8f1f3d;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(40 70 20 / 7%), 0 8px 24px rgb(40 70 20 / 10%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='90' viewBox='0 0 600 90'%3E%3Cpath d='M0 40C100 20 200 30 300 38S500 50 600 34V90H0Z' fill='%23a8cf72' fill-opacity='0.35'/%3E%3Cpath d='M0 60C120 48 240 56 360 62S520 66 600 56V90H0Z' fill='%238cc152' fill-opacity='0.35'/%3E%3C/svg%3E") 50% 100% / 600px 90px repeat-x fixed;
+  color-scheme: light;
+}
+
+/* Middernacht (geheim): dieppaars, met een grote, zachte klok achter het bord
+   waarvan de wijzers echt meelopen (js/fx/middernacht.js). Goud voor de wijzers,
+   wat Ruby invult en het gekozen vakje. Een fout is roze met een randje. */
+[data-theme="middernacht"] {
+  --bg: #170e2b;
+  --bg-2: #24154a;
+  --surface: #211536;
+  --surface-2: #2c1e47;
+  --ink: #f3ecff;
+  --ink-soft: #c9bce4;
+  --line: #36285a;
+  --line-strong: #8a74c0;
+  --accent: #e8c46a;
+  --accent-strong: #f3d68e;
+  --accent-ink: #1f1402;
+  --accent-soft: #42345a;
+  --user: #ffd98a;
+  --given: #f3ecff;
+  --sel: #e8c46a;
+  --sel-ink: #1f1402;
+  --peer: #37244f;
+  --same: #4f3d70;
+  --same-ring: transparent;
+  --hint: #7fd8ff;
+  --wrong: #ff9db0;
+  --wrong-bg: #5a1838;
+  --heart: #ff7aa8;
+  --heart-fill: #4a1f3c;
+  --heart-edge: #5a2748;
+  --heart-ink: #ffd3e2;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
 /* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
 [data-theme="zonnebloem"] {
   --bg: #fffae3;
@@ -1068,6 +1323,13 @@ html[data-accent="krijtbord"] { --accent: #f3d35b; --accent-strong: #f8e08a; --a
 html[data-accent="zonnebloem"] { --accent: #ffc816; --accent-strong: #e0a400; --accent-ink: #2e2300; --sel: #ffd23c; --sel-ink: #2e2300; }
 html[data-accent="hoog-contrast"] { --accent: #ffd400; --accent-strong: #000000; --accent-ink: #000000; --sel: #ffd400; --sel-ink: #000000; }
 html[data-accent="gameboy"] { --accent: #88c070; --accent-strong: #081820; --accent-ink: #081820; --sel: #081820; --sel-ink: #e0f8d0; }
+html[data-accent="sporthal"] { --accent: #ffcf33; --accent-strong: #d99a00; --accent-ink: #2a1f14; --sel: #2f6fd1; --sel-ink: #ffffff; }
+html[data-accent="kampvuur"] { --accent: #ff9a3c; --accent-strong: #ffb866; --accent-ink: #2a1205; --sel: #fff1df; --sel-ink: #3a1d0c; }
+html[data-accent="preitaart"] { --accent: #eaa93a; --accent-strong: #b97a1c; --accent-ink: #2e1d06; --sel: #d3ebaf; --sel-ink: #1f3d10; }
+html[data-accent="vertrekhal"] { --accent: #ffd23f; --accent-strong: #ffe07a; --accent-ink: #141414; --sel: #ffd23f; --sel-ink: #141414; }
+html[data-accent="onzichtbare-inkt"] { --accent: #b37bff; --accent-strong: #cfa6ff; --accent-ink: #160a28; --sel: #b37bff; --sel-ink: #160a28; }
+html[data-accent="wandeltijd"] { --accent: #8cc152; --accent-strong: #5a9628; --accent-ink: #182a0a; --sel: #e8bc84; --sel-ink: #2a1a08; }
+html[data-accent="middernacht"] { --accent: #e8c46a; --accent-strong: #f3d68e; --accent-ink: #1f1402; --sel: #e8c46a; --sel-ink: #1f1402; }
 html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
 html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
 html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
@@ -1840,6 +2102,19 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .stat-table th:first-child, .stat-table td:first-child { text-align: left; }
 .stat-table th { font-size: 0.78rem; color: var(--ink-soft); }
 
+/* Gevonden geheimen (onder Statistieken → Overzicht). */
+.secrets { margin-top: 16px; }
+.secrets-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 48px; padding: 0 16px; border: 1px dashed var(--line-strong); border-radius: 16px; background: var(--surface-2); color: var(--ink); font-weight: 700; text-align: left; }
+.secrets-line::after { content: "›"; font-size: 1.3rem; color: var(--ink-soft); transition: transform 0.2s ease; }
+.secrets-line[aria-expanded="true"]::after { transform: rotate(90deg); }
+.secret-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.secret-list[hidden] { display: none; }
+.secret-list li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: var(--surface-2); }
+.secret-list li.locked { background: transparent; border: 1px dashed var(--line); }
+.secret-list b { display: block; }
+.secret-list small { display: block; color: var(--ink-soft); font-size: 0.85rem; }
+.secret-emoji { font-size: 1.5rem; width: 32px; text-align: center; flex: none; }
+
 /* ---------- Kalender (in Statistieken) ---------- */
 
 .stats-tabs { margin-bottom: 16px; }
@@ -2126,8 +2401,8 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 [data-theme="robijn"] .card.daily { border-color: rgb(212 166 74 / 55%); background: radial-gradient(120% 90% at 90% 10%, rgb(255 93 134 / 22%), transparent 60%), linear-gradient(150deg, #4a0f22, #2a0814); }
 /* De geslepen robijn rechtsboven, alleen op het startscherm (tijdens het spelen staan daar de knoppen). */
 [data-theme="robijn"] body:has(#home:not([hidden])) { --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='-60 -60 120 120'%3E%3Cg opacity='0.95'%3E%3Cpolygon points='-34,-18 -18,-34 18,-34 34,-18 34,18 18,34 -18,34 -34,18' fill='%239e0f33'/%3E%3Cpolygon points='-34,-18 -18,-34 0,-14 -14,0' fill='%23ff5d86'/%3E%3Cpolygon points='-18,-34 18,-34 0,-14' fill='%23ff8aa7'/%3E%3Cpolygon points='18,-34 34,-18 14,0 0,-14' fill='%23e0264f'/%3E%3Cpolygon points='34,-18 34,18 14,0' fill='%23b8133a'/%3E%3Cpolygon points='34,18 18,34 0,14 14,0' fill='%237a0a26'/%3E%3Cpolygon points='18,34 -18,34 0,14' fill='%238e0c2e'/%3E%3Cpolygon points='-18,34 -34,18 -14,0 0,14' fill='%23c41a44'/%3E%3Cpolygon points='-34,18 -34,-18 -14,0' fill='%23e8395f'/%3E%3Cpolygon points='0,-14 14,0 0,14 -14,0' fill='%23ff2d5f'/%3E%3Cpolygon points='0,-14 14,0 0,0' fill='%23ff7d9d'/%3E%3Cpolygon points='-34,-18 -18,-34 18,-34 34,-18 34,18 18,34 -18,34 -34,18' fill='none' stroke='%23ffd1dc' stroke-opacity='0.5' stroke-width='1.2'/%3E%3Cpath d='M-22-26L-12-30' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' opacity='0.8'/%3E%3C/g%3E%3C/svg%3E") right 12px top 8px / 72px 72px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.6 0 0 0 0 0.1 0 0 0 0 0.25 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23v)'/%3E%3C/svg%3E") 0 0 / 200px 200px repeat, radial-gradient(70% 45% at 50% 0%, rgb(200 20 63 / 28%), transparent 70%) no-repeat; }
-/* Fout: in Robijn en Noorderlicht ook een randje, zodat het niet op een markering lijkt. */
-:is([data-theme="robijn"], [data-theme="noorderlicht"]) .cell.wrong { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wrong) 60%, transparent); }
+/* Fout: in Robijn, Noorderlicht en Sporthal ook een randje, zodat het niet op een markering lijkt. */
+:is([data-theme="robijn"], [data-theme="noorderlicht"], [data-theme="sporthal"]) .cell.wrong { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wrong) 60%, transparent); }
 
 /* RubyxCube: zwarte kubusrand en een korte draai bij het oplossen (zie js/fx/kubus.js). */
 [data-theme="rubyxcube"] .board { border-width: 3px; border-radius: 12px; }
@@ -2189,6 +2464,124 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 }
 [data-theme="gitaar"] .cell.wrong.selected::before { background: color-mix(in srgb, var(--wrong-bg) 60%, var(--sel)); }
 [data-theme="gitaar"] body { --plectrum: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C77 3 97 13 97 33C97 58 68 88 50 97C32 88 3 58 3 33C3 13 23 3 50 3Z'/%3E%3C/svg%3E"); }
+
+/* Kampvuur: het gekozen vakje is een marshmallow aan een stokje boven het vuur. Hij
+   begint wit en kleurt langzaam goudbruin (een laagje dat alleen in opacity aanzwelt;
+   het cijfer blijft er donker en goed leesbaar op). */
+[data-theme="kampvuur"] .cell.selected { background: var(--peer); isolation: isolate; }
+[data-theme="kampvuur"] .cell.selected::before, [data-theme="kampvuur"] .cell.selected::after {
+  content: ""; position: absolute; inset: 7%; z-index: -1; border-radius: 34% / 30%;
+  background: radial-gradient(70% 60% at 40% 30%, #ffffff, var(--sel) 60%, #f3dcc0);
+}
+[data-theme="kampvuur"] .cell.selected::after { background: radial-gradient(80% 70% at 45% 35%, #f6c47c, #e2a050 60%, #c27a34); box-shadow: inset 0 -3px 4px rgb(120 60 20 / 45%); opacity: 0; animation: roosteren 5s ease-in forwards; }
+@keyframes roosteren { to { opacity: 0.9; } }
+[data-theme="kampvuur"] .cell.wrong { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wrong) 60%, transparent); }
+/* Een fout cijfer op de marshmallow: dan geen marshmallow maar gewoon de foutkleur. */
+[data-theme="kampvuur"] .cell.wrong.selected::before { background: var(--wrong-bg); }
+[data-theme="kampvuur"] .cell.wrong.selected::after { display: none; }
+
+/* Preitaart: een rand van bladerdeeg met ruitjespatroon (gouden reepjes kruiselings
+   over elkaar) om het bord, en het gekozen vakje als een preiringetje: groene ringen
+   om een licht hartje. */
+[data-theme="preitaart"] .board {
+  border: 11px solid transparent;
+  border-radius: 24px;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    repeating-linear-gradient(45deg, transparent 0 7px, rgb(150 90 20 / 35%) 7px 8px),
+    repeating-linear-gradient(-45deg, #f2c66e 0 7px, #b97a1c 7px 8px, #f7d68e 8px 15px) border-box;
+  box-shadow: inset 0 0 0 2px rgb(150 90 20 / 30%), var(--shadow);
+}
+[data-theme="preitaart"] .cell.selected { background: var(--surface); isolation: isolate; }
+[data-theme="preitaart"] .cell.selected::before {
+  content: ""; position: absolute; inset: 6%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, var(--sel) 0 46%, #f4fbe8 47% 54%, #7fb24e 55% 64%, #cfe8a8 65% 70%, #4f8a2c 71%);
+}
+[data-theme="preitaart"] .cell.wrong.selected::before { background: var(--wrong-bg); }
+/* De taartpunt bij het oplossen (zie js/fx/preitaart.js): een bijgesneden kopie van het bord. */
+.taartpunt { position: absolute; z-index: 3; pointer-events: none; }
+.taartpunt > div { position: absolute; inset: 0; clip-path: polygon(50% 50%, 100% 24%, 100% 76%); }
+.taart-gat { background: radial-gradient(circle at 80% 50%, #d9a441, #a8701c); opacity: 0; animation: taart-gat 2.2s ease both; }
+.taart-stuk { animation: taart-stuk 2.2s cubic-bezier(0.3, 0.8, 0.3, 1) both; filter: drop-shadow(4px 6px 6px rgb(80 50 10 / 35%)); }
+.taart-stuk .board { box-shadow: none; }
+@keyframes taart-stuk { 0% { transform: none; } 30%, 62% { transform: translate(26px, -6px) rotate(3deg); } 100% { transform: none; } }
+@keyframes taart-gat { 0% { opacity: 0; } 20%, 70% { opacity: 1; } 100% { opacity: 0; } }
+/* De 🥧 in de begroeting is een knopje (het geheime thema Preitaart); hij wiebelt bij een tik. */
+.pie-tap { display: inline-block; padding: 0; border: 0; background: none; font: inherit; line-height: inherit; touch-action: manipulation; }
+.pie-tap.wiebel { animation: wiebel 0.45s ease; }
+@keyframes wiebel { 25% { transform: rotate(-14deg) scale(1.1); } 60% { transform: rotate(10deg) scale(1.1); } }
+
+/* Vertrekhal: elk vakje een klapbordje met een naad in het midden, en het
+   statusbordje boven het bord (zie js/fx/vertrekhal.js). Een cijfer dat
+   doorratelt klapt even om (.klap, alleen transform). */
+[data-theme="vertrekhal"] .board { border: 3px solid #2b323d; border-radius: 10px; }
+[data-theme="vertrekhal"] .cell::before { content: ""; position: absolute; left: 6%; right: 6%; top: calc(50% - 0.5px); height: 1px; background: rgb(0 0 0 / 55%); pointer-events: none; }
+[data-theme="vertrekhal"] .cell .v { font-family: "Nunito", sans-serif; font-weight: 800; }
+[data-theme="vertrekhal"] .cell .v.klap { animation: klap 0.11s ease-in-out; }
+@keyframes klap { 50% { transform: scaleY(0.15); } }
+.flapstatus { position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); display: flex; gap: 2px; white-space: nowrap; }
+.flapstatus span { display: inline-grid; place-items: center; min-width: 15px; height: 24px; padding: 0 2px; border-radius: 3px; background: #1c222b; box-shadow: inset 0 -12px 0 rgb(0 0 0 / 18%); color: #ffd23f; font-weight: 800; font-size: 0.85rem; }
+.flapstatus span.leeg { background: transparent; box-shadow: none; }
+.flapstatus span.klap { animation: klap 0.18s ease-in-out both; }
+
+/* Gran Canaria: de palmboom rechtsboven op het startscherm (js/fx/gran-canaria.js).
+   Tik vijf keer en er valt een kokosnoot naast de stam. */
+.palm { float: right; position: relative; width: 84px; height: 132px; margin: -6px -6px 4px 8px; }
+.palm-tree { position: absolute; inset: 0 0 0 4px; padding: 0; border: 0; background: none; touch-action: manipulation; }
+.palm-tree svg { display: block; width: 100%; height: 100%; }
+.palm-tree .kroon { transform-box: view-box; transform-origin: 45px 36px; }
+.palm-tree.wiegen .kroon { animation: wiegen 0.6s ease-in-out; }
+@keyframes wiegen { 30% { transform: rotate(-7deg); } 70% { transform: rotate(5deg); } }
+.kokosnoot { position: absolute; left: -6px; bottom: -6px; width: 44px; height: 44px; padding: 8px; border: 0; background: none; touch-action: manipulation; animation: kokos-valt 0.7s cubic-bezier(0.5, 0, 0.8, 0.6) both; transition: opacity 0.3s ease, transform 0.3s ease; }
+.kokosnoot svg { display: block; width: 100%; height: 100%; }
+.kokosnoot.weg { opacity: 0; transform: scale(1.4); }
+@keyframes kokos-valt { 0% { transform: translate(36px, -96px); } 80% { transform: translate(0, 0); } 90% { transform: translate(0, -6px); } 100% { transform: none; } }
+
+/* Onzichtbare inkt: het uv-lampje. Rond het gekozen vakje (rij, kolom en blok)
+   gloeien de cijfers paars op; de gewone kleuren halen al 4.5:1, dit is extra.
+   Bij het oplossen gloeit het hele bord (.uv-vol) en verschijnt het briefje. */
+[data-theme="onzichtbare-inkt"] .board { background: radial-gradient(120% 90% at 30% 20%, #1e1a2a, var(--surface)); }
+[data-theme="onzichtbare-inkt"] .cell .v { transition: color 0.4s ease, text-shadow 0.4s ease; }
+[data-theme="onzichtbare-inkt"] :is(.cell.peer, .cell.selected:not(.wrong)) .v,
+[data-theme="onzichtbare-inkt"] .board.uv-vol .cell .v { color: #f1e6ff; text-shadow: 0 0 6px #b46cff, 0 0 14px rgb(160 90 255 / 70%); }
+[data-theme="onzichtbare-inkt"] .cell.selected:not(.wrong) .v { color: var(--sel-ink); text-shadow: 0 0 8px #ffffff; }
+[data-theme="onzichtbare-inkt"] .board.uv-vol { box-shadow: 0 0 0 2px #b37bff, 0 0 60px 10px rgb(150 80 255 / 40%); transition: box-shadow 0.8s ease; }
+[data-theme="onzichtbare-inkt"] .cell.wrong { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wrong) 60%, transparent); }
+.uv-briefje { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none; background: radial-gradient(70% 22% at 50% 50%, rgb(12 8 22 / 92%), rgb(12 8 22 / 70%) 60%, transparent); animation: uv-briefje 5s ease both; }
+.uv-briefje .hand-art { width: min(86%, 380px); aspect-ratio: 1029 / 131; color: #e8d4ff; -webkit-mask-image: url("../hand/ik-vind-je-heel-leuk.svg"); mask-image: url("../hand/ik-vind-je-heel-leuk.svg"); filter: drop-shadow(0 0 6px #b46cff) drop-shadow(0 0 14px #8a3dff); transform: rotate(-4deg); }
+@keyframes uv-briefje { 0% { opacity: 0; } 25%, 80% { opacity: 1; } 100% { opacity: 0; } }
+/* Briefje: het getekende hartje op het opgelost-scherm kleurt paars als ze het ingedrukt
+   houdt (--uv gaat van 0 naar 1 in 3 seconden; het geheim van Onzichtbare inkt). */
+.solved-heart { --uv: 0; touch-action: none; color: color-mix(in srgb, #9b4dff calc(var(--uv) * 100%), var(--heart)); filter: drop-shadow(0 0 calc(var(--uv) * 12px) rgb(155 77 255 / 80%)); }
+
+/* Wandeltijd: het gekozen vakje is een pootafdruk (een groot kussentje en vier
+   teentjes, in --sel), het cijfer staat er donker en goed leesbaar op. */
+[data-theme="wandeltijd"] .cell.selected { background: var(--surface); isolation: isolate; }
+[data-theme="wandeltijd"] .cell.selected::before {
+  content: ""; position: absolute; inset: 4%; z-index: -1; background: var(--sel);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cellipse cx='20' cy='26' rx='12' ry='10.5'/%3E%3Cellipse cx='6.5' cy='15' rx='4.2' ry='5.4'/%3E%3Cellipse cx='14.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='25.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='33.5' cy='15' rx='4.2' ry='5.4'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cellipse cx='20' cy='26' rx='12' ry='10.5'/%3E%3Cellipse cx='6.5' cy='15' rx='4.2' ry='5.4'/%3E%3Cellipse cx='14.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='25.5' cy='7.5' rx='4.2' ry='5.6'/%3E%3Cellipse cx='33.5' cy='15' rx='4.2' ry='5.4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="wandeltijd"] .cell.selected .v { transform: translateY(12%); }
+[data-theme="wandeltijd"] .cell.wrong.selected::before { background: var(--wrong-bg); }
+
+/* Pootjes vangen: de 🐾 uit de confetti als knopjes in het opgelost-scherm (zie
+   pawButton in ui.js). Ze liggen onder de knoppen, dus die blijven altijd te raken. */
+#solved-dialog .row { position: relative; z-index: 2; }
+.paw-layer { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; border-radius: inherit; }
+.paw-catch {
+  position: absolute; bottom: -50px; display: grid; place-items: center; width: 44px; height: 44px; margin-left: -22px;
+  padding: 0; border: 0; background: none; font-size: var(--s, 28px); line-height: 1; pointer-events: auto; touch-action: manipulation;
+  animation: paw-up var(--d, 5s) linear var(--delay, 0s) both;
+}
+@keyframes paw-up {
+  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: translate(var(--x, 0), -600px) rotate(var(--r, 20deg)); opacity: 0.6; }
+}
+/* Gevangen: vanaf waar hij was (--at, gezet in ui.js) springt hij even op en verdwijnt. */
+.paw-catch.gevangen { pointer-events: none; animation: pootje-hup 0.7s ease-out both; }
+@keyframes pootje-hup { 0% { opacity: 1; transform: var(--at); } 40% { opacity: 1; transform: var(--at) translateY(-40px) scale(1.6); } 100% { opacity: 0; transform: var(--at) translateY(-28px) scale(1.2); } }
 
 /* Beachvolleybal: de golf rolt heel langzaam mee. Op het speelscherm wat zachter. */
 @keyframes waves { from { background-position: 0 100%; } to { background-position: 480px 100%; } }
@@ -2295,19 +2688,59 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 [data-theme="gameboy"] :is(.cell.user .v.pixel.d9, .num .nd.d9) { -webkit-mask-image: var(--px9); mask-image: var(--px9); }
 [data-theme="gameboy"] .cell.given .v.pixel.d9 { -webkit-mask-image: var(--pxb9); mask-image: var(--pxb9); }
 
+/* Sporthal: rode 7-segment-cijfers zoals op een scorebord, op het bord en de
+   cijfertoetsen (zelf getekend; de segmenten die uit staan gloeien heel zacht mee).
+   Net als bij Game Boy is het SVG-bestand een masker, dus de kleur komt van het
+   vakje. De blokranden zijn veldlijnen in drie kleuren en de timer zit in een scorebordje. */
+[data-theme="sporthal"] .v.led, [data-theme="sporthal"] .num .nd {
+  display: block;
+  font-size: 0;
+  background-color: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
+}
+[data-theme="sporthal"] .v.led { width: calc(var(--size) / 9 * 0.44); height: calc(var(--size) / 9 * 0.62); }
+[data-theme="sporthal"] .num .nd { width: 15px; height: 22px; }
+[data-theme="sporthal"] body {
+  --led1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5ZM1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5Z' fill-opacity='0.08'/%3E%3Cpath d='M11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5Z' fill-opacity='0.08'/%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5ZM1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5Z' fill-opacity='0.08'/%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5ZM1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9Z' fill-opacity='0.08'/%3E%3Cpath d='M1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5ZM11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led5: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9Z' fill-opacity='0.08'/%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led6: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5Z' fill-opacity='0.08'/%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5ZM1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led7: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5ZM1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5Z' fill-opacity='0.08'/%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led8: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5ZM1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5Z'/%3E%3C/g%3E%3C/svg%3E");
+  --led9: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 20'%3E%3Cg transform='translate(1.6 0) skewX(-5)'%3E%3Cpath d='M1.6 10.6L2.9 11.9V16.5L1.6 17.8L0.3 16.5V11.9Z' fill-opacity='0.08'/%3E%3Cpath d='M2.2 1.6L3.5 0.3H9.5L10.8 1.6L9.5 2.9H3.5ZM11.4 2.2L12.7 3.5V8.1L11.4 9.4L10.1 8.1V3.5ZM11.4 10.6L12.7 11.9V16.5L11.4 17.8L10.1 16.5V11.9ZM2.2 18.4L3.5 17.1H9.5L10.8 18.4L9.5 19.7H3.5ZM1.6 2.2L2.9 3.5V8.1L1.6 9.4L0.3 8.1V3.5ZM2.2 10L3.5 8.7H9.5L10.8 10L9.5 11.3H3.5Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+[data-theme="sporthal"] :is(.v.led.d1, .num .nd.d1) { -webkit-mask-image: var(--led1); mask-image: var(--led1); }
+[data-theme="sporthal"] :is(.v.led.d2, .num .nd.d2) { -webkit-mask-image: var(--led2); mask-image: var(--led2); }
+[data-theme="sporthal"] :is(.v.led.d3, .num .nd.d3) { -webkit-mask-image: var(--led3); mask-image: var(--led3); }
+[data-theme="sporthal"] :is(.v.led.d4, .num .nd.d4) { -webkit-mask-image: var(--led4); mask-image: var(--led4); }
+[data-theme="sporthal"] :is(.v.led.d5, .num .nd.d5) { -webkit-mask-image: var(--led5); mask-image: var(--led5); }
+[data-theme="sporthal"] :is(.v.led.d6, .num .nd.d6) { -webkit-mask-image: var(--led6); mask-image: var(--led6); }
+[data-theme="sporthal"] :is(.v.led.d7, .num .nd.d7) { -webkit-mask-image: var(--led7); mask-image: var(--led7); }
+[data-theme="sporthal"] :is(.v.led.d8, .num .nd.d8) { -webkit-mask-image: var(--led8); mask-image: var(--led8); }
+[data-theme="sporthal"] :is(.v.led.d9, .num .nd.d9) { -webkit-mask-image: var(--led9); mask-image: var(--led9); }
+[data-theme="sporthal"] .board { border: 3px solid #2fa35a; border-radius: 8px; }
+[data-theme="sporthal"] .cell:nth-child(9n + 3), [data-theme="sporthal"] .cell:nth-child(9n + 6) { border-right-color: #e0662a; }
+[data-theme="sporthal"] .cell:nth-child(n + 19):nth-child(-n + 27),
+[data-theme="sporthal"] .cell:nth-child(n + 46):nth-child(-n + 54) { border-bottom-color: #2f6fd1; }
+[data-theme="sporthal"] .timer { display: inline-flex; align-items: center; gap: 8px; padding: 1px 10px; border-radius: 6px; background: #1f1a17; color: #ff6a55; font-weight: 800; letter-spacing: 0.08em; box-shadow: inset 0 0 0 2px #4a4038; }
+[data-theme="sporthal"] .timer::before { content: "THUIS 33"; font-size: 0.68rem; color: #ffcf33; letter-spacing: 0.12em; }
+
 /* Kleine eigen details voor de thema's zonder bewegende laag (in een eigen regel,
    zodat de themablokken zelf alleen kleuren bevatten). Zon en maan alleen op het
    startscherm: tijdens het spelen staan daar de knoppen. */
 html[data-theme="zonnig"] body:has(#home:not([hidden])) { --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cg transform='translate(140 60)'%3E%3Ccircle r='38' fill='%23ffd54a' fill-opacity='0.32'/%3E%3Ccircle r='26' fill='%23ffd54a' fill-opacity='0.3'/%3E%3Cpath d='M48.3 12.9L67.6 18.0M35.4 35.3L49.6 49.4M13.0 48.3L18.2 67.6M-12.9 48.3L-18.0 67.6M-35.3 35.4L-49.4 49.6M-48.3 13.0L-67.6 18.2M-48.3 -12.9L-67.6 -18.0M-35.4 -35.3L-49.6 -49.4M-13.0 -48.3L-18.2 -67.6M12.9 -48.3L18.0 -67.6M35.3 -35.4L49.4 -49.6M48.3 -13.0L67.6 -18.2' stroke='%23f5c02e' stroke-opacity='0.38' stroke-width='5' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E") right -50px top -60px / 200px 200px no-repeat; }
 html[data-theme="nacht"] body:has(#home:not([hidden])) { --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='120'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='150' height='120' fill='white'/%3E%3Ccircle cx='112' cy='38' r='22' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Ccircle cx='100' cy='46' r='24' fill='%23f5c451' fill-opacity='0.55' mask='url(%23m)'/%3E%3Cg fill='%23ffd772' fill-opacity='0.6'%3E%3Cpath transform='translate(40 30) scale(1)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3Cpath transform='translate(62 82) scale(0.7)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3Cpath transform='translate(132 92) scale(0.8)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3Cpath transform='translate(20 70) scale(0.6)' d='M0-4L.9-.9 4 0 .9.9 0 4-.9.9-4 0-.9-.9Z'/%3E%3C/g%3E%3C/svg%3E") right 0 top 0 / 150px 120px no-repeat; }
 html[data-theme="lelie"] body { --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='240' viewBox='0 0 220 240'%3E%3Cg opacity='0.55'%3E%3Cpath d='M60 240C66 200 78 160 96 128' stroke='%238fae7e' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M70 236C40 214 22 186 18 156C44 168 64 196 74 228Z' fill='%23a9c497'/%3E%3Cpath d='M80 238C104 222 130 214 160 216C140 232 112 242 84 242Z' fill='%239bb98a'/%3E%3Cg transform='translate(98 124)'%3E%3Cpath transform='rotate(-62) scale(0.95)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(62) scale(0.95)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(-28) scale(1)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(28) scale(1)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cpath transform='rotate(0) scale(1.05)' d='M0 0C-9-10-8-34 0-46C8-34 9-10 0 0Z' fill='%23ffffff' stroke='%23d98aa3' stroke-opacity='0.7' stroke-width='1.4'/%3E%3Cg stroke='%23c98a3e' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M0 0L-6-22M0 0L0-26M0 0L6-22'/%3E%3C/g%3E%3Cg fill='%23c0703a'%3E%3Ccircle cx='-6' cy='-23' r='1.8'/%3E%3Ccircle cx='0' cy='-27' r='1.8'/%3E%3Ccircle cx='6' cy='-23' r='1.8'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left -26px bottom -18px / 180px auto no-repeat; --decor-layer: block; }
-html[data-theme="gran-canaria"] body { --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cg transform='translate(392 8)' fill='%232f7f6f' fill-opacity='0.32'%3E%3Cpath d='M-2 100C2 70 8 44 6 18L12 18C14 46 10 72 6 100Z' fill='%238a6a44' fill-opacity='0.35'/%3E%3Cpath transform='translate(9 16) rotate(-170)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-140)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-100)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-40)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(-10)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3Cpath transform='translate(9 16) rotate(20)' d='M0 0C14-12 34-12 46-2C32-6 16-4 0 2Z'/%3E%3C/g%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") right 0 bottom 0 / 480px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") 0 100% / 480px 120px repeat-x; --decor-layer: block; }
+html[data-theme="gran-canaria"] body { --decor-move: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") right 0 bottom 0 / 480px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cpath d='M0 84C80 64 150 66 230 82S380 104 480 80V120H0Z' fill='%23f2c58f' fill-opacity='0.38'/%3E%3Cpath d='M0 100C90 88 170 92 260 102S400 112 480 98V120H0Z' fill='%23e9a96b' fill-opacity='0.3'/%3E%3C/svg%3E") 0 100% / 480px 120px repeat-x; --decor-layer: block; }
 
 /* Emoji in de stijl van het thema: zwart-wit in Krant en Krijtbord, groen in Game Boy
    (de .emo-spans komen uit withEmoji in ui.js). */
-[data-theme="krant"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji) { filter: grayscale(1); }
-[data-theme="krijtbord"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji) { filter: grayscale(1) brightness(1.15) contrast(0.9); }
-[data-theme="gameboy"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji) { filter: grayscale(1) sepia(1) hue-rotate(50deg) saturate(1.8) brightness(0.8); }
+[data-theme="krant"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji, .secret-emoji) { filter: grayscale(1); }
+[data-theme="krijtbord"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji, .secret-emoji) { filter: grayscale(1) brightness(1.15) contrast(0.9); }
+[data-theme="gameboy"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji, .secret-emoji) { filter: grayscale(1) sepia(1) hue-rotate(50deg) saturate(1.8) brightness(0.8); }
 
 /* Zonnebloem: de bloem op het startscherm (zie js/fx/zonnebloem.js). */
 .home-head { position: relative; }
@@ -2315,6 +2748,24 @@ html[data-theme="gran-canaria"] body { --decor-move: url("data:image/svg+xml,%3C
 .sunflower svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .sunflower .plant { transform-box: view-box; transform-origin: 30px 86px; animation: sway 6s ease-in-out infinite alternate; }
 @keyframes sway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+
+/* Volleybal: de bal om hoog te houden, in een eigen strookje rechts in het kopje van het
+   startscherm (zie js/fx/volleybal.js). De tekst loopt ernaast, de bal komt nooit over
+   een knop. --air is hoe lang hij in de lucht is (KEEP_UP in themes.js). */
+.keepup { float: right; position: relative; width: 64px; height: 150px; margin: 0 -4px 4px 8px; animation: fade-in 0.6s ease both; transition: opacity 0.5s ease; }
+.keepup.weg { opacity: 0; }
+.keepup-ball { position: absolute; left: 4px; bottom: 0; width: 56px; height: 56px; padding: 0; border: 0; border-radius: 50%; background: none; touch-action: manipulation; }
+.keepup-ball svg { display: block; width: 100%; height: 100%; }
+.keepup-ball.up { animation: hooghouden var(--air) linear; }
+.keepup-ball.plof { animation: plof 0.4s ease-out; }
+@keyframes hooghouden {
+  0% { transform: translateY(0) rotate(0); animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+  50% { transform: translateY(-74px) rotate(160deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+  100% { transform: translateY(0) rotate(320deg); }
+}
+@keyframes plof { 40% { transform: scale(1.08, 0.86) translateY(4px); } }
+.keepup-count { position: absolute; top: 0; left: 0; right: 0; text-align: center; font-weight: 800; font-size: 0.85rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.keepup-count[hidden] { display: none; }
 
 /* Hoog contrast: dikkere lijnen en randen, en de selectie ook als dikke zwarte rand
    (niet alleen een kleur). */
@@ -2453,6 +2904,32 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
   100% { transform: translateX(110vw) translateY(0); }
 }
 
+/* Kampvuur: sterren die zacht twinkelen, een flakkerende gloed onderaan en vonkjes
+   die opstijgen en uitdoven. Bij het oplossen laait het even op (.oplaaien). */
+.fx-kampvuur .ster { width: var(--s); height: var(--s); border-radius: 50%; background: #fff6dc; opacity: 0.5; animation: twinkle calc(var(--d) * var(--fx-tempo)) ease-in-out infinite alternate; }
+.fx-kampvuur .gloed { left: -20%; right: -20%; bottom: -18vh; height: 52vh; border-radius: 50%; background: radial-gradient(closest-side, rgb(255 150 50 / 55%), rgb(255 90 30 / 22%) 55%, transparent); opacity: 0.75; transform-origin: 50% 100%; animation: flakker calc(2.3s * var(--fx-tempo)) ease-in-out infinite alternate; transition: opacity 0.8s ease; }
+.fx-kampvuur .gloed.g2 { left: 10%; right: 10%; height: 34vh; background: radial-gradient(closest-side, rgb(255 210 120 / 45%), transparent); animation-duration: calc(1.7s * var(--fx-tempo)); animation-direction: alternate-reverse; }
+@keyframes flakker { 0% { opacity: 0.6; transform: scale(1, 0.96); } 40% { opacity: 0.85; transform: scale(1.02, 1.03); } 100% { opacity: 0.7; transform: scale(0.99, 1); } }
+.fx-kampvuur .vonk { bottom: 6vh; width: var(--s); height: var(--s); border-radius: 50%; background: #ffcf73; box-shadow: 0 0 6px 1px rgb(255 160 60 / 80%); opacity: 0; animation: vonk calc(var(--d) * var(--fx-tempo)) ease-out infinite; }
+@keyframes vonk { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), calc(var(--h) * -1)); } }
+.fx-kampvuur.oplaaien .gloed { opacity: 1; animation-duration: calc(0.5s * var(--fx-tempo)); }
+.fx-kampvuur.oplaaien .vonk { animation-duration: calc(1.6s * var(--fx-tempo)); }
+
+/* Wandeltijd: de hond die bij het oplossen voorbij rent. */
+.fx-hond i { left: 0; top: 10%; width: 110px; animation: ren calc(3.6s * var(--fx-tempo)) linear both; }
+.fx-hond .poten { animation: draf calc(0.24s * var(--fx-tempo)) ease-in-out infinite alternate; transform-box: view-box; transform-origin: 50px 50px; }
+.fx-hond .p2 { animation-direction: alternate-reverse; }
+@keyframes ren { from { transform: translateX(-130px); } to { transform: translateX(calc(100vw + 20px)); } }
+@keyframes draf { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+
+/* Middernacht: de grote klok achter het bord. De wijzers draaien (transform, gezet in
+   js/fx/middernacht.js) met een zachte overgang; om middernacht gloeit hij even op. */
+.fx-middernacht { background: radial-gradient(90% 60% at 50% 40%, rgb(120 80 200 / 18%), transparent 70%); }
+.fx-middernacht .klok { left: 50%; top: 45%; width: min(156vw, 860px); aspect-ratio: 1; margin-left: calc(min(156vw, 860px) / -2); transform: translateY(-50%); opacity: 0.33; transition: opacity 1.5s ease; }
+.fx-middernacht .klok svg { display: block; width: 100%; height: 100%; }
+.fx-middernacht .wijzer { transform-box: view-box; transform-origin: 100px 100px; transition: transform 0.9s ease; }
+.fx-middernacht.slaat .klok { opacity: 0.6; }
+
 /* De dieren: ze kijken om de hoek (aan de rand, op een plek zonder knoppen). */
 .fx-animal { position: fixed; z-index: 6; padding: 0; border: 0; background: none; touch-action: manipulation; transition: transform 0.8s cubic-bezier(0.3, 0.9, 0.4, 1); }
 .fx-animal.from-left { left: 0; transform: translateX(-100%); }
@@ -2460,6 +2937,10 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
 .fx-animal.from-right { right: 0; transform: translateX(100%) scaleX(-1); }
 .fx-animal.from-right.in { transform: translateX(calc(100% - var(--w))) scaleX(-1); }
 .fx-zeehondje { width: 88px; }
+.fx-staartje { width: 46px; }
+.fx-staartje .kwispel { transform-box: view-box; transform-origin: 16px 44px; }
+.fx-staartje.in .kwispel { animation: kwispel calc(0.3s * var(--fx-tempo)) ease-in-out infinite alternate; }
+@keyframes kwispel { from { transform: rotate(-14deg); } to { transform: rotate(16deg); } }
 .fx-eekhoorntje { width: 70px; }
 .fx-zeehondje .flipper { transform-box: view-box; transform-origin: 46px 50px; }
 .fx-zeehondje.zwaai .flipper { animation: zwaai 0.4s ease-in-out 4 alternate; }
@@ -2476,6 +2957,8 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
 
 @media (prefers-reduced-motion: reduce) {
   body::before { animation: none; }
+  .taartpunt { display: none; }
+  .palm-tree .kroon, .kokosnoot { animation: none !important; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

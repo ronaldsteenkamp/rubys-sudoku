@@ -33,12 +33,14 @@ export const THEMES = [
     swatch: { bg: '#fbf6f7', surface: '#ffffff', accent: '#eab3c4', digit: '#96305a' },
   },
   {
-    id: 'gran-canaria', name: 'Gran Canaria', scheme: 'light', group: 'jij',
+    // De palmboom op het startscherm is tikbaar (js/fx/gran-canaria.js): het geheim van Vertrekhal.
+    id: 'gran-canaria', name: 'Gran Canaria', scheme: 'light', group: 'jij', fx: 'gran-canaria',
     celebrate: ['🌴', '🐚', '💛', '🌺'],
     swatch: { bg: '#fbf3e6', surface: '#fffdf8', accent: '#f29b74', digit: '#17606f' },
   },
   {
-    id: 'volleybal', name: 'Volleybal', scheme: 'light', group: 'jij',
+    // Af en toe ligt er een bal op het startscherm om hoog te houden (js/fx/volleybal.js).
+    id: 'volleybal', name: 'Volleybal', scheme: 'light', group: 'jij', fx: 'volleybal',
     celebrate: ['🏐', '🙌', '⭐', '💛'],
     swatch: { bg: '#fffaea', surface: '#ffffff', accent: '#ffcc00', digit: '#1d4fa3' },
   },
@@ -175,6 +177,55 @@ export const THEMES = [
     celebrate: ['👾', '🎮', '⭐', '🍄'],
     swatch: { bg: '#88c070', surface: '#e0f8d0', accent: '#88c070', digit: '#081820' },
   },
+  {
+    // Vrij door in Volleybal de bal 33 keer hoog te houden op het startscherm (zie keepUp).
+    id: 'sporthal', name: 'Sporthal', scheme: 'light', group: 'geheim', emoji: '🏐', icon: '🏐', fx: 'sporthal',
+    unlock: { secret: true },
+    celebrate: ['🏐', '📣', '🏆', '💛'],
+    swatch: { bg: '#f0dcb4', surface: '#fffaf0', accent: '#ffcf33', digit: '#b01f18' },
+  },
+  {
+    // Vrij door in Gitaar zes oplopende tonen te spelen op het cijferpad, zonder gekozen vakje (zie stringRun).
+    id: 'kampvuur', name: 'Kampvuur', scheme: 'dark', group: 'geheim', emoji: '🔥', icon: '🔥', fx: 'kampvuur',
+    unlock: { secret: true },
+    celebrate: ['🔥', '✨', '🌟', '🎸'],
+    swatch: { bg: '#120d16', surface: '#211a20', accent: '#ff9a3c', digit: '#ffc37e' },
+  },
+  {
+    // Vrij door drie keer op de 🥧 te tikken in de begroeting "Hé …, preitaart gegeten? 🥧" (zie tapCounter).
+    id: 'preitaart', name: 'Preitaart', scheme: 'light', group: 'geheim', emoji: '🥧', icon: '🥧', fx: 'preitaart',
+    unlock: { secret: true },
+    celebrate: ['🥧', '🧀', '🥚', '💛'],
+    swatch: { bg: '#f3e8d2', surface: '#fff3c9', accent: '#eaa93a', digit: '#285f1a' },
+  },
+  {
+    // Vrij door in Gran Canaria vijf keer op de palmboom te tikken en dan op de kokosnoot die valt.
+    id: 'vertrekhal', name: 'Vertrekhal', scheme: 'dark', group: 'geheim', emoji: '✈️', icon: '✈️', fx: 'vertrekhal',
+    unlock: { secret: true },
+    celebrate: ['✈️', '🌴', '🧳', '💛'],
+    swatch: { bg: '#0c1016', surface: '#181d25', accent: '#ffd23f', digit: '#ffd23f' },
+  },
+  {
+    // Vrij door in Briefje op het opgelost-scherm het getekende hartje 3 seconden ingedrukt te houden (zie holdProgress).
+    id: 'onzichtbare-inkt', name: 'Onzichtbare inkt', scheme: 'dark', group: 'geheim', emoji: '🔦', icon: '🔦', fx: 'onzichtbare-inkt',
+    unlock: { secret: true },
+    celebrate: ['🔦', '💜', '✨', '✉️'],
+    swatch: { bg: '#110f18', surface: '#191622', accent: '#b37bff', digit: '#c6b2f2' },
+  },
+  {
+    // Vrij door na het oplossen vijf pootjes 🐾 uit de confetti te vangen (zie pawCatcher).
+    id: 'wandeltijd', name: 'Wandeltijd', scheme: 'light', group: 'geheim', emoji: '🐶', icon: '🐶', fx: 'wandeltijd',
+    unlock: { secret: true },
+    celebrate: ['🐶', '🐾', '🦴', '💛'],
+    swatch: { bg: '#edf4dd', surface: '#fffdf5', accent: '#8cc152', digit: '#7a4416' },
+  },
+  {
+    // Vrij door een puzzel op te lossen terwijl de klok tussen 00:00 en 00:01 staat (zie midnightMinute).
+    id: 'middernacht', name: 'Middernacht', scheme: 'dark', group: 'geheim', emoji: '🕛', icon: '🕛', fx: 'middernacht',
+    unlock: { secret: true },
+    celebrate: ['🕛', '🌙', '✨', '💜'],
+    swatch: { bg: '#170e2b', surface: '#211536', accent: '#e8c46a', digit: '#ffd98a' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
@@ -183,6 +234,16 @@ export const SEASON_THEMES = THEMES.filter((t) => t.season);
 export const FIXED_THEMES = THEMES.filter((t) => !t.season);
 // Thema's die eerst vrijgespeeld moeten worden (alles met een `unlock`).
 export const LOCKED_THEME_IDS = THEMES.filter((t) => t.unlock).map((t) => t.id);
+// De geheime thema's (alleen via een easter egg), in de volgorde van de kiezer.
+export const SECRET_THEMES = THEMES.filter((t) => t.unlock?.secret);
+
+// Welke geheimen ze al gevonden heeft, voor de teller onder Statistieken:
+// [{ id, name, emoji, found, date }], met `date` de dag van vinden ('JJJJ-MM-DD'),
+// of null (nog niet gevonden, of oude opslag zonder datums).
+export const secretsFound = (stats) => SECRET_THEMES.map((t) => {
+  const found = (stats.unlockedThemes || []).includes(t.id);
+  return { id: t.id, name: t.name, emoji: t.emoji, found, date: (found && stats.themeUnlockDates?.[t.id]) || null };
+});
 
 // Een keuze in de kiezer die zelf geen thema is, maar er één uitkiest.
 export const SEASON_AUTO = { id: 'seizoen', name: 'Seizoen', previews: ['lente', 'herfst'] };
@@ -306,6 +367,10 @@ export function unlockHint(theme, stats, date = new Date()) {
 // functie die je bij elke tik de tijd (ms) geeft; die zegt true bij de laatste.
 // Langzamer tikken telt niet: alleen tikken binnen `within` ms van elkaar tellen samen.
 export const SECRET_TAPS = { taps: 8, within: 3000 };
+// Preitaart: drie tikken op de 🥧 in de begroeting.
+export const PIE_TAPS = { taps: 3, within: 3000 };
+// Vertrekhal: vijf tikken op de palmboom in Gran Canaria, dan valt er een kokosnoot.
+export const PALM_TAPS = { taps: 5, within: 5000 };
 export function tapCounter({ taps = SECRET_TAPS.taps, within = SECRET_TAPS.within } = {}) {
   let times = [];
   return (t) => {
@@ -315,6 +380,65 @@ export function tapCounter({ taps = SECRET_TAPS.taps, within = SECRET_TAPS.withi
     return true;
   };
 }
+
+// Sporthal: de bal hooghouden. Een tik terwijl de bal in de lucht is telt door; een
+// tik als hij al geland is (of nog lag) begint opnieuw bij 1. Na `target` keer op rij
+// (33, haar rugnummer) zegt tap() done. `airtime`: zo lang (ms) is hij in de lucht na een tik.
+export const KEEP_UP = { target: 33, airtime: 1600 };
+export function keepUp({ target = KEEP_UP.target, airtime = KEEP_UP.airtime } = {}) {
+  let count = 0, landsAt = -Infinity;
+  return {
+    tap(t) {
+      count = t < landsAt ? count + 1 : 1;
+      landsAt = t + airtime;
+      return { count, done: count === target };
+    },
+    // Is hij op tijd `t` gevallen (dan begint de telling opnieuw)?
+    fell: (t) => count > 0 && t >= landsAt,
+    get count() { return count; },
+  };
+}
+
+// Kampvuur: alle zes snaren. In Gitaar klinkt bij een tik op het cijferpad zonder
+// gekozen vakje de snaar van dat cijfer (het spel verandert daar niet door). Zes
+// oplopende tonen achter elkaar, elk binnen `within` ms na de vorige, en het vuurtje
+// gaat aan. Geeft een functie die je bij elke toon het cijfer en de tijd (ms) geeft.
+export const STRING_RUN = { length: 6, within: 2000 };
+export function stringRun({ length = STRING_RUN.length, within = STRING_RUN.within } = {}) {
+  let run = [];
+  return (digit, t) => {
+    const last = run[run.length - 1];
+    run = last && digit > last.digit && t - last.t <= within ? [...run, { digit, t }] : [{ digit, t }];
+    if (run.length < length) return false;
+    run = [];
+    return true;
+  };
+}
+
+// Onzichtbare inkt: lang drukken. Hoe ver ze is (0–1) als ze sinds `start` (ms)
+// het hartje ingedrukt houdt; bij 1 (na HOLD_MS) is het gelukt. Losgelaten = null.
+export const HOLD_MS = 3000;
+export const holdProgress = (start, now, need = HOLD_MS) => (start == null ? 0 : Math.min(1, Math.max(0, (now - start) / need)));
+
+// Wandeltijd: pootjes vangen. Na het oplossen zijn de pootjes 🐾 in de confetti
+// tikbaar; vang er `need` (verschillende) tijdens één opgelost-scherm. Geeft een
+// functie die je het nummer van een gevangen pootje geeft; die zegt { count, done }.
+export const PAW_CATCH = 5;
+export function pawCatcher(need = PAW_CATCH) {
+  const caught = new Set();
+  return (id) => {
+    const fresh = !caught.has(id) && caught.size < need;
+    if (fresh) caught.add(id);
+    return { count: caught.size, done: fresh && caught.size === need };
+  };
+}
+
+// Middernacht: de juiste minuut. Staat de klok (lokale tijd) tussen 00:00 en 00:01?
+// Met lokale uren en minuten, dus zomer- en wintertijd maken niet uit (die wisselen
+// in Nederland om 02:00 en 03:00, nooit om middernacht).
+export const midnightMinute = (date = new Date()) => date.getHours() === 0 && date.getMinutes() === 0;
+// Is het tussen `prev` en `now` middernacht geworden? (Dan slaat de klok twaalf keer.)
+export const struckMidnight = (prev, now) => dayKey(prev) !== dayKey(now) && now > prev && midnightMinute(now);
 
 // Vroeger kon het thema 'auto' zijn (licht of donker zoals het toestel). Dat
 // bestaat niet meer: wie het had, houdt het thema dat ze op dat moment zag.

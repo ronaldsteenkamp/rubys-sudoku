@@ -3,8 +3,8 @@
 // SHELL-HASH hieronder. De tests falen als de app-bestanden veranderd zijn
 // zonder nieuwe release, zodat een update nooit vergeten wordt.
 // Een nieuwe versie wacht netjes tot Ruby op "verversen" tikt (zie ui.js).
-const VERSION = 'v43';
-// SHELL-HASH: 1a0f53c5019f1c4a
+const VERSION = 'v44';
+// SHELL-HASH: 51fb936026f66678
 const CACHE = `rubys-sudoku-${VERSION}`;
 
 const SHELL = [
@@ -39,7 +39,17 @@ const SHELL = [
   'js/fx/noorderlicht.js',
   'js/fx/regen.js',
   'js/fx/onderwater.js',
+  'js/fx/volleybal.js',
+  'js/fx/sporthal.js',
+  'js/fx/kampvuur.js',
+  'js/fx/preitaart.js',
+  'js/fx/vertrekhal.js',
+  'js/fx/gran-canaria.js',
+  'js/fx/onzichtbare-inkt.js',
+  'js/fx/wandeltijd.js',
+  'js/fx/middernacht.js',
   'js/fx/lib/natuur.js',
+  'js/fx/lib/klank.js',
   'js/boekje.js',
   'js/boekje-voorbeelden.js',
   'fonts/fraunces-latin.woff2',

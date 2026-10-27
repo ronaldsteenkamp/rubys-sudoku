@@ -3,6 +3,7 @@
 
 import { LAST_MATCH, shortOpponent, matchStart } from './matches.js';
 import { TECHNIQUES } from './techniques.js';
+import { SECRET_THEMES } from './themes.js';
 
 export const NICKNAMES = [
   'Ruby', 'Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje',
@@ -79,6 +80,11 @@ export const partOfDay = (date = new Date()) => {
   return h < 6 ? 'nacht' : h < 12 ? 'ochtend' : h < 18 ? 'middag' : 'avond';
 };
 
+// De begroeting met de preitaart: tik drie keer op de 🥧 en er gebeurt iets (zie ui.js).
+export const PIE_GREETING = (n) => `Hé ${n}, preitaart gegeten? 🥧`;
+// Altijd deze begroeting (om te testen: ?begroeting=preitaart).
+export const pieGreeting = (rng = Math.random) => PIE_GREETING(pick(GREETING_NICKNAMES, rng));
+
 // Elke begroeting krijgt een bijnaam mee (n).
 export const GREETINGS = {
   nacht: [
@@ -134,7 +140,7 @@ export const GREETINGS = {
     (n) => `Hé ${n}, dekentje erbij? 🧸`,
     (n) => `Avondpuzzeltje, ${n}? 🌙`,
     (n) => `Hoi ${n}, de dag zit erop 🌆`,
-    (n) => `Hé ${n}, preitaart gegeten? 🥧`,
+    PIE_GREETING,
     (n) => `Thee en een puzzel, ${n}? 🍵`,
     (n) => `Hé ${n}, pyjama al aan? 🌙`,
     (n) => `Rustig aan, ${n} 🕯️`,
@@ -531,6 +537,11 @@ export const MILESTONES = [
     hint: 'Doe de herstelpuzzel na de laatste wedstrijd van het seizoen',
     text: 'Het seizoen zit erop! Bij elke wedstrijd stond ik (in gedachten) langs de lijn. Op naar het volgende seizoen, nummer 33. Ik blijf je grootste fan 📣💛',
     check: (s) => Boolean(s.matches?.[LAST_MATCH.date]?.herstel) },
+  { id: 'geheimen', title: 'Alle geheimen', icon: '🤫',
+    hint: 'Vind alle geheime thema’s',
+    text: 'Alle acht geheimen gevonden! Het logo, de bal, de snaren, de taart, de kokosnoot, het hartje, de pootjes en het spookuur: niets ontgaat jou. Ik had ze zo goed verstopt, en jij vond ze allemaal. Mijn slimme speurneus 🤫💛',
+    // Geen aftelling op de knop Berichtjes: dat zou de geheimen verraden.
+    check: (s) => SECRET_THEMES.every((t) => s.unlockedThemes?.includes(t.id)) },
 ];
 
 export function newMilestones(stats, unlocked) {
@@ -864,6 +875,29 @@ export const THEME_UNLOCK_TEXT = {
   noorderlicht: 'Vijf keer laat op de avond nog gepuzzeld, nachtuil van me. Als beloning het noorderlicht, speciaal voor jou aangezet 🌌💚',
   onderwater: 'Tien puzzels zonder één hint! Je bent zo diep gedoken dat je bij de visjes bent beland. Blub, wat ben je slim 🐠🫧',
   gameboy: 'Psst… je hebt het geheime level gevonden! 👾 Press Start, Player 1. (Niet verder vertellen.)',
+  sporthal: 'Drieëndertig keer hooggehouden, net als het nummer op je shirt! De tribune staat op z’n kop 📣 Welkom in de sporthal, nummer 33. (Ssst, geheim.)',
+  kampvuur: 'Alle zes snaren, van laag naar hoog! Daar gaat het vuurtje aan 🔥 Pak een dekentje en een marshmallow, liefje. Ik zing vals mee.',
+  preitaart: 'Je hebt de preitaart gevonden! 🥧 Bladerdeeg, romige vulling en een ringetje prei, net als bij ons thuis. Eet smakelijk, Gehaktballetje.',
+  vertrekhal: 'Een kokosnoot! Dat kan maar één ding betekenen: we gaan weer naar Las Palmas ✈️ Je instapkaart ligt klaar, Schatje. Gate 33, on time 💛',
+  'onzichtbare-inkt': 'Je liet niet los, en kijk: er stond al die tijd iets geschreven, in onzichtbare inkt 🔦 Schijn maar eens met het lampje, Liefje. Het staat er echt.',
+  wandeltijd: 'Vijf pootjes gevangen! Iemand staat al kwispelend bij de deur met de riem in z’n bek 🐶 Jas aan, Ruubs: het is wandeltijd 🐾',
+  middernacht: 'Klokslag twaalf en jij zat nog te puzzelen, nachtuiltje 🕛 Dit thema krijg je alleen op het spookuur. Nu snel slapen, en droom maar van mij 💜',
+};
+
+// ---------- Gevonden geheimen (onder Statistieken) ----------
+
+// "2 van 8 geheimen gevonden 🤫"
+export const secretsLine = (found, total) => `${found} van ${total} ${total === 1 ? 'geheim' : 'geheimen'} gevonden 🤫`;
+// Eén vaag zinnetje per geheim dat ze nog niet gevonden heeft.
+export const SECRET_CLUES = {
+  gameboy: 'Iets met het logo…',
+  sporthal: 'Hoe lang hou jij hem hoog?',
+  kampvuur: 'Zes snaren…',
+  preitaart: 'Iets lekkers in de begroeting…',
+  vertrekhal: 'Iets met een kokosnoot…',
+  'onzichtbare-inkt': 'Niet loslaten…',
+  wandeltijd: 'Vang ze!',
+  middernacht: 'Klokslag twaalf…',
 };
 
 // ---------- Kleine tekstjes ----------
@@ -895,7 +929,7 @@ export const THEME_EMOJI = {
   zonnig: '☀️', nacht: '🌙', sterren: '⭐', liefde: '❤️', lelie: '🌸', 'gran-canaria': '🌴',
   volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
   robijn: '💎', rubyxcube: '🧩', koffiemonster: '☕', gitaar: '🎸', beachvolleybal: '🏖️', dagverloop: '🌅',
-  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾',
+  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐', kampvuur: '🔥', preitaart: '🥧', vertrekhal: '✈️', 'onzichtbare-inkt': '🔦', wandeltijd: '🐶', middernacht: '🕛',
   waddenzee: '🦭', bos: '🐿️', noorderlicht: '🌌', regen: '☔', onderwater: '🐠',
 };
 
