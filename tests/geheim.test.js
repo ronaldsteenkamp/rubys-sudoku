@@ -1,7 +1,7 @@
 // De geheime thema's: elke trigger is pure logica (net wel en net niet), los van de DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP } from '../js/themes.js';
+import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN } from '../js/themes.js';
 import { THEME_UNLOCK_TEXT, THEME_EMOJI } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
@@ -66,4 +66,40 @@ test('Sporthal: het applaus is kort en zacht begrensd', async () => {
   assert.equal(a[a.length - 1], 0, 'zonder klik aan het eind');
   assert.ok(WHISTLE.every(([s, d]) => s >= 0 && d > 0 && s + d < 1), 'het fluitje duurt kort');
   assert.equal(themeById('volleybal').fx, 'volleybal', 'de bal ligt in Volleybal');
+});
+
+// ---------- Kampvuur: zes oplopende tonen ----------
+
+const play = (digits, gaps) => {
+  const run = stringRun();
+  let t = 0;
+  return digits.map((d, k) => run(d, (t += k ? gaps[k - 1] ?? gaps[0] : 0)));
+};
+
+test('Kampvuur: zes oplopende tonen, elk binnen 2 seconden, zetten het vuurtje aan', () => {
+  assert.deepEqual(STRING_RUN, { length: 6, within: 2000 });
+  assert.deepEqual(play([1, 2, 3, 4, 5, 6], [300]), [false, false, false, false, false, true]);
+  // Ook met sprongetjes, als het maar steeds hoger wordt; precies 2 s ertussen mag nog.
+  assert.equal(play([1, 3, 4, 6, 8, 9], [2000]).at(-1), true);
+  // Vijf is te weinig.
+  assert.ok(play([2, 3, 4, 5, 6], [300]).every((x) => !x));
+});
+
+test('Kampvuur: te traag, niet oplopend of dezelfde toon telt niet', () => {
+  assert.equal(play([1, 2, 3, 4, 5, 6], [300, 300, 300, 300, 2001]).at(-1), false, 'de laatste te laat');
+  assert.equal(play([1, 2, 3, 5, 4, 6], [300]).at(-1), false, 'niet oplopend');
+  assert.equal(play([1, 2, 3, 3, 4, 5], [300]).at(-1), false, 'dezelfde toon twee keer');
+  // Een reeks die mislukt, telt opnieuw vanaf de toon waar het misging.
+  assert.equal(play([5, 1, 2, 3, 4, 6, 7], [300]).at(-2), false);
+  assert.equal(play([9, 1, 2, 3, 4, 5, 6], [300]).at(-1), true, 'een nieuwe reeks vanaf de 1');
+  // Na een gelukte reeks begint hij weer opnieuw.
+  assert.deepEqual(play([1, 2, 3, 4, 5, 6, 7], [300]).slice(-2), [true, false]);
+});
+
+test('Kampvuur: het knisperen is kort en eindigt zonder klik', async () => {
+  const { crackle } = await import('../js/fx/lib/klank.js');
+  const { SPARKS } = await import('../js/fx/kampvuur.js');
+  const c = crackle({ sampleRate: 8000 });
+  assert.ok(c.length <= 8000 * 1.5 && c.some((v) => Math.abs(v) > 0.5) && c[c.length - 1] === 0);
+  assert.ok(SPARKS <= 20, 'een vast, klein aantal vonkjes');
 });

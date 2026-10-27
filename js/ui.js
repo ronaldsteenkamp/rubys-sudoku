@@ -9,7 +9,7 @@ import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
@@ -866,6 +866,8 @@ function inputDigit(d, { note = false } = {}) {
   if (!game || paused || game.solved) return;
   closeHint(false);
   if (selected == null || game.isGiven(selected) || (game.values[selected] && (notesMode || note))) {
+    // Geen vakje gekozen: in Gitaar klinkt dan de snaar van dit cijfer (zie playString).
+    if (selected == null || game.isGiven(selected)) playString(d);
     // Geen bewerkbaar vakje: dan markeren we gewoon dit cijfer op het bord.
     focusDigit = focusDigit === d ? null : d;
     if (selected != null && game.isGiven(selected)) selected = null;
@@ -892,6 +894,19 @@ function inputDigit(d, { note = false } = {}) {
   afterChange();
   if (r.solved) onSolved();
   else if (!r.removed && game.isFull()) almostThere();
+}
+
+// Gitaar: op het cijferpad tikken zonder gekozen vakje laat de snaar van dat cijfer
+// klinken (er verandert niets aan de puzzel). Zes oplopende tonen achter elkaar, elk
+// binnen 2 seconden, en het vuurtje gaat aan: het geheime thema Kampvuur.
+const strings = stringRun();
+function playString(d) {
+  if (shownTheme.theme !== 'gitaar') return;
+  feedback('place', { digit: d });
+  if (strings(d, performance.now()) && !(stats.unlockedThemes || []).includes('kampvuur')) {
+    feedback('chord');
+    unlockSecret('kampvuur');
+  }
 }
 
 // Alles staat vol, maar er klopt nog iets niet: dat zeggen we zacht, in elke

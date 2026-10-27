@@ -808,6 +808,42 @@
   color-scheme: light;
 }
 
+/* Kampvuur (geheim): een sterrenhemel, onderaan een warm flakkerende gloed met
+   opstijgende vonkjes (js/fx/kampvuur.js). Het gekozen vakje is een marshmallow
+   die langzaam goudbruin kleurt. Een fout is roze met een randje. */
+[data-theme="kampvuur"] {
+  --bg: #120d16;
+  --bg-2: #1c1424;
+  --surface: #211a20;
+  --surface-2: #2c2229;
+  --ink: #f8ead9;
+  --ink-soft: #d2bca7;
+  --line: #3a2e34;
+  --line-strong: #a5714c;
+  --accent: #ff9a3c;
+  --accent-strong: #ffb866;
+  --accent-ink: #2a1205;
+  --accent-soft: #4a2c16;
+  --user: #ffc37e;
+  --given: #f8ead9;
+  --sel: #fff1df;
+  --sel-ink: #3a1d0c;
+  --peer: #3c2a27;
+  --same: #6a4521;
+  --same-ring: transparent;
+  --hint: #ff7a3c;
+  --wrong: #ff8fae;
+  --wrong-bg: #5a1430;
+  --heart: #ff7397;
+  --heart-fill: #3e2440;
+  --heart-edge: #4f2c50;
+  --heart-ink: #ffd3df;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
 /* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
 [data-theme="zonnebloem"] {
   --bg: #fffae3;
@@ -1106,6 +1142,7 @@ html[data-accent="zonnebloem"] { --accent: #ffc816; --accent-strong: #e0a400; --
 html[data-accent="hoog-contrast"] { --accent: #ffd400; --accent-strong: #000000; --accent-ink: #000000; --sel: #ffd400; --sel-ink: #000000; }
 html[data-accent="gameboy"] { --accent: #88c070; --accent-strong: #081820; --accent-ink: #081820; --sel: #081820; --sel-ink: #e0f8d0; }
 html[data-accent="sporthal"] { --accent: #ffcf33; --accent-strong: #d99a00; --accent-ink: #2a1f14; --sel: #2f6fd1; --sel-ink: #ffffff; }
+html[data-accent="kampvuur"] { --accent: #ff9a3c; --accent-strong: #ffb866; --accent-ink: #2a1205; --sel: #fff1df; --sel-ink: #3a1d0c; }
 html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
 html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
 html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
@@ -2228,6 +2265,21 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 [data-theme="gitaar"] .cell.wrong.selected::before { background: color-mix(in srgb, var(--wrong-bg) 60%, var(--sel)); }
 [data-theme="gitaar"] body { --plectrum: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C77 3 97 13 97 33C97 58 68 88 50 97C32 88 3 58 3 33C3 13 23 3 50 3Z'/%3E%3C/svg%3E"); }
 
+/* Kampvuur: het gekozen vakje is een marshmallow aan een stokje boven het vuur. Hij
+   begint wit en kleurt langzaam goudbruin (een laagje dat alleen in opacity aanzwelt;
+   het cijfer blijft er donker en goed leesbaar op). */
+[data-theme="kampvuur"] .cell.selected { background: var(--peer); isolation: isolate; }
+[data-theme="kampvuur"] .cell.selected::before, [data-theme="kampvuur"] .cell.selected::after {
+  content: ""; position: absolute; inset: 7%; z-index: -1; border-radius: 34% / 30%;
+  background: radial-gradient(70% 60% at 40% 30%, #ffffff, var(--sel) 60%, #f3dcc0);
+}
+[data-theme="kampvuur"] .cell.selected::after { background: radial-gradient(80% 70% at 45% 35%, #f6c47c, #e2a050 60%, #c27a34); box-shadow: inset 0 -3px 4px rgb(120 60 20 / 45%); opacity: 0; animation: roosteren 5s ease-in forwards; }
+@keyframes roosteren { to { opacity: 0.9; } }
+[data-theme="kampvuur"] .cell.wrong { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wrong) 60%, transparent); }
+/* Een fout cijfer op de marshmallow: dan geen marshmallow maar gewoon de foutkleur. */
+[data-theme="kampvuur"] .cell.wrong.selected::before { background: var(--wrong-bg); }
+[data-theme="kampvuur"] .cell.wrong.selected::after { display: none; }
+
 /* Beachvolleybal: de golf rolt heel langzaam mee. Op het speelscherm wat zachter. */
 @keyframes waves { from { background-position: 0 100%; } to { background-position: 480px 100%; } }
 [data-theme="beachvolleybal"] .board { border-radius: 14px; }
@@ -2548,6 +2600,17 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
   75% { transform: translateX(78vw) translateY(-6px); }
   100% { transform: translateX(110vw) translateY(0); }
 }
+
+/* Kampvuur: sterren die zacht twinkelen, een flakkerende gloed onderaan en vonkjes
+   die opstijgen en uitdoven. Bij het oplossen laait het even op (.oplaaien). */
+.fx-kampvuur .ster { width: var(--s); height: var(--s); border-radius: 50%; background: #fff6dc; opacity: 0.5; animation: twinkle calc(var(--d) * var(--fx-tempo)) ease-in-out infinite alternate; }
+.fx-kampvuur .gloed { left: -20%; right: -20%; bottom: -18vh; height: 52vh; border-radius: 50%; background: radial-gradient(closest-side, rgb(255 150 50 / 55%), rgb(255 90 30 / 22%) 55%, transparent); opacity: 0.75; transform-origin: 50% 100%; animation: flakker calc(2.3s * var(--fx-tempo)) ease-in-out infinite alternate; transition: opacity 0.8s ease; }
+.fx-kampvuur .gloed.g2 { left: 10%; right: 10%; height: 34vh; background: radial-gradient(closest-side, rgb(255 210 120 / 45%), transparent); animation-duration: calc(1.7s * var(--fx-tempo)); animation-direction: alternate-reverse; }
+@keyframes flakker { 0% { opacity: 0.6; transform: scale(1, 0.96); } 40% { opacity: 0.85; transform: scale(1.02, 1.03); } 100% { opacity: 0.7; transform: scale(0.99, 1); } }
+.fx-kampvuur .vonk { bottom: 6vh; width: var(--s); height: var(--s); border-radius: 50%; background: #ffcf73; box-shadow: 0 0 6px 1px rgb(255 160 60 / 80%); opacity: 0; animation: vonk calc(var(--d) * var(--fx-tempo)) ease-out infinite; }
+@keyframes vonk { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), calc(var(--h) * -1)); } }
+.fx-kampvuur.oplaaien .gloed { opacity: 1; animation-duration: calc(0.5s * var(--fx-tempo)); }
+.fx-kampvuur.oplaaien .vonk { animation-duration: calc(1.6s * var(--fx-tempo)); }
 
 /* De dieren: ze kijken om de hoek (aan de rand, op een plek zonder knoppen). */
 .fx-animal { position: fixed; z-index: 6; padding: 0; border: 0; background: none; touch-action: manipulation; transition: transform 0.8s cubic-bezier(0.3, 0.9, 0.4, 1); }

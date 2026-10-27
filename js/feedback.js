@@ -122,8 +122,8 @@ export function feedback(kind, opts = {}) {
     if (opts.sound === false) { /* stil */ } else if (enabled.sound === 'zacht') SOUNDS[kind]?.();
     else if (enabled.sound === 'gitaar') playGuitar(kind, opts);
   } catch { /* geen geluid, geen probleem */ }
-  // 'unlock' en 'preview' zijn alleen geluid; de trilling blijft zoals hij was.
-  if (enabled.haptics && kind !== 'unlock' && kind !== 'preview') {
+  // 'unlock', 'preview' en 'chord' zijn alleen geluid; de trilling blijft zoals hij was.
+  if (enabled.haptics && !['unlock', 'preview', 'chord'].includes(kind)) {
     try {
       if (canVibrate) navigator.vibrate(PATTERNS[kind] ?? 6);
       else if (isIOS && kind !== 'note') iosTick();

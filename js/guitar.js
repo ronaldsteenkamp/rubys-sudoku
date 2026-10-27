@@ -244,6 +244,8 @@ export function createGuitar(ctx, output = ctx.destination) {
     unlock: () => UNLOCK_TUNE.forEach(([name, at], k) => {
       voice(string(name), { at, gain: k === UNLOCK_TUNE.length - 1 ? 0.08 : 0.065, key: name });
     }),
+    // Alle zes snaren gevonden (het geheime thema Kampvuur): het hele G-akkoord, rustig aangeslagen.
+    chord: () => strum(G_CHORD, { gain: 0.06, spacing: 0.045 }),
     // Voorproefje bij het kiezen van Gitaar: één zachte, vlotte aanslag.
     preview: () => strum(G_CHORD, { gain: 0.036, spacing: 0.02 }),
   };

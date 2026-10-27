@@ -183,6 +183,13 @@ export const THEMES = [
     celebrate: ['🏐', '📣', '🏆', '💛'],
     swatch: { bg: '#f0dcb4', surface: '#fffaf0', accent: '#ffcf33', digit: '#b01f18' },
   },
+  {
+    // Vrij door in Gitaar zes oplopende tonen te spelen op het cijferpad, zonder gekozen vakje (zie stringRun).
+    id: 'kampvuur', name: 'Kampvuur', scheme: 'dark', group: 'geheim', emoji: '🔥', icon: '🔥', fx: 'kampvuur',
+    unlock: { secret: true },
+    celebrate: ['🔥', '✨', '🌟', '🎸'],
+    swatch: { bg: '#120d16', surface: '#211a20', accent: '#ff9a3c', digit: '#ffc37e' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
@@ -339,6 +346,22 @@ export function keepUp({ target = KEEP_UP.target, airtime = KEEP_UP.airtime } = 
     // Is hij op tijd `t` gevallen (dan begint de telling opnieuw)?
     fell: (t) => count > 0 && t >= landsAt,
     get count() { return count; },
+  };
+}
+
+// Kampvuur: alle zes snaren. In Gitaar klinkt bij een tik op het cijferpad zonder
+// gekozen vakje de snaar van dat cijfer (het spel verandert daar niet door). Zes
+// oplopende tonen achter elkaar, elk binnen `within` ms na de vorige, en het vuurtje
+// gaat aan. Geeft een functie die je bij elke toon het cijfer en de tijd (ms) geeft.
+export const STRING_RUN = { length: 6, within: 2000 };
+export function stringRun({ length = STRING_RUN.length, within = STRING_RUN.within } = {}) {
+  let run = [];
+  return (digit, t) => {
+    const last = run[run.length - 1];
+    run = last && digit > last.digit && t - last.t <= within ? [...run, { digit, t }] : [{ digit, t }];
+    if (run.length < length) return false;
+    run = [];
+    return true;
   };
 }
 
