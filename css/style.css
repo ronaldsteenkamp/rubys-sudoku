@@ -844,6 +844,43 @@
   color-scheme: dark;
 }
 
+/* Preitaart (geheim): een rand van bladerdeeg met ruitjespatroon om het bord,
+   vakjes in romig eigeel en het gekozen vakje als een groen preiringetje. Wat Ruby
+   invult is preigroen. Bij het oplossen gaat er een punt uit (js/fx/preitaart.js). */
+[data-theme="preitaart"] {
+  --bg: #f3e8d2;
+  --bg-2: #fbf3e2;
+  --surface: #fff3c9;
+  --surface-2: #fbe7b4;
+  --ink: #3b2a12;
+  --ink-soft: #63502c;
+  --line: #ecd496;
+  --line-strong: #b07a2a;
+  --accent: #eaa93a;
+  --accent-strong: #b97a1c;
+  --accent-ink: #2e1d06;
+  --accent-soft: #fde2a2;
+  --user: #285f1a;
+  --given: #3b2a12;
+  --sel: #d3ebaf;
+  --sel-ink: #1f3d10;
+  --peer: #f8dc93;
+  --same: #f5d27e;
+  --same-ring: #b97a1c;
+  --hint: #cf6a2a;
+  --wrong: #a8321a;
+  --wrong-bg: #ffd2c7;
+  --heart: #c2456b;
+  --heart-fill: #ffe2ea;
+  --heart-edge: #fbd0dc;
+  --heart-ink: #8f1f3d;
+  --heart-solved: #c8324f;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(110 70 10 / 8%), 0 8px 24px rgb(110 70 10 / 12%);
+  --decor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 24H48M24 0V48' stroke='%23c9a46a' stroke-opacity='0.13' stroke-width='10'/%3E%3C/svg%3E") 0 0 / 48px 48px repeat;
+  color-scheme: light;
+}
+
 /* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
 [data-theme="zonnebloem"] {
   --bg: #fffae3;
@@ -1143,6 +1180,7 @@ html[data-accent="hoog-contrast"] { --accent: #ffd400; --accent-strong: #000000;
 html[data-accent="gameboy"] { --accent: #88c070; --accent-strong: #081820; --accent-ink: #081820; --sel: #081820; --sel-ink: #e0f8d0; }
 html[data-accent="sporthal"] { --accent: #ffcf33; --accent-strong: #d99a00; --accent-ink: #2a1f14; --sel: #2f6fd1; --sel-ink: #ffffff; }
 html[data-accent="kampvuur"] { --accent: #ff9a3c; --accent-strong: #ffb866; --accent-ink: #2a1205; --sel: #fff1df; --sel-ink: #3a1d0c; }
+html[data-accent="preitaart"] { --accent: #eaa93a; --accent-strong: #b97a1c; --accent-ink: #2e1d06; --sel: #d3ebaf; --sel-ink: #1f3d10; }
 html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
 html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
 html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
@@ -2280,6 +2318,37 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 [data-theme="kampvuur"] .cell.wrong.selected::before { background: var(--wrong-bg); }
 [data-theme="kampvuur"] .cell.wrong.selected::after { display: none; }
 
+/* Preitaart: een rand van bladerdeeg met ruitjespatroon (gouden reepjes kruiselings
+   over elkaar) om het bord, en het gekozen vakje als een preiringetje: groene ringen
+   om een licht hartje. */
+[data-theme="preitaart"] .board {
+  border: 11px solid transparent;
+  border-radius: 24px;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    repeating-linear-gradient(45deg, transparent 0 7px, rgb(150 90 20 / 35%) 7px 8px),
+    repeating-linear-gradient(-45deg, #f2c66e 0 7px, #b97a1c 7px 8px, #f7d68e 8px 15px) border-box;
+  box-shadow: inset 0 0 0 2px rgb(150 90 20 / 30%), var(--shadow);
+}
+[data-theme="preitaart"] .cell.selected { background: var(--surface); isolation: isolate; }
+[data-theme="preitaart"] .cell.selected::before {
+  content: ""; position: absolute; inset: 6%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, var(--sel) 0 46%, #f4fbe8 47% 54%, #7fb24e 55% 64%, #cfe8a8 65% 70%, #4f8a2c 71%);
+}
+[data-theme="preitaart"] .cell.wrong.selected::before { background: var(--wrong-bg); }
+/* De taartpunt bij het oplossen (zie js/fx/preitaart.js): een bijgesneden kopie van het bord. */
+.taartpunt { position: absolute; z-index: 3; pointer-events: none; }
+.taartpunt > div { position: absolute; inset: 0; clip-path: polygon(50% 50%, 100% 24%, 100% 76%); }
+.taart-gat { background: radial-gradient(circle at 80% 50%, #d9a441, #a8701c); opacity: 0; animation: taart-gat 2.2s ease both; }
+.taart-stuk { animation: taart-stuk 2.2s cubic-bezier(0.3, 0.8, 0.3, 1) both; filter: drop-shadow(4px 6px 6px rgb(80 50 10 / 35%)); }
+.taart-stuk .board { box-shadow: none; }
+@keyframes taart-stuk { 0% { transform: none; } 30%, 62% { transform: translate(26px, -6px) rotate(3deg); } 100% { transform: none; } }
+@keyframes taart-gat { 0% { opacity: 0; } 20%, 70% { opacity: 1; } 100% { opacity: 0; } }
+/* De 🥧 in de begroeting is een knopje (het geheime thema Preitaart); hij wiebelt bij een tik. */
+.pie-tap { display: inline-block; padding: 0; border: 0; background: none; font: inherit; line-height: inherit; touch-action: manipulation; }
+.pie-tap.wiebel { animation: wiebel 0.45s ease; }
+@keyframes wiebel { 25% { transform: rotate(-14deg) scale(1.1); } 60% { transform: rotate(10deg) scale(1.1); } }
+
 /* Beachvolleybal: de golf rolt heel langzaam mee. Op het speelscherm wat zachter. */
 @keyframes waves { from { background-position: 0 100%; } to { background-position: 480px 100%; } }
 [data-theme="beachvolleybal"] .board { border-radius: 14px; }
@@ -2635,6 +2704,7 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
 
 @media (prefers-reduced-motion: reduce) {
   body::before { animation: none; }
+  .taartpunt { display: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

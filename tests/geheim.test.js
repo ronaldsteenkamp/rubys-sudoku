@@ -1,8 +1,8 @@
 // De geheime thema's: elke trigger is pure logica (net wel en net niet), los van de DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN } from '../js/themes.js';
-import { THEME_UNLOCK_TEXT, THEME_EMOJI } from '../js/messages.js';
+import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN, tapCounter, PIE_TAPS } from '../js/themes.js';
+import { THEME_UNLOCK_TEXT, THEME_EMOJI, GREETINGS, PIE_GREETING, pieGreeting } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
 const SECRETS = THEMES.filter((t) => t.unlock?.secret);
@@ -102,4 +102,23 @@ test('Kampvuur: het knisperen is kort en eindigt zonder klik', async () => {
   const c = crackle({ sampleRate: 8000 });
   assert.ok(c.length <= 8000 * 1.5 && c.some((v) => Math.abs(v) > 0.5) && c[c.length - 1] === 0);
   assert.ok(SPARKS <= 20, 'een vast, klein aantal vonkjes');
+});
+
+// ---------- Preitaart: drie tikken op de taart ----------
+
+test('Preitaart: de begroeting met de 🥧 bestaat, en is te forceren', () => {
+  assert.ok(GREETINGS.avond.includes(PIE_GREETING));
+  assert.equal(PIE_GREETING('Ruby'), 'Hé Ruby, preitaart gegeten? 🥧');
+  assert.match(pieGreeting(() => 0), /^Hé \S+, preitaart gegeten\? 🥧$/);
+});
+
+test('Preitaart: drie tikken op de 🥧 (binnen 3 seconden), twee is te weinig', () => {
+  assert.deepEqual(PIE_TAPS, { taps: 3, within: 3000 });
+  const tap = tapCounter(PIE_TAPS);
+  assert.deepEqual([0, 400, 800].map(tap), [false, false, true]);
+  const two = tapCounter(PIE_TAPS);
+  assert.deepEqual([0, 400].map(two), [false, false]);
+  // Te langzaam: de eerste tik is dan al vergeten.
+  const slow = tapCounter(PIE_TAPS);
+  assert.deepEqual([0, 1600, 3000, 3100].map(slow), [false, false, false, true]);
 });

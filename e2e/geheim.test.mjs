@@ -11,7 +11,7 @@ after(async () => { await shutdown(); server.close(); });
 const theme = (page) => page.getAttribute('html', 'data-theme');
 // Een gewone dag zonder dagthema (geen wedstrijd, feestdag of seizoensbegin).
 const GEWOON = new Date(2026, 10, 3, 12);
-const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur'];
+const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart'];
 
 // Na het vinden: "Probeer maar!", dan staat het thema aan en in het groepje Geheim.
 async function acceptAndCheck(page, id, name) {
@@ -91,6 +91,27 @@ test('Kampvuur: in Gitaar zes oplopende tonen zonder gekozen vakje (de puzzel ve
   assert.deepEqual([after.values, after.notes, after.mistakes], [before.values, before.notes, before.mistakes], 'geen cijfers, notities of fouten');
   await acceptAndCheck(page, 'kampvuur', 'Kampvuur');
   assert.equal(await page.locator('.fx-layer.fx-kampvuur .vonk').count() > 0, true);
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
+
+test('Preitaart: drie keer op de 🥧 in de begroeting tikken (met ?begroeting=preitaart)', async () => {
+  const page = await open(base, { clock: GEWOON, query: '?begroeting=preitaart', storage: { settings: { theme: 'zonnig' } } });
+  assert.match(await page.textContent('#greeting'), /^Hé \S+, preitaart gegeten\?\s🥧$/);
+  const pie = page.locator('#greeting .pie-tap');
+  await pie.click();
+  await pie.click();
+  assert.equal(await page.isVisible('#confirm-dialog'), false, 'twee keer is nog niet genoeg');
+  await page.clock.runFor(4000);
+  await pie.click();
+  assert.equal(await page.isVisible('#confirm-dialog'), false, 'na een pauze begint hij opnieuw');
+  await pie.click();
+  await pie.click();
+  await acceptAndCheck(page, 'preitaart', 'Preitaart');
+  // Een gewone begroeting heeft geen taartknopje.
+  await page.goto(base);
+  await page.waitForSelector('#levels .level');
+  assert.equal(await page.locator('#greeting .pie-tap').count(), (await page.textContent('#greeting')).includes('🥧') ? 1 : 0);
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });

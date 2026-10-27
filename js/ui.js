@@ -9,7 +9,7 @@ import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
@@ -413,7 +413,10 @@ function renderHome() {
     ? '<span class="hand-art hart-1 brand-heart" aria-hidden="true"></span><span class="hand-art logo" role="img" aria-label="Ruby\'s Sudoku"></span>'
     : BRAND_HTML;
   // Het emoji aan het laatste woord vast, zodat het nooit in zijn eentje op een nieuwe regel staat.
-  $('#greeting').innerHTML = withEmoji(M.greeting(now).replace(/ (\S+)$/, '\u00a0$1'));
+  // In de begroeting met de preitaart is de 🥧 een knopje (het geheime thema Preitaart).
+  const hello = params.get('begroeting') === 'preitaart' ? M.pieGreeting() : M.greeting(now);
+  $('#greeting').innerHTML = withEmoji(hello.replace(/ (\S+)$/, '\u00a0$1'))
+    .replace(/<span class="emo">🥧<\/span>$/, '<button type="button" class="emo pie-tap" aria-label="Preitaart">🥧</button>');
   $('#subtitle').textContent = M.subtitle(now);
   const days = M.daysTogether(now);
   const heart = hand ? '<span class="hand-art hart-2 together-heart" role="img" aria-label="hartje"></span>' : '<span class="emo">💛</span>';
@@ -1322,6 +1325,17 @@ async function showFreshMilestones() {
 const logoTap = tapCounter();
 $('.brand').addEventListener('click', () => {
   if (logoTap(performance.now())) unlockSecret('gameboy');
+});
+
+// Preitaart: drie keer op de 🥧 in de begroeting tikken. Elke tik wiebelt hij even.
+const pieTap = tapCounter(PIE_TAPS);
+$('#greeting').addEventListener('click', (e) => {
+  const pie = e.target.closest('.pie-tap');
+  if (!pie) return;
+  pie.classList.remove('wiebel');
+  void pie.offsetWidth;
+  pie.classList.add('wiebel');
+  if (pieTap(performance.now())) unlockSecret('preitaart');
 });
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));

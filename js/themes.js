@@ -190,6 +190,13 @@ export const THEMES = [
     celebrate: ['🔥', '✨', '🌟', '🎸'],
     swatch: { bg: '#120d16', surface: '#211a20', accent: '#ff9a3c', digit: '#ffc37e' },
   },
+  {
+    // Vrij door drie keer op de 🥧 te tikken in de begroeting "Hé …, preitaart gegeten? 🥧" (zie tapCounter).
+    id: 'preitaart', name: 'Preitaart', scheme: 'light', group: 'geheim', emoji: '🥧', icon: '🥧', fx: 'preitaart',
+    unlock: { secret: true },
+    celebrate: ['🥧', '🧀', '🥚', '💛'],
+    swatch: { bg: '#f3e8d2', surface: '#fff3c9', accent: '#eaa93a', digit: '#285f1a' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
@@ -321,6 +328,8 @@ export function unlockHint(theme, stats, date = new Date()) {
 // functie die je bij elke tik de tijd (ms) geeft; die zegt true bij de laatste.
 // Langzamer tikken telt niet: alleen tikken binnen `within` ms van elkaar tellen samen.
 export const SECRET_TAPS = { taps: 8, within: 3000 };
+// Preitaart: drie tikken op de 🥧 in de begroeting.
+export const PIE_TAPS = { taps: 3, within: 3000 };
 export function tapCounter({ taps = SECRET_TAPS.taps, within = SECRET_TAPS.within } = {}) {
   let times = [];
   return (t) => {

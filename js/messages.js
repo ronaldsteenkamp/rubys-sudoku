@@ -79,6 +79,11 @@ export const partOfDay = (date = new Date()) => {
   return h < 6 ? 'nacht' : h < 12 ? 'ochtend' : h < 18 ? 'middag' : 'avond';
 };
 
+// De begroeting met de preitaart: tik drie keer op de 🥧 en er gebeurt iets (zie ui.js).
+export const PIE_GREETING = (n) => `Hé ${n}, preitaart gegeten? 🥧`;
+// Altijd deze begroeting (om te testen: ?begroeting=preitaart).
+export const pieGreeting = (rng = Math.random) => PIE_GREETING(pick(GREETING_NICKNAMES, rng));
+
 // Elke begroeting krijgt een bijnaam mee (n).
 export const GREETINGS = {
   nacht: [
@@ -134,7 +139,7 @@ export const GREETINGS = {
     (n) => `Hé ${n}, dekentje erbij? 🧸`,
     (n) => `Avondpuzzeltje, ${n}? 🌙`,
     (n) => `Hoi ${n}, de dag zit erop 🌆`,
-    (n) => `Hé ${n}, preitaart gegeten? 🥧`,
+    PIE_GREETING,
     (n) => `Thee en een puzzel, ${n}? 🍵`,
     (n) => `Hé ${n}, pyjama al aan? 🌙`,
     (n) => `Rustig aan, ${n} 🕯️`,
@@ -866,6 +871,7 @@ export const THEME_UNLOCK_TEXT = {
   gameboy: 'Psst… je hebt het geheime level gevonden! 👾 Press Start, Player 1. (Niet verder vertellen.)',
   sporthal: 'Drieëndertig keer hooggehouden, net als het nummer op je shirt! De tribune staat op z’n kop 📣 Welkom in de sporthal, nummer 33. (Ssst, geheim.)',
   kampvuur: 'Alle zes snaren, van laag naar hoog! Daar gaat het vuurtje aan 🔥 Pak een dekentje en een marshmallow, liefje. Ik zing vals mee.',
+  preitaart: 'Je hebt de preitaart gevonden! 🥧 Bladerdeeg, romige vulling en een ringetje prei, net als bij ons thuis. Eet smakelijk, Gehaktballetje.',
 };
 
 // ---------- Kleine tekstjes ----------
@@ -897,7 +903,7 @@ export const THEME_EMOJI = {
   zonnig: '☀️', nacht: '🌙', sterren: '⭐', liefde: '❤️', lelie: '🌸', 'gran-canaria': '🌴',
   volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
   robijn: '💎', rubyxcube: '🧩', koffiemonster: '☕', gitaar: '🎸', beachvolleybal: '🏖️', dagverloop: '🌅',
-  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐', kampvuur: '🔥',
+  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐', kampvuur: '🔥', preitaart: '🥧',
   waddenzee: '🦭', bos: '🐿️', noorderlicht: '🌌', regen: '☔', onderwater: '🐠',
 };
 
