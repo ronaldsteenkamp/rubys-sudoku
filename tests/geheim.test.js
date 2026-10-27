@@ -214,3 +214,47 @@ test('Middernacht: de klok slaat twaalf als het middernacht wordt, ook in een zo
   assert.deepEqual(handAngles(new Date(2026, 10, 4, 0, 0)), { hour: 0, minute: 0 });
   assert.deepEqual(handAngles(new Date(2026, 10, 4, 15, 30)), { hour: 105, minute: 180 });
 });
+
+// ---------- De teller: "2 van 8 geheimen gevonden 🤫" ----------
+
+test('de teller: Game Boy telt mee, met de datum van vinden', async () => {
+  const { secretsFound, SECRET_THEMES } = await import('../js/themes.js');
+  const { secretsLine, SECRET_CLUES } = await import('../js/messages.js');
+  assert.deepEqual(SECRET_THEMES.map((t) => t.id), ['gameboy', 'sporthal', 'kampvuur', 'preitaart', 'vertrekhal', 'onzichtbare-inkt', 'wandeltijd', 'middernacht']);
+  for (const t of SECRET_THEMES) assert.ok(SECRET_CLUES[t.id], `${t.id}: een vaag zinnetje`);
+  assert.equal(SECRET_CLUES.gameboy, 'Iets met het logo…');
+  const st = { ...emptyStats() };
+  assert.equal(secretsFound(st).filter((x) => x.found).length, 0);
+  unlockTheme(st, 'gameboy', at(2026, 11, 3));
+  unlockTheme(st, 'kampvuur', at(2026, 11, 5));
+  const list = secretsFound(st);
+  assert.equal(list.length, 8);
+  assert.deepEqual(list.filter((x) => x.found).map((x) => [x.id, x.date]), [['gameboy', '2026-11-03'], ['kampvuur', '2026-11-05']]);
+  assert.equal(list.find((x) => x.id === 'sporthal').date, null);
+  assert.equal(secretsLine(2, 8), '2 van 8 geheimen gevonden 🤫');
+  // Gewone thema's tellen niet mee.
+  unlockTheme(st, 'bos', at(2026, 11, 5));
+  assert.equal(secretsFound(st).filter((x) => x.found).length, 2);
+});
+
+test('de teller: oude opslag zonder datums (of kapotte) blijft werken', async () => {
+  const { secretsFound } = await import('../js/themes.js');
+  const { migrateStats } = await import('../js/storage.js');
+  const old = migrateStats({ totalSolved: 12, unlockedThemes: ['gameboy', 'herfst'] });
+  assert.deepEqual(secretsFound(old).filter((x) => x.found).map((x) => [x.id, x.date]), [['gameboy', null]]);
+  assert.equal(secretsFound({}).length, 8, 'zonder opslag');
+  assert.equal(secretsFound({ unlockedThemes: ['sporthal'], themeUnlockDates: null })[1].date, null);
+});
+
+test('mijlpaal Alle geheimen: pas als alle acht gevonden zijn', async () => {
+  const { MILESTONES, newMilestones } = await import('../js/messages.js');
+  const m = MILESTONES.find((x) => x.id === 'geheimen');
+  assert.deepEqual([m.title, m.icon], ['Alle geheimen', '🤫']);
+  assert.ok(!m.progress, 'geen aftelling die de geheimen verraadt');
+  const st = { ...emptyStats() };
+  for (const t of SECRETS.slice(0, 7)) unlockTheme(st, t.id, at(2026, 11, 3));
+  assert.ok(!newMilestones(st, []).some((x) => x.id === 'geheimen'), 'zeven is er een te weinig');
+  unlockTheme(st, SECRETS[7].id, at(2026, 11, 4));
+  assert.ok(newMilestones(st, []).some((x) => x.id === 'geheimen'));
+  assert.ok(!newMilestones(st, ['geheimen']).some((x) => x.id === 'geheimen'), 'maar één keer');
+});

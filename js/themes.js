@@ -234,6 +234,16 @@ export const SEASON_THEMES = THEMES.filter((t) => t.season);
 export const FIXED_THEMES = THEMES.filter((t) => !t.season);
 // Thema's die eerst vrijgespeeld moeten worden (alles met een `unlock`).
 export const LOCKED_THEME_IDS = THEMES.filter((t) => t.unlock).map((t) => t.id);
+// De geheime thema's (alleen via een easter egg), in de volgorde van de kiezer.
+export const SECRET_THEMES = THEMES.filter((t) => t.unlock?.secret);
+
+// Welke geheimen ze al gevonden heeft, voor de teller onder Statistieken:
+// [{ id, name, emoji, found, date }], met `date` de dag van vinden ('JJJJ-MM-DD'),
+// of null (nog niet gevonden, of oude opslag zonder datums).
+export const secretsFound = (stats) => SECRET_THEMES.map((t) => {
+  const found = (stats.unlockedThemes || []).includes(t.id);
+  return { id: t.id, name: t.name, emoji: t.emoji, found, date: (found && stats.themeUnlockDates?.[t.id]) || null };
+});
 
 // Een keuze in de kiezer die zelf geen thema is, maar er één uitkiest.
 export const SEASON_AUTO = { id: 'seizoen', name: 'Seizoen', previews: ['lente', 'herfst'] };

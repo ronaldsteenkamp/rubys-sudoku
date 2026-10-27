@@ -238,3 +238,43 @@ test('Middernacht: de wijzers lopen mee en om 00:00 slaat de klok', async () => 
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });
+
+test('de teller onder Statistieken: pas zichtbaar na het eerste geheim, met een lijstje', async () => {
+  let page = await open(base, { clock: GEWOON, storage: { settings: { theme: 'zonnig' } } });
+  await page.click('[data-open="stats-dialog"]');
+  assert.equal(await page.locator('.secrets-line').count(), 0, 'nog niets gevonden: geen regel');
+  await page.context().close();
+
+  // Game Boy met datum, Kampvuur uit oude opslag zonder datum.
+  page = await open(base, { clock: GEWOON, storage: { settings: { theme: 'zonnig' }, stats: { unlockedThemes: ['gameboy', 'kampvuur', 'bos'], themeUnlockDates: { gameboy: '2026-10-30' }, levels: {} } } });
+  await page.click('[data-open="stats-dialog"]');
+  assert.match(await page.textContent('.secrets-line'), /^2 van 8 geheimen gevonden 🤫/);
+  assert.equal(await page.isVisible('#secret-list'), false);
+  await page.click('.secrets-line');
+  const items = await page.locator('#secret-list li').allTextContents();
+  assert.equal(items.length, 8);
+  assert.match(items[0], /Game Boy\s*gevonden op 30 oktober/);
+  assert.match(items[2], /Kampvuur/);
+  assert.doesNotMatch(items[2], /gevonden op/, 'oude opslag: zonder datum');
+  assert.match(items[1], /\?\?\?\s*Hoe lang hou jij hem hoog\?/);
+  assert.match(items[7], /\?\?\?\s*Klokslag twaalf…/);
+  assert.ok(!items.join(' ').includes('Sporthal'), 'nog niet gevonden: geen naam');
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
+
+test('mijlpaal Alle geheimen: het achtste geheim geeft een lief berichtje', async () => {
+  const seven = ['gameboy', 'sporthal', 'kampvuur', 'vertrekhal', 'onzichtbare-inkt', 'wandeltijd', 'middernacht'];
+  const page = await open(base, { clock: GEWOON, query: '?begroeting=preitaart', storage: { settings: { theme: 'zonnig' }, stats: { unlockedThemes: seven, levels: {} } } });
+  for (let k = 0; k < 3; k++) await page.click('#greeting .pie-tap');
+  await page.waitForSelector('#confirm-dialog[open]');
+  await page.click('#confirm-no');
+  await page.waitForSelector('#message-dialog[open]');
+  assert.match(await page.textContent('#message-title'), /Alle geheimen/);
+  await page.click('#message-ok');
+  assert.ok((await stored(page, 'unlocked')).includes('geheimen'));
+  await page.click('[data-open="stats-dialog"]');
+  assert.match(await page.textContent('.secrets-line'), /^8 van 8 geheimen gevonden/);
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});

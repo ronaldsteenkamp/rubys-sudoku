@@ -3,6 +3,7 @@
 
 import { LAST_MATCH, shortOpponent, matchStart } from './matches.js';
 import { TECHNIQUES } from './techniques.js';
+import { SECRET_THEMES } from './themes.js';
 
 export const NICKNAMES = [
   'Ruby', 'Ruubs', 'RubyxCube', 'Liefje', 'Schatje', 'R', 'Koffiemonster', 'Gehaktballetje',
@@ -536,6 +537,11 @@ export const MILESTONES = [
     hint: 'Doe de herstelpuzzel na de laatste wedstrijd van het seizoen',
     text: 'Het seizoen zit erop! Bij elke wedstrijd stond ik (in gedachten) langs de lijn. Op naar het volgende seizoen, nummer 33. Ik blijf je grootste fan 📣💛',
     check: (s) => Boolean(s.matches?.[LAST_MATCH.date]?.herstel) },
+  { id: 'geheimen', title: 'Alle geheimen', icon: '🤫',
+    hint: 'Vind alle geheime thema’s',
+    text: 'Alle acht geheimen gevonden! Het logo, de bal, de snaren, de taart, de kokosnoot, het hartje, de pootjes en het spookuur: niets ontgaat jou. Ik had ze zo goed verstopt, en jij vond ze allemaal. Mijn slimme speurneus 🤫💛',
+    // Geen aftelling op de knop Berichtjes: dat zou de geheimen verraden.
+    check: (s) => SECRET_THEMES.every((t) => s.unlockedThemes?.includes(t.id)) },
 ];
 
 export function newMilestones(stats, unlocked) {
@@ -876,6 +882,22 @@ export const THEME_UNLOCK_TEXT = {
   'onzichtbare-inkt': 'Je liet niet los, en kijk: er stond al die tijd iets geschreven, in onzichtbare inkt 🔦 Schijn maar eens met het lampje, Liefje. Het staat er echt.',
   wandeltijd: 'Vijf pootjes gevangen! Iemand staat al kwispelend bij de deur met de riem in z’n bek 🐶 Jas aan, Ruubs: het is wandeltijd 🐾',
   middernacht: 'Klokslag twaalf en jij zat nog te puzzelen, nachtuiltje 🕛 Dit thema krijg je alleen op het spookuur. Nu snel slapen, en droom maar van mij 💜',
+};
+
+// ---------- Gevonden geheimen (onder Statistieken) ----------
+
+// "2 van 8 geheimen gevonden 🤫"
+export const secretsLine = (found, total) => `${found} van ${total} ${total === 1 ? 'geheim' : 'geheimen'} gevonden 🤫`;
+// Eén vaag zinnetje per geheim dat ze nog niet gevonden heeft.
+export const SECRET_CLUES = {
+  gameboy: 'Iets met het logo…',
+  sporthal: 'Hoe lang hou jij hem hoog?',
+  kampvuur: 'Zes snaren…',
+  preitaart: 'Iets lekkers in de begroeting…',
+  vertrekhal: 'Iets met een kokosnoot…',
+  'onzichtbare-inkt': 'Niet loslaten…',
+  wandeltijd: 'Vang ze!',
+  middernacht: 'Klokslag twaalf…',
 };
 
 // ---------- Kleine tekstjes ----------

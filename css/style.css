@@ -2102,6 +2102,19 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .stat-table th:first-child, .stat-table td:first-child { text-align: left; }
 .stat-table th { font-size: 0.78rem; color: var(--ink-soft); }
 
+/* Gevonden geheimen (onder Statistieken → Overzicht). */
+.secrets { margin-top: 16px; }
+.secrets-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 48px; padding: 0 16px; border: 1px dashed var(--line-strong); border-radius: 16px; background: var(--surface-2); color: var(--ink); font-weight: 700; text-align: left; }
+.secrets-line::after { content: "›"; font-size: 1.3rem; color: var(--ink-soft); transition: transform 0.2s ease; }
+.secrets-line[aria-expanded="true"]::after { transform: rotate(90deg); }
+.secret-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.secret-list[hidden] { display: none; }
+.secret-list li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: var(--surface-2); }
+.secret-list li.locked { background: transparent; border: 1px dashed var(--line); }
+.secret-list b { display: block; }
+.secret-list small { display: block; color: var(--ink-soft); font-size: 0.85rem; }
+.secret-emoji { font-size: 1.5rem; width: 32px; text-align: center; flex: none; }
+
 /* ---------- Kalender (in Statistieken) ---------- */
 
 .stats-tabs { margin-bottom: 16px; }
@@ -2725,9 +2738,9 @@ html[data-theme="gran-canaria"] body { --decor-move: url("data:image/svg+xml,%3C
 
 /* Emoji in de stijl van het thema: zwart-wit in Krant en Krijtbord, groen in Game Boy
    (de .emo-spans komen uit withEmoji in ui.js). */
-[data-theme="krant"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji) { filter: grayscale(1); }
-[data-theme="krijtbord"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji) { filter: grayscale(1) brightness(1.15) contrast(0.9); }
-[data-theme="gameboy"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji) { filter: grayscale(1) sepia(1) hue-rotate(50deg) saturate(1.8) brightness(0.8); }
+[data-theme="krant"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji, .secret-emoji) { filter: grayscale(1); }
+[data-theme="krijtbord"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji, .secret-emoji) { filter: grayscale(1) brightness(1.15) contrast(0.9); }
+[data-theme="gameboy"] :is(.emo, .level-emoji, .cal-emoji, .book-level-title > span, .message-icon, .pause-emoji, .solved-emoji, .wr-emoji, .secret-emoji) { filter: grayscale(1) sepia(1) hue-rotate(50deg) saturate(1.8) brightness(0.8); }
 
 /* Zonnebloem: de bloem op het startscherm (zie js/fx/zonnebloem.js). */
 .home-head { position: relative; }

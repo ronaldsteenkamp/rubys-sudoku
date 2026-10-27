@@ -9,7 +9,7 @@ import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS, pawCatcher, midnightMinute } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS, pawCatcher, midnightMinute, secretsFound } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
@@ -1696,8 +1696,30 @@ function renderStats() {
     <table class="stat-table">
       <thead><tr><th>Niveau</th><th>Gespeeld</th><th>Opgelost</th><th>Record</th><th>Gem.</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>${wrappedListHtml()}`;
+    </table>${secretsHtml()}${wrappedListHtml()}`;
 }
+
+// "2 van 8 geheimen gevonden 🤫", pas als ze er minstens één heeft. Tik erop voor het
+// lijstje: gevonden met naam en datum, de rest als ??? met een vaag zinnetje.
+function secretsHtml() {
+  const all = secretsFound(stats);
+  const found = all.filter((x) => x.found).length;
+  if (!found) return '';
+  const items = all.map((x) => (x.found
+    ? `<li><span class="secret-emoji" aria-hidden="true">${x.emoji}</span><div><b>${escapeHtml(x.name)}</b>${x.date ? `<small>${escapeHtml(foundText(x.date))}</small>` : ''}</div></li>`
+    : `<li class="locked"><span class="secret-emoji" aria-hidden="true">❔</span><div><b>???</b><small>${escapeHtml(M.SECRET_CLUES[x.id] || '')}</small></div></li>`)).join('');
+  return `<div class="secrets"><button type="button" class="secrets-line" aria-expanded="false" aria-controls="secret-list">${withEmoji(M.secretsLine(found, all.length))}</button>
+    <ul id="secret-list" class="secret-list" hidden>${items}</ul></div>`;
+}
+// "gevonden op 3 november" (met het jaar erbij als dat niet dit jaar is).
+const foundText = (day) => sinceText(day).replace(/^sinds /, 'gevonden op ');
+$('#stats-body').addEventListener('click', (e) => {
+  const line = e.target.closest('.secrets-line');
+  if (!line) return;
+  const open = line.getAttribute('aria-expanded') !== 'true';
+  line.setAttribute('aria-expanded', String(open));
+  $('#secret-list').hidden = !open;
+});
 
 // ---------- Techniekenboekje ----------
 
