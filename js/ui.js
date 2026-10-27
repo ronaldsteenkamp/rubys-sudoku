@@ -9,7 +9,7 @@ import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
@@ -1340,6 +1340,37 @@ $('#greeting').addEventListener('click', (e) => {
   pie.classList.add('wiebel');
   if (pieTap(performance.now())) unlockSecret('preitaart');
 });
+
+// Onzichtbare inkt: in Briefje het getekende hartje op het opgelost-scherm 3 seconden
+// ingedrukt houden. Intussen licht het hartje langzaam paars op (--uv, 0–1), zodat ze
+// merkt dat er iets gebeurt. Loslaten: weer van voren af aan.
+let holdStart = null, holdTimer = null;
+function holdFrame() {
+  const heart = $('.solved-heart');
+  if (!heart || holdStart == null) return;
+  heart.style.setProperty('--uv', holdProgress(holdStart, performance.now()).toFixed(3));
+  requestAnimationFrame(holdFrame);
+}
+function holdEnd() {
+  holdStart = null;
+  clearTimeout(holdTimer);
+  $('.solved-heart')?.style.setProperty('--uv', '0');
+}
+$('.solved-emoji').addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('.solved-heart')) return;
+  e.preventDefault();
+  holdStart = performance.now();
+  requestAnimationFrame(holdFrame);
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(() => {
+    if (holdProgress(holdStart, performance.now()) < 1) return;
+    $('.solved-heart')?.style.setProperty('--uv', '1');
+    holdStart = null;
+    unlockSecret('onzichtbare-inkt');
+  }, HOLD_MS);
+});
+for (const t of ['pointerup', 'pointercancel', 'pointerleave']) $('.solved-emoji').addEventListener(t, holdEnd);
+$('.solved-emoji').addEventListener('contextmenu', (e) => e.preventDefault());
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
 $('#solved-again-small').addEventListener('click', () => $('#solved-dialog').close('again'));

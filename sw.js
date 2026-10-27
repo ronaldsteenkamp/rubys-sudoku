@@ -45,6 +45,7 @@ const SHELL = [
   'js/fx/preitaart.js',
   'js/fx/vertrekhal.js',
   'js/fx/gran-canaria.js',
+  'js/fx/onzichtbare-inkt.js',
   'js/fx/lib/natuur.js',
   'js/fx/lib/klank.js',
   'js/boekje.js',

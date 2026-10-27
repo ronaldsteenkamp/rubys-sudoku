@@ -917,6 +917,42 @@
   color-scheme: dark;
 }
 
+/* Onzichtbare inkt (geheim): donker papier en een uv-lampje. Rond het gekozen vakje
+   (de rij, kolom en het blok) gloeien de cijfers paars op; de rest is iets zwakker,
+   maar haalt overal nog 4.5:1 (de gloed is extra). Een fout is oranje met een randje. */
+[data-theme="onzichtbare-inkt"] {
+  --bg: #110f18;
+  --bg-2: #1a1625;
+  --surface: #191622;
+  --surface-2: #231e2f;
+  --ink: #ece6f7;
+  --ink-soft: #bcb3cf;
+  --line: #2c2739;
+  --line-strong: #6b5f8a;
+  --accent: #b37bff;
+  --accent-strong: #cfa6ff;
+  --accent-ink: #160a28;
+  --accent-soft: #34254f;
+  --user: #c6b2f2;
+  --given: #b8b2c8;
+  --sel: #b37bff;
+  --sel-ink: #160a28;
+  --peer: #2b2342;
+  --same: #44336a;
+  --same-ring: transparent;
+  --hint: #5ce1e6;
+  --wrong: #ffb27a;
+  --wrong-bg: #4a2a12;
+  --heart: #ff7aa8;
+  --heart-fill: #3f2131;
+  --heart-edge: #512a3f;
+  --heart-ink: #ffd3e2;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
 /* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
 [data-theme="zonnebloem"] {
   --bg: #fffae3;
@@ -1218,6 +1254,7 @@ html[data-accent="sporthal"] { --accent: #ffcf33; --accent-strong: #d99a00; --ac
 html[data-accent="kampvuur"] { --accent: #ff9a3c; --accent-strong: #ffb866; --accent-ink: #2a1205; --sel: #fff1df; --sel-ink: #3a1d0c; }
 html[data-accent="preitaart"] { --accent: #eaa93a; --accent-strong: #b97a1c; --accent-ink: #2e1d06; --sel: #d3ebaf; --sel-ink: #1f3d10; }
 html[data-accent="vertrekhal"] { --accent: #ffd23f; --accent-strong: #ffe07a; --accent-ink: #141414; --sel: #ffd23f; --sel-ink: #141414; }
+html[data-accent="onzichtbare-inkt"] { --accent: #b37bff; --accent-strong: #cfa6ff; --accent-ink: #160a28; --sel: #b37bff; --sel-ink: #160a28; }
 html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
 html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
 html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
@@ -2411,6 +2448,23 @@ dialog::backdrop { background: rgb(30 20 10 / 35%); backdrop-filter: blur(3px); 
 .kokosnoot svg { display: block; width: 100%; height: 100%; }
 .kokosnoot.weg { opacity: 0; transform: scale(1.4); }
 @keyframes kokos-valt { 0% { transform: translate(36px, -96px); } 80% { transform: translate(0, 0); } 90% { transform: translate(0, -6px); } 100% { transform: none; } }
+
+/* Onzichtbare inkt: het uv-lampje. Rond het gekozen vakje (rij, kolom en blok)
+   gloeien de cijfers paars op; de gewone kleuren halen al 4.5:1, dit is extra.
+   Bij het oplossen gloeit het hele bord (.uv-vol) en verschijnt het briefje. */
+[data-theme="onzichtbare-inkt"] .board { background: radial-gradient(120% 90% at 30% 20%, #1e1a2a, var(--surface)); }
+[data-theme="onzichtbare-inkt"] .cell .v { transition: color 0.4s ease, text-shadow 0.4s ease; }
+[data-theme="onzichtbare-inkt"] :is(.cell.peer, .cell.selected:not(.wrong)) .v,
+[data-theme="onzichtbare-inkt"] .board.uv-vol .cell .v { color: #f1e6ff; text-shadow: 0 0 6px #b46cff, 0 0 14px rgb(160 90 255 / 70%); }
+[data-theme="onzichtbare-inkt"] .cell.selected:not(.wrong) .v { color: var(--sel-ink); text-shadow: 0 0 8px #ffffff; }
+[data-theme="onzichtbare-inkt"] .board.uv-vol { box-shadow: 0 0 0 2px #b37bff, 0 0 60px 10px rgb(150 80 255 / 40%); transition: box-shadow 0.8s ease; }
+[data-theme="onzichtbare-inkt"] .cell.wrong { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wrong) 60%, transparent); }
+.uv-briefje { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none; background: radial-gradient(70% 22% at 50% 50%, rgb(12 8 22 / 92%), rgb(12 8 22 / 70%) 60%, transparent); animation: uv-briefje 5s ease both; }
+.uv-briefje .hand-art { width: min(86%, 380px); aspect-ratio: 1029 / 131; color: #e8d4ff; -webkit-mask-image: url("../hand/ik-vind-je-heel-leuk.svg"); mask-image: url("../hand/ik-vind-je-heel-leuk.svg"); filter: drop-shadow(0 0 6px #b46cff) drop-shadow(0 0 14px #8a3dff); transform: rotate(-4deg); }
+@keyframes uv-briefje { 0% { opacity: 0; } 25%, 80% { opacity: 1; } 100% { opacity: 0; } }
+/* Briefje: het getekende hartje op het opgelost-scherm kleurt paars als ze het ingedrukt
+   houdt (--uv gaat van 0 naar 1 in 3 seconden; het geheim van Onzichtbare inkt). */
+.solved-heart { --uv: 0; touch-action: none; color: color-mix(in srgb, #9b4dff calc(var(--uv) * 100%), var(--heart)); filter: drop-shadow(0 0 calc(var(--uv) * 12px) rgb(155 77 255 / 80%)); }
 
 /* Beachvolleybal: de golf rolt heel langzaam mee. Op het speelscherm wat zachter. */
 @keyframes waves { from { background-position: 0 100%; } to { background-position: 480px 100%; } }

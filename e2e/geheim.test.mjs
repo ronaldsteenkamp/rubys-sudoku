@@ -11,7 +11,7 @@ after(async () => { await shutdown(); server.close(); });
 const theme = (page) => page.getAttribute('html', 'data-theme');
 // Een gewone dag zonder dagthema (geen wedstrijd, feestdag of seizoensbegin).
 const GEWOON = new Date(2026, 10, 3, 12);
-const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart', 'Vertrekhal'];
+const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart', 'Vertrekhal', 'Onzichtbare inkt'];
 
 // Na het vinden: "Probeer maar!", dan staat het thema aan en in het groepje Geheim.
 async function acceptAndCheck(page, id, name) {
@@ -20,6 +20,15 @@ async function acceptAndCheck(page, id, name) {
   assert.ok((await stored(page, 'stats')).unlockedThemes.includes(id));
   await page.click('#confirm-yes');
   assert.equal(await theme(page), id);
+  // Gevonden op het opgelost-scherm: eerst dat dicht.
+  if (await page.isVisible('#solved-dialog')) {
+    await page.click('#solved-home');
+    // Eerst de berichtjes van nieuwe mijlpalen (zoals De allereerste) wegklikken.
+    for (let k = 0; k < 40 && (await page.isVisible('#message-dialog') || await page.isHidden('#home')); k++) {
+      if (await page.isVisible('#message-dialog')) await page.click('#message-ok');
+      await page.waitForTimeout(100);
+    }
+  }
   await openSettings(page);
   assert.equal(await page.isVisible(`#theme-options-geheim input[value="${id}"]`), true, `${name} in Geheim`);
   assert.equal(await page.isChecked(`input[name="theme"][value="${id}"]`), true);
@@ -139,6 +148,42 @@ test('Vertrekhal: in Gran Canaria vijf keer op de palmboom en dan op de kokosnoo
   await solve(page);
   await page.waitForSelector('#solved-dialog[open]');
   assert.equal(await page.getAttribute('.flapstatus', 'data-text'), 'BOARDING 💛');
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
+
+// Een puzzel waar nog één vakje open is; geeft { game, last }.
+function almostSolved() {
+  const g = savedGame();
+  const last = g.values.findIndex((v) => !v);
+  return { game: { ...g, values: g.solution.map((v, i) => (i === last ? 0 : v)) }, last };
+}
+async function solveLast(page, { game, last }) {
+  await page.click('.card.continue');
+  await page.click(`#board .cell[data-i="${last}"]`);
+  await page.click(`#numpad .num[data-d="${game.solution[last]}"]`);
+  await page.clock.runFor(2500);
+  await page.waitForSelector('#solved-dialog[open]');
+}
+
+test('Onzichtbare inkt: in Briefje het hartje op het opgelost-scherm 3 seconden vasthouden', async () => {
+  const a = almostSolved();
+  const page = await open(base, { clock: GEWOON, storage: { settings: { theme: 'briefje' }, game: a.game } });
+  await solveLast(page, a);
+  const box = await page.locator('#solved-dialog .solved-heart').boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  // Te kort: niets, en het hartje is weer gewoon.
+  await page.mouse.down();
+  await page.clock.runFor(2900);
+  assert.ok(Number(await page.$eval('.solved-heart', (el) => el.style.getPropertyValue('--uv'))) > 0.5, 'het hartje kleurt al paars');
+  await page.mouse.up();
+  assert.equal(await page.$eval('.solved-heart', (el) => el.style.getPropertyValue('--uv')), '0');
+  assert.equal(await page.isVisible('#confirm-dialog'), false);
+  // Lang genoeg.
+  await page.mouse.down();
+  await page.clock.runFor(3100);
+  await page.mouse.up();
+  await acceptAndCheck(page, 'onzichtbare-inkt', 'Onzichtbare inkt');
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });

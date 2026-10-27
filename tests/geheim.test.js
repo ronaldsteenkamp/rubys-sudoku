@@ -1,7 +1,7 @@
 // De geheime thema's: elke trigger is pure logica (net wel en net niet), los van de DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN, tapCounter, PIE_TAPS, PALM_TAPS } from '../js/themes.js';
+import { THEMES, themeById, checkThemeUnlocks, unlockTheme, resolveTheme, keepUp, KEEP_UP, stringRun, STRING_RUN, tapCounter, PIE_TAPS, PALM_TAPS, holdProgress, HOLD_MS } from '../js/themes.js';
 import { THEME_UNLOCK_TEXT, THEME_EMOJI, GREETINGS, PIE_GREETING, pieGreeting } from '../js/messages.js';
 import { emptyStats } from '../js/storage.js';
 
@@ -146,4 +146,17 @@ test('Vertrekhal: het klapbordje ratelt door en eindigt op het goede cijfer', as
   }
   assert.equal(ON_TIME, 'LAS PALMAS · ON TIME');
   assert.match(BOARDING, /^BOARDING/);
+});
+
+// ---------- Onzichtbare inkt: niet loslaten ----------
+
+test('Onzichtbare inkt: drie seconden ingedrukt houden, 2,999 s is net te kort', () => {
+  assert.equal(HOLD_MS, 3000);
+  assert.equal(holdProgress(1000, 1000), 0);
+  assert.equal(holdProgress(1000, 2500), 0.5);
+  assert.ok(holdProgress(1000, 3999) < 1, 'net te kort');
+  assert.equal(holdProgress(1000, 4000), 1);
+  assert.equal(holdProgress(1000, 99999), 1, 'nooit meer dan 1');
+  assert.equal(holdProgress(null, 5000), 0, 'losgelaten');
+  assert.equal(holdProgress(5000, 4000), 0, 'nooit minder dan 0');
 });

@@ -205,6 +205,13 @@ export const THEMES = [
     celebrate: ['✈️', '🌴', '🧳', '💛'],
     swatch: { bg: '#0c1016', surface: '#181d25', accent: '#ffd23f', digit: '#ffd23f' },
   },
+  {
+    // Vrij door in Briefje op het opgelost-scherm het getekende hartje 3 seconden ingedrukt te houden (zie holdProgress).
+    id: 'onzichtbare-inkt', name: 'Onzichtbare inkt', scheme: 'dark', group: 'geheim', emoji: '🔦', icon: '🔦', fx: 'onzichtbare-inkt',
+    unlock: { secret: true },
+    celebrate: ['🔦', '💜', '✨', '✉️'],
+    swatch: { bg: '#110f18', surface: '#191622', accent: '#b37bff', digit: '#c6b2f2' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
@@ -383,6 +390,11 @@ export function stringRun({ length = STRING_RUN.length, within = STRING_RUN.with
     return true;
   };
 }
+
+// Onzichtbare inkt: lang drukken. Hoe ver ze is (0–1) als ze sinds `start` (ms)
+// het hartje ingedrukt houdt; bij 1 (na HOLD_MS) is het gelukt. Losgelaten = null.
+export const HOLD_MS = 3000;
+export const holdProgress = (start, now, need = HOLD_MS) => (start == null ? 0 : Math.min(1, Math.max(0, (now - start) / need)));
 
 // Vroeger kon het thema 'auto' zijn (licht of donker zoals het toestel). Dat
 // bestaat niet meer: wie het had, houdt het thema dat ze op dat moment zag.
