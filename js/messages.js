@@ -864,6 +864,7 @@ export const THEME_UNLOCK_TEXT = {
   noorderlicht: 'Vijf keer laat op de avond nog gepuzzeld, nachtuil van me. Als beloning het noorderlicht, speciaal voor jou aangezet 🌌💚',
   onderwater: 'Tien puzzels zonder één hint! Je bent zo diep gedoken dat je bij de visjes bent beland. Blub, wat ben je slim 🐠🫧',
   gameboy: 'Psst… je hebt het geheime level gevonden! 👾 Press Start, Player 1. (Niet verder vertellen.)',
+  sporthal: 'Drieëndertig keer hooggehouden, net als het nummer op je shirt! De tribune staat op z’n kop 📣 Welkom in de sporthal, nummer 33. (Ssst, geheim.)',
 };
 
 // ---------- Kleine tekstjes ----------
@@ -895,7 +896,7 @@ export const THEME_EMOJI = {
   zonnig: '☀️', nacht: '🌙', sterren: '⭐', liefde: '❤️', lelie: '🌸', 'gran-canaria': '🌴',
   volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
   robijn: '💎', rubyxcube: '🧩', koffiemonster: '☕', gitaar: '🎸', beachvolleybal: '🏖️', dagverloop: '🌅',
-  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾',
+  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐',
   waddenzee: '🦭', bos: '🐿️', noorderlicht: '🌌', regen: '☔', onderwater: '🐠',
 };
 

@@ -179,11 +179,12 @@ function themePreview(id) {
 // Briefje: zijn handschrift ook in het logo, de hartjes en "Goed zo!" (hand/*.svg, zie style.css).
 const handwritten = () => document.documentElement.dataset.theme === 'briefje';
 // Cijfers als plaatje: in Briefje en Krijtbord staat wat Ruby zelf invult er
-// met de hand (de gegeven cijfers blijven strak), in Game Boy zijn alle cijfers pixels.
-function glyphs() {
-  const t = document.documentElement.dataset.theme;
-  return t === 'gameboy' ? 'pixel' : t === 'briefje' || t === 'krijtbord' ? 'hand' : null;
-}
+// met de hand (de gegeven cijfers blijven strak), in Game Boy zijn alle cijfers
+// pixels en in Sporthal ledcijfers van een scorebord.
+const GLYPHS = { gameboy: 'pixel', sporthal: 'led', briefje: 'hand', krijtbord: 'hand' };
+const glyphs = () => GLYPHS[document.documentElement.dataset.theme] || null;
+// Alle cijfers als plaatje (niet alleen wat zij invult)?
+const allGlyphs = (glyph) => glyph === 'pixel' || glyph === 'led';
 
 // Het thema van nu: op een dagthema-dag kiest de app (zie themeForDay in
 // themes.js), anders haar eigen keuze. settings.theme verandert daarbij nooit.
@@ -236,6 +237,8 @@ const fxCtx = {
   get reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; },
   // Regenachtige dag: zachte regen als ze die aan heeft gezet en het geluid niet uit staat.
   rainWanted: () => settings.rainSound && settings.sound !== 'uit',
+  // Een geheim thema is gevonden (de bal in Volleybal, de kokosnoot in Gran Canaria…).
+  secret: (id) => unlockSecret(id),
   // Dagverloop heeft nieuwe kleuren gezet.
   changed({ scheme, vars }) {
     store.saveThemeToday(dayKey(today()), shownTheme.theme, shownTheme.accent, { vars, scheme });
@@ -777,8 +780,8 @@ function render() {
     const given = game.isGiven(i);
     const wrong = !given && v && (showWrong ? game.isWrong(i) : checkMarks.has(i));
     const cls = ['cell'];
-    // Met de hand alleen wat zij invult; pixels voor alle cijfers.
-    const g = v && (glyph === 'pixel' || (glyph === 'hand' && !given)) ? glyph : null;
+    // Met de hand alleen wat zij invult; pixels en ledcijfers voor alle cijfers.
+    const g = v && (allGlyphs(glyph) || (glyph === 'hand' && !given)) ? glyph : null;
     if (v) cls.push(given ? 'given' : 'user', ...(g ? [g] : []));
     // Een figuur met accenten (pijl, lint, naden…) tekent die in de donkerdere tint; anders de omtrek.
     if (shape?.mask[i]) {
@@ -1279,12 +1282,31 @@ async function checkOpeningUnlocks() {
   for (const id of fresh) await offerTheme(id);
 }
 
-// Het geheime thema: 8 keer snel op het logo tikken.
+// Een geheim thema gevonden: vrijspelen en meteen aanbieden. Was het al vrij,
+// dan gebeurt er niets extra's. Geeft true als het nieuw was.
+function unlockSecret(id) {
+  if (!unlockTheme(stats, id, today())) return false;
+  saved(store.saveStats(stats));
+  offerTheme(id).then(showFreshMilestones);
+  return true;
+}
+
+// Mijlpalen die buiten een opgeloste puzzel om vrijkomen (zoals Alle geheimen).
+async function showFreshMilestones() {
+  const fresh = M.newMilestones(stats, unlocked);
+  if (!fresh.length) return;
+  unlocked = [...unlocked, ...fresh.map((m) => m.id)];
+  store.saveUnlocked(unlocked);
+  for (const m of fresh) {
+    feedback('unlock');
+    await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
+  }
+}
+
+// Het geheime thema Game Boy: 8 keer snel op het logo tikken.
 const logoTap = tapCounter();
 $('.brand').addEventListener('click', () => {
-  if (!logoTap(performance.now()) || !unlockTheme(stats, 'gameboy', today())) return;
-  saved(store.saveStats(stats));
-  offerTheme('gameboy');
+  if (logoTap(performance.now())) unlockSecret('gameboy');
 });
 
 $('#solved-again').addEventListener('click', () => $('#solved-dialog').close('again'));
@@ -1610,7 +1632,7 @@ function miniBoard(ex) {
     for (let c = c0; c <= c1; c++, k++) {
       const i = r * 9 + c, raw = ex.cells[k], v = Math.abs(raw), given = raw > 0;
       const cls = ['cell'];
-      const g = v && (glyph === 'pixel' || (glyph === 'hand' && !given)) ? glyph : null;
+      const g = v && (allGlyphs(glyph) || (glyph === 'hand' && !given)) ? glyph : null;
       if (v) cls.push(given ? 'given' : 'user', ...(g ? [g] : []));
       if (ex.digit && v === ex.digit) cls.push('same');
       if (region.has(i)) cls.push('hint-region');

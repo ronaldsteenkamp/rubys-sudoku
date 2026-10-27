@@ -100,6 +100,11 @@ export function audioOutput() {
   return a ? { ctx: a, out: master } : null;
 }
 
+// Voor de eigen geluiden van een thema (een fluitje, een klokslag…): zoals
+// audioOutput, maar null als het geluid uit staat. Zo volgt alles de gewone
+// geluidsinstelling en het halve volume van de slaapstand.
+export const themeAudio = () => (enabled.sound === 'uit' ? null : audioOutput());
+
 // Een 8-bit-deuntje in blokgolven (Game Boy), als het geluid aan staat.
 // `notes`: [[Hz, start (s), duur (s)], …]. Geeft true als het klinkt.
 export function chiptune(notes) {

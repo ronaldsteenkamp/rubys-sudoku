@@ -38,7 +38,8 @@ export const THEMES = [
     swatch: { bg: '#fbf3e6', surface: '#fffdf8', accent: '#f29b74', digit: '#17606f' },
   },
   {
-    id: 'volleybal', name: 'Volleybal', scheme: 'light', group: 'jij',
+    // Af en toe ligt er een bal op het startscherm om hoog te houden (js/fx/volleybal.js).
+    id: 'volleybal', name: 'Volleybal', scheme: 'light', group: 'jij', fx: 'volleybal',
     celebrate: ['🏐', '🙌', '⭐', '💛'],
     swatch: { bg: '#fffaea', surface: '#ffffff', accent: '#ffcc00', digit: '#1d4fa3' },
   },
@@ -174,6 +175,13 @@ export const THEMES = [
     unlock: { secret: true },
     celebrate: ['👾', '🎮', '⭐', '🍄'],
     swatch: { bg: '#88c070', surface: '#e0f8d0', accent: '#88c070', digit: '#081820' },
+  },
+  {
+    // Vrij door in Volleybal de bal 33 keer hoog te houden op het startscherm (zie keepUp).
+    id: 'sporthal', name: 'Sporthal', scheme: 'light', group: 'geheim', emoji: '🏐', icon: '🏐', fx: 'sporthal',
+    unlock: { secret: true },
+    celebrate: ['🏐', '📣', '🏆', '💛'],
+    swatch: { bg: '#f0dcb4', surface: '#fffaf0', accent: '#ffcf33', digit: '#b01f18' },
   },
 ];
 
@@ -313,6 +321,24 @@ export function tapCounter({ taps = SECRET_TAPS.taps, within = SECRET_TAPS.withi
     if (times.length < taps) return false;
     times = [];
     return true;
+  };
+}
+
+// Sporthal: de bal hooghouden. Een tik terwijl de bal in de lucht is telt door; een
+// tik als hij al geland is (of nog lag) begint opnieuw bij 1. Na `target` keer op rij
+// (33, haar rugnummer) zegt tap() done. `airtime`: zo lang (ms) is hij in de lucht na een tik.
+export const KEEP_UP = { target: 33, airtime: 1600 };
+export function keepUp({ target = KEEP_UP.target, airtime = KEEP_UP.airtime } = {}) {
+  let count = 0, landsAt = -Infinity;
+  return {
+    tap(t) {
+      count = t < landsAt ? count + 1 : 1;
+      landsAt = t + airtime;
+      return { count, done: count === target };
+    },
+    // Is hij op tijd `t` gevallen (dan begint de telling opnieuw)?
+    fell: (t) => count > 0 && t >= landsAt,
+    get count() { return count; },
   };
 }
 

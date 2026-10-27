@@ -396,15 +396,17 @@ test("'auto' kiest Hoog contrast als het toestel om meer contrast vraagt", () =>
   assert.equal(resolveTheme('auto', d(2026, 10, 21), []), 'zonnig');
 });
 
+// De geheime thema's na Game Boy, in deze volgorde.
+const SECRET_ORDER = ['sporthal'];
 test('de kiezer: volgorde en groepjes', async () => {
   const { THEME_GROUPS } = await import('../js/themes.js');
   assert.deepEqual(THEMES.map((t) => t.id), ['zonnig', 'nacht', 'sterren', 'liefde', 'lelie', 'gran-canaria', 'volleybal', 'briefje',
     'robijn', 'rubyxcube', 'koffiemonster', 'gitaar', 'beachvolleybal', 'dagverloop', 'krant', 'krijtbord', 'zonnebloem', 'hoog-contrast',
     'waddenzee', 'bos', 'noorderlicht', 'regen', 'onderwater',
-    'lente', 'zomer', 'herfst', 'winter', 'gameboy']);
+    'lente', 'zomer', 'herfst', 'winter', 'gameboy', ...SECRET_ORDER]);
   for (const t of THEMES) assert.ok(THEME_GROUPS.some((g) => g.id === t.group), t.id);
   assert.equal(THEMES.filter((t) => t.group === 'seizoen').every((t) => t.season), true);
-  assert.deepEqual(THEMES.filter((t) => t.group === 'geheim').map((t) => t.id), ['gameboy']);
+  assert.deepEqual(THEMES.filter((t) => t.group === 'geheim').map((t) => t.id), ['gameboy', ...SECRET_ORDER]);
 });
 
 test('Game Boy: alleen de vier groentinten', () => {
