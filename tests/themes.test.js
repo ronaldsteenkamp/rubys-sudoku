@@ -397,7 +397,7 @@ test("'auto' kiest Hoog contrast als het toestel om meer contrast vraagt", () =>
 });
 
 // De geheime thema's na Game Boy, in deze volgorde.
-const SECRET_ORDER = ['sporthal', 'kampvuur', 'preitaart', 'vertrekhal', 'onzichtbare-inkt', 'wandeltijd'];
+const SECRET_ORDER = ['sporthal', 'kampvuur', 'preitaart', 'vertrekhal', 'onzichtbare-inkt', 'wandeltijd', 'middernacht'];
 test('de kiezer: volgorde en groepjes', async () => {
   const { THEME_GROUPS } = await import('../js/themes.js');
   assert.deepEqual(THEMES.map((t) => t.id), ['zonnig', 'nacht', 'sterren', 'liefde', 'lelie', 'gran-canaria', 'volleybal', 'briefje',

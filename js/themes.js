@@ -219,6 +219,13 @@ export const THEMES = [
     celebrate: ['🐶', '🐾', '🦴', '💛'],
     swatch: { bg: '#edf4dd', surface: '#fffdf5', accent: '#8cc152', digit: '#7a4416' },
   },
+  {
+    // Vrij door een puzzel op te lossen terwijl de klok tussen 00:00 en 00:01 staat (zie midnightMinute).
+    id: 'middernacht', name: 'Middernacht', scheme: 'dark', group: 'geheim', emoji: '🕛', icon: '🕛', fx: 'middernacht',
+    unlock: { secret: true },
+    celebrate: ['🕛', '🌙', '✨', '💜'],
+    swatch: { bg: '#170e2b', surface: '#211536', accent: '#e8c46a', digit: '#ffd98a' },
+  },
 ];
 
 export const DEFAULT_THEME = 'zonnig';
@@ -415,6 +422,13 @@ export function pawCatcher(need = PAW_CATCH) {
     return { count: caught.size, done: fresh && caught.size === need };
   };
 }
+
+// Middernacht: de juiste minuut. Staat de klok (lokale tijd) tussen 00:00 en 00:01?
+// Met lokale uren en minuten, dus zomer- en wintertijd maken niet uit (die wisselen
+// in Nederland om 02:00 en 03:00, nooit om middernacht).
+export const midnightMinute = (date = new Date()) => date.getHours() === 0 && date.getMinutes() === 0;
+// Is het tussen `prev` en `now` middernacht geworden? (Dan slaat de klok twaalf keer.)
+export const struckMidnight = (prev, now) => dayKey(prev) !== dayKey(now) && now > prev && midnightMinute(now);
 
 // Vroeger kon het thema 'auto' zijn (licht of donker zoals het toestel). Dat
 // bestaat niet meer: wie het had, houdt het thema dat ze op dat moment zag.

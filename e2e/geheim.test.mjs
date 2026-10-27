@@ -11,7 +11,7 @@ after(async () => { await shutdown(); server.close(); });
 const theme = (page) => page.getAttribute('html', 'data-theme');
 // Een gewone dag zonder dagthema (geen wedstrijd, feestdag of seizoensbegin).
 const GEWOON = new Date(2026, 10, 3, 12);
-const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart', 'Vertrekhal', 'Onzichtbare inkt', 'Wandeltijd'];
+const SECRET_NAMES = ['Game Boy', 'Sporthal', 'Kampvuur', 'Preitaart', 'Vertrekhal', 'Onzichtbare inkt', 'Wandeltijd', 'Middernacht'];
 
 // Na het vinden: "Probeer maar!", dan staat het thema aan en in het groepje Geheim.
 async function acceptAndCheck(page, id, name) {
@@ -201,6 +201,40 @@ test('Wandeltijd: na het oplossen vijf pootjes uit de confetti vangen (de knoppe
   assert.equal(await page.isVisible('#confirm-dialog'), false, 'vier is te weinig');
   await paws.nth(4).dispatchEvent('click');
   await acceptAndCheck(page, 'wandeltijd', 'Wandeltijd');
+  assert.deepEqual(page.errors, []);
+  await page.context().close();
+});
+
+// De browser draait in Europe/Amsterdam (zie helpers.mjs), dus de tijden met +01:00 (wintertijd).
+for (const [hhmm, iso, free] of [['23:59', '2026-11-03T23:59:30+01:00', false], ['00:00', '2026-11-04T00:00:05+01:00', true], ['00:01', '2026-11-04T00:01:00+01:00', false]]) {
+  const time = new Date(iso);
+  test(`Middernacht: een puzzel oplossen om ${hhmm} ${free ? 'speelt hem vrij' : 'doet niets'}`, async () => {
+    const a = almostSolved();
+    const page = await open(base, { clock: time, storage: { settings: { theme: 'zonnig' }, game: a.game, unlocked: ['eerste', 'zonderhint'] } });
+    await page.click('.card.continue');
+    await page.click(`#board .cell[data-i="${a.last}"]`);
+    await page.click(`#numpad .num[data-d="${a.game.solution[a.last]}"]`);
+    await page.clock.runFor(2500);
+    await page.waitForSelector('#solved-dialog[open]');
+    assert.equal((await stored(page, 'stats')).unlockedThemes.includes('middernacht'), free);
+    await page.click('#solved-home');
+    await page.waitForTimeout(300);
+    if (free) await acceptAndCheck(page, 'middernacht', 'Middernacht');
+    else assert.equal(await page.isVisible('#confirm-dialog'), false);
+    assert.deepEqual(page.errors, []);
+    await page.context().close();
+  });
+}
+
+test('Middernacht: de wijzers lopen mee en om 00:00 slaat de klok', async () => {
+  const page = await open(base, { clock: new Date('2026-11-03T23:59:57+01:00'), storage: { settings: { theme: 'middernacht' }, stats: { unlockedThemes: ['middernacht'], levels: {} } } });
+  await page.waitForSelector('.fx-middernacht .klok');
+  const angle = () => page.$eval('.fx-middernacht .minuut', (el) => Number(el.dataset.angle));
+  assert.ok(await angle() > 354, 'bijna twaalf uur');
+  assert.equal(await page.isVisible('.fx-middernacht.slaat'), false);
+  await page.clock.runFor(4000);
+  assert.ok(await angle() < 1, 'net over twaalven');
+  assert.equal(await page.locator('.fx-middernacht.slaat').count(), 1, 'de klok slaat');
   assert.deepEqual(page.errors, []);
   await page.context().close();
 });

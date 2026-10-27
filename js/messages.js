@@ -875,6 +875,7 @@ export const THEME_UNLOCK_TEXT = {
   vertrekhal: 'Een kokosnoot! Dat kan maar één ding betekenen: we gaan weer naar Las Palmas ✈️ Je instapkaart ligt klaar, Schatje. Gate 33, on time 💛',
   'onzichtbare-inkt': 'Je liet niet los, en kijk: er stond al die tijd iets geschreven, in onzichtbare inkt 🔦 Schijn maar eens met het lampje, Liefje. Het staat er echt.',
   wandeltijd: 'Vijf pootjes gevangen! Iemand staat al kwispelend bij de deur met de riem in z’n bek 🐶 Jas aan, Ruubs: het is wandeltijd 🐾',
+  middernacht: 'Klokslag twaalf en jij zat nog te puzzelen, nachtuiltje 🕛 Dit thema krijg je alleen op het spookuur. Nu snel slapen, en droom maar van mij 💜',
 };
 
 // ---------- Kleine tekstjes ----------
@@ -906,7 +907,7 @@ export const THEME_EMOJI = {
   zonnig: '☀️', nacht: '🌙', sterren: '⭐', liefde: '❤️', lelie: '🌸', 'gran-canaria': '🌴',
   volleybal: '🏐', briefje: '✏️', lente: '🌷', zomer: '☀️', herfst: '🍂', winter: '❄️',
   robijn: '💎', rubyxcube: '🧩', koffiemonster: '☕', gitaar: '🎸', beachvolleybal: '🏖️', dagverloop: '🌅',
-  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐', kampvuur: '🔥', preitaart: '🥧', vertrekhal: '✈️', 'onzichtbare-inkt': '🔦', wandeltijd: '🐶',
+  krant: '📰', krijtbord: '🖍️', zonnebloem: '🌻', 'hoog-contrast': '🔆', gameboy: '👾', sporthal: '🏐', kampvuur: '🔥', preitaart: '🥧', vertrekhal: '✈️', 'onzichtbare-inkt': '🔦', wandeltijd: '🐶', middernacht: '🕛',
   waddenzee: '🦭', bos: '🐿️', noorderlicht: '🌌', regen: '☔', onderwater: '🐠',
 };
 

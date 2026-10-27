@@ -990,6 +990,42 @@
   color-scheme: light;
 }
 
+/* Middernacht (geheim): dieppaars, met een grote, zachte klok achter het bord
+   waarvan de wijzers echt meelopen (js/fx/middernacht.js). Goud voor de wijzers,
+   wat Ruby invult en het gekozen vakje. Een fout is roze met een randje. */
+[data-theme="middernacht"] {
+  --bg: #170e2b;
+  --bg-2: #24154a;
+  --surface: #211536;
+  --surface-2: #2c1e47;
+  --ink: #f3ecff;
+  --ink-soft: #c9bce4;
+  --line: #36285a;
+  --line-strong: #8a74c0;
+  --accent: #e8c46a;
+  --accent-strong: #f3d68e;
+  --accent-ink: #1f1402;
+  --accent-soft: #42345a;
+  --user: #ffd98a;
+  --given: #f3ecff;
+  --sel: #e8c46a;
+  --sel-ink: #1f1402;
+  --peer: #37244f;
+  --same: #4f3d70;
+  --same-ring: transparent;
+  --hint: #7fd8ff;
+  --wrong: #ff9db0;
+  --wrong-bg: #5a1838;
+  --heart: #ff7aa8;
+  --heart-fill: #4a1f3c;
+  --heart-edge: #5a2748;
+  --heart-ink: #ffd3e2;
+  --heart-solved: #c8325a;
+  --heart-solved-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 8px 24px rgb(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
 /* Zonnebloem: geel en bladgroen, met een bloem op het startscherm die meegroeit. */
 [data-theme="zonnebloem"] {
   --bg: #fffae3;
@@ -1293,6 +1329,7 @@ html[data-accent="preitaart"] { --accent: #eaa93a; --accent-strong: #b97a1c; --a
 html[data-accent="vertrekhal"] { --accent: #ffd23f; --accent-strong: #ffe07a; --accent-ink: #141414; --sel: #ffd23f; --sel-ink: #141414; }
 html[data-accent="onzichtbare-inkt"] { --accent: #b37bff; --accent-strong: #cfa6ff; --accent-ink: #160a28; --sel: #b37bff; --sel-ink: #160a28; }
 html[data-accent="wandeltijd"] { --accent: #8cc152; --accent-strong: #5a9628; --accent-ink: #182a0a; --sel: #e8bc84; --sel-ink: #2a1a08; }
+html[data-accent="middernacht"] { --accent: #e8c46a; --accent-strong: #f3d68e; --accent-ink: #1f1402; --sel: #e8c46a; --sel-ink: #1f1402; }
 html[data-accent="waddenzee"] { --accent: #8fb3c4; --accent-strong: #4f7f95; --accent-ink: #14262f; --sel: #8fb3c4; --sel-ink: #14262f; }
 html[data-accent="bos"] { --accent: #8fb35a; --accent-strong: #5d7f32; --accent-ink: #1d2a12; --sel: #a9c873; --sel-ink: #1d2a12; }
 html[data-accent="noorderlicht"] { --accent: #5ee6a8; --accent-strong: #8ff0c4; --accent-ink: #04231a; --sel: #5ee6a8; --sel-ink: #04231a; }
@@ -2871,6 +2908,14 @@ html.fx-paused :is(.fx-layer, .fx-over, .fx-animal) *, html.fx-paused .fx-animal
 .fx-hond .p2 { animation-direction: alternate-reverse; }
 @keyframes ren { from { transform: translateX(-130px); } to { transform: translateX(calc(100vw + 20px)); } }
 @keyframes draf { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+
+/* Middernacht: de grote klok achter het bord. De wijzers draaien (transform, gezet in
+   js/fx/middernacht.js) met een zachte overgang; om middernacht gloeit hij even op. */
+.fx-middernacht { background: radial-gradient(90% 60% at 50% 40%, rgb(120 80 200 / 18%), transparent 70%); }
+.fx-middernacht .klok { left: 50%; top: 45%; width: min(156vw, 860px); aspect-ratio: 1; margin-left: calc(min(156vw, 860px) / -2); transform: translateY(-50%); opacity: 0.33; transition: opacity 1.5s ease; }
+.fx-middernacht .klok svg { display: block; width: 100%; height: 100%; }
+.fx-middernacht .wijzer { transform-box: view-box; transform-origin: 100px 100px; transition: transform 0.9s ease; }
+.fx-middernacht.slaat .klok { opacity: 0.6; }
 
 /* De dieren: ze kijken om de hoek (aan de rand, op een plek zonder knoppen). */
 .fx-animal { position: fixed; z-index: 6; padding: 0; border: 0; background: none; touch-action: manipulation; transition: transform 0.8s cubic-bezier(0.3, 0.9, 0.4, 1); }

@@ -9,7 +9,7 @@ import { getHint, stageCells, hintsLeft, MAX_HINTS } from './hints.js';
 import { PEERS, rowOf, colOf, bit } from './solver.js';
 import * as store from './storage.js';
 import * as M from './messages.js';
-import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS, pawCatcher } from './themes.js';
+import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday, dayKey, migrateThemeSetting, recordSeasonSolve, checkThemeUnlocks, unlockTheme, unlockHint, tapCounter, stringRun, PIE_TAPS, holdProgress, HOLD_MS, pawCatcher, midnightMinute } from './themes.js';
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
@@ -1211,6 +1211,8 @@ function onSolved() {
   if (counted) recordSeasonSolve(stats, today());
   // Komt er een thema vrij (seizoen, aantal puzzels, reeks, Ruby-modus, vóór tienen…)?
   const freshThemes = checkThemeUnlocks(stats, today());
+  // Het geheime thema Middernacht: opgelost terwijl de klok tussen 00:00 en 00:01 staat.
+  if (midnightMinute(today()) && unlockTheme(stats, 'middernacht', today())) freshThemes.push('middernacht');
   // Vrijgespeeld seizoen: vandaag meteen dat seizoen (een dagthema, zie themeForDay).
   if (freshThemes.length) applyTheme();
   // Pas de puzzel opruimen als de statistieken echt bewaard zijn; anders staat
