@@ -65,12 +65,25 @@ function attempt(rng, cap, minClues) {
   return { puzzle, solution, clues, level: r.level, used: r.used };
 }
 
-// Ruby-modus: elke puzzel heeft één doeltechniek die er echt in nodig is, om en
-// om (een derde elk). Zonder doel zou het bijna altijd een XY-wing zijn: Swordfish
-// en XYZ-wing kwamen maar in 1 op de 8 à 12 puzzels voor. De voorraad staat in
-// dezelfde volgorde: voorraadpuzzel k heeft RUBY_TARGETS[k % 3] nodig.
-export const RUBY_TARGETS = ['xy-wing', 'xyz-wing', 'swordfish'];
-export const rubyTargetOf = (bankIndex, n = BANK.ruby.length) => RUBY_TARGETS[(((bankIndex % n) + n) % n) % RUBY_TARGETS.length];
+// Doeltechnieken: op Koffie erbij, Even nadenken en Ruby-modus heeft elke puzzel
+// één techniek van dat niveau die er echt in nodig is, om en om (even vaak elk).
+// Zonder doel won steeds de techniek die het vaakst voorkomt (Wijzende cijfers,
+// Verborgen paar, XY-wing), en kwam bijvoorbeeld een Verborgen drietal maar in 1
+// op de 12 puzzels voor. De voorraad staat in dezelfde volgorde: voorraadpuzzel k
+// van een niveau heeft LEVEL_TARGETS[niveau][k % aantal] nodig.
+export const LEVEL_TARGETS = {
+  koffie: ['pointing', 'box-line', 'naked-pair'],
+  nadenken: ['hidden-pair', 'naked-triple', 'hidden-triple', 'x-wing'],
+  ruby: ['xy-wing', 'xyz-wing', 'swordfish'],
+};
+export const RUBY_TARGETS = LEVEL_TARGETS.ruby;
+// De doeltechniek van voorraadpuzzel `bankIndex` van een niveau (of null zonder doelen).
+export function targetOf(levelId, bankIndex, n = BANK[levelId]?.length ?? 0) {
+  const list = LEVEL_TARGETS[levelId];
+  if (!list || !n) return null;
+  return list[(((bankIndex % n) + n) % n) % list.length];
+}
+export const rubyTargetOf = (bankIndex, n = BANK.ruby.length) => targetOf('ruby', bankIndex, n);
 
 // Genereert een puzzel van het gevraagde niveau. Met `maxAttempts` blijft het
 // deterministisch voor een gegeven seed (nodig voor de dagpuzzel); `timeBudget`
@@ -79,18 +92,20 @@ export const rubyTargetOf = (bankIndex, n = BANK.ruby.length) => RUBY_TARGETS[((
 // `bankIndex` kiest welke (anders een willekeurige).
 // Niveaus zonder voorraad zijn snel te maken; daar gaan we door tot het niveau
 // echt klopt, zodat Koffie erbij nooit stiekem een Zondagochtend wordt.
-// Ruby-modus: `target` is de techniek die nodig moet zijn (zie RUBY_TARGETS); zonder
-// `target` kiest de seed er een (of, met `bankIndex`, die van die voorraadpuzzel).
+// `target` is de techniek die nodig moet zijn (zie LEVEL_TARGETS); zonder `target`
+// kiest de seed er een (of, met `bankIndex`, die van die voorraadpuzzel).
 export function generate({
   levelId = 'zondag', seed = (Math.random() * 2 ** 32) >>> 0, maxAttempts = 400, timeBudget = Infinity, useBank = true, bankIndex = null, target = null,
 } = {}) {
   const lvl = levelById(levelId);
   const rng = mulberry32(seed);
   const bank = useBank ? BANK[lvl.id] : null;
-  if (lvl.id === 'ruby' && !RUBY_TARGETS.includes(target)) {
-    target = bankIndex != null ? rubyTargetOf(bankIndex) : RUBY_TARGETS[Math.floor(rng() * RUBY_TARGETS.length)];
+  const targets = LEVEL_TARGETS[lvl.id];
+  if (!targets) target = null;
+  else if (!targets.includes(target)) {
+    target = bankIndex != null && bank?.length ? targetOf(lvl.id, bankIndex) : targets[Math.floor(rng() * targets.length)];
   }
-  const fits = (res) => res.level === lvl.level && (lvl.id !== 'ruby' || Boolean(res.used[target]));
+  const fits = (res) => res.level === lvl.level && (!target || Boolean(res.used[target]));
   const start = Date.now();
   let best = null;
   for (let n = 0; n < maxAttempts; n++) {
@@ -101,11 +116,19 @@ export function generate({
   }
   if (bank?.length) {
     let k = bankIndex ?? Math.floor(rng() * bank.length);
-    // Zonder vaste index: een voorraadpuzzel met de doeltechniek (k % 3 hoort bij RUBY_TARGETS).
-    if (lvl.id === 'ruby' && bankIndex == null) k = k - (k % RUBY_TARGETS.length) + RUBY_TARGETS.indexOf(target);
+    // Zonder vaste index: een voorraadpuzzel met de doeltechniek (k % aantal hoort bij LEVEL_TARGETS).
+    if (target && bankIndex == null) k = k - (k % targets.length) + targets.indexOf(target);
     const base = parseGrid(bank[((k % bank.length) + bank.length) % bank.length]);
-    const givens = transform(base, rng);
-    const r = logicalSolve(givens, lvl.level);
+    // Husselen houdt het niveau gelijk, maar de oplosser kan daarna een andere route
+    // nemen, waardoor de doeltechniek soms niet meer nodig is. Dan een andere hussel
+    // (meestal lukt de eerste of tweede); in het uiterste geval de puzzel zoals hij is.
+    let givens, r;
+    for (let tries = 0; tries < 12; tries++) {
+      givens = transform(base, rng);
+      r = logicalSolve(givens, lvl.level);
+      if (!target || r.used[target]) break;
+    }
+    if (target && !r.used[target]) { givens = base; r = logicalSolve(givens, lvl.level); }
     return finish({ puzzle: givens, solution: solve(givens), clues: givens.filter(Boolean).length, level: r.level, used: r.used }, lvl, seed, 'bank', target);
   }
   return finish(best, lvl, seed, 'generator', target);
@@ -114,7 +137,7 @@ export function generate({
 function finish(res, lvl, seed, source, target = null) {
   return {
     levelId: lvl.id,
-    ...(lvl.id === 'ruby' ? { target } : {}),
+    ...(target ? { target } : {}),
     seed,
     source,
     givens: res.puzzle,
@@ -182,7 +205,7 @@ export function dailyBankIndex(date) {
 export function generateDaily(date = new Date()) {
   const key = dateKey(date);
   const levelId = dailyLevelFor(date);
-  // Zonder voorraad (Zondagochtend, Koffie) mag de generator langer zoeken: dat gaat snel.
+  // Zonder voorraad (Zondagochtend) mag de generator langer zoeken: dat gaat snel.
   const maxAttempts = BANK[levelId] ? 30 : 400;
   const p = generate({ levelId, seed: hashString('ruby-dagpuzzel-' + key), maxAttempts, bankIndex: dailyBankIndex(date) });
   return { ...p, daily: key };

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { countSolutions, isValidGrid, parseGrid, solve } from '../js/solver.js';
 import { logicalSolve } from '../js/techniques.js';
-import { generate, generateDaily, LEVELS, mulberry32, transform, dailyLevelFor, hashString } from '../js/generator.js';
+import { generate, generateDaily, LEVELS, levelById, mulberry32, transform, dailyLevelFor, hashString } from '../js/generator.js';
 import { BANK } from '../js/bank.js';
 
 function assertGoodPuzzle(p) {
@@ -63,7 +63,7 @@ test('transform behoudt uniciteit, moeilijkheid en symmetrie', () => {
 });
 
 test('voorraadpuzzels zijn geldig en van het juiste niveau', () => {
-  for (const [id, want] of [['nadenken', 3], ['ruby', 4]]) {
+  for (const [id, want] of [['koffie', 2], ['nadenken', 3], ['ruby', 4]]) {
     assert.ok(BANK[id].length >= 50);
     for (const s of BANK[id].slice(0, 15)) {
       const g = parseGrid(s);
@@ -114,7 +114,7 @@ test('Koffie erbij is altijd echt Koffie, ook als de tijd op is en op dagen die 
 
 test('dagpuzzels uit de voorraad komen pas terug als de hele voorraad geweest is', async () => {
   const { dailyBankIndex, dailyLevelFor } = await import('../js/generator.js');
-  for (const level of ['nadenken', 'ruby']) {
+  for (const level of ['koffie', 'nadenken', 'ruby']) {
     const n = BANK[level].length;
     const used = new Map();
     for (let d = 0; used.size < n; d++) {
@@ -229,4 +229,50 @@ test('Ruby-dagpuzzel: de doeltechniek hoort bij de voorraadpuzzel van die dag, e
     return p.target;
   });
   assert.equal(new Set(targets).size, 3, targets.join(', '));
+});
+
+// ---------- Doeltechnieken op Koffie erbij en Even nadenken ----------
+
+test('doeltechnieken: elk niveau om en om, en de voorraad heeft per puzzel zijn techniek nodig', async () => {
+  const { LEVEL_TARGETS, targetOf } = await import('../js/generator.js');
+  assert.deepEqual(LEVEL_TARGETS.koffie, ['pointing', 'box-line', 'naked-pair']);
+  assert.deepEqual(LEVEL_TARGETS.nadenken, ['hidden-pair', 'naked-triple', 'hidden-triple', 'x-wing']);
+  for (const [id, want] of [['koffie', 2], ['nadenken', 3]]) {
+    assert.equal(BANK[id].length % LEVEL_TARGETS[id].length, 0, `${id}: een even groot deel per techniek`);
+    BANK[id].forEach((s, k) => {
+      const r = logicalSolve(parseGrid(s));
+      assert.equal(r.level, want, `${id} ${k}`);
+      assert.ok(r.used[targetOf(id, k)], `${id} ${k} heeft ${targetOf(id, k)} nodig`);
+    });
+  }
+  assert.equal(targetOf('zondag', 0), null, 'Zondagochtend heeft geen doel');
+});
+
+test('doeltechnieken: ook als de tijd op is heeft de puzzel zijn techniek nodig (dan uit de voorraad)', async () => {
+  const { LEVEL_TARGETS } = await import('../js/generator.js');
+  // Ook na het husselen van een voorraadpuzzel (dat kan de route van de oplosser veranderen).
+  for (const id of ['koffie', 'nadenken', 'ruby']) {
+    for (const target of LEVEL_TARGETS[id]) for (let seed = 0; seed < 8; seed++) {
+      const p = generate({ levelId: id, seed, timeBudget: 0, target });
+      assert.equal(p.target, target);
+      assert.equal(p.rating, levelById(id).level);
+      assert.ok(p.techniques.includes(target), `${id}/${target} (${p.source}): ${p.techniques.join(', ')}`);
+      assertGoodPuzzle(p);
+    }
+  }
+  const z = generate({ levelId: 'zondag', seed: 1 });
+  assert.equal(z.target, undefined);
+});
+
+test('doeltechnieken: zonder doel komen alle technieken van een niveau even vaak voor', async () => {
+  const { LEVEL_TARGETS } = await import('../js/generator.js');
+  for (const id of ['koffie', 'nadenken']) {
+    const count = {};
+    for (let s = 0; s < 80; s++) {
+      const p = generate({ levelId: id, seed: s, timeBudget: 0 });
+      assert.ok(p.techniques.includes(p.target), `${id} ${s}`);
+      count[p.target] = (count[p.target] || 0) + 1;
+    }
+    for (const t of LEVEL_TARGETS[id]) assert.ok(count[t] >= 80 / LEVEL_TARGETS[id].length / 2, `${id}/${t}: ${count[t]} van 80`);
+  }
 });
