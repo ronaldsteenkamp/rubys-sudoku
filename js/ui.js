@@ -1065,7 +1065,8 @@ function showHint() {
   if (!game || game.solved || paused) return;
   if (hint) { advanceHint(); return; }
   if (!hintsLeft(game)) { toast(M.HINTS_UP_LINES[Math.floor(Math.random() * M.HINTS_UP_LINES.length)], 3200); return; }
-  hint = getHint(game);
+  // Technieken die al in het boekje staan: bij een keten met twee even zware gaat een nieuwe voor.
+  hint = getHint(game, Math.random, { known: Object.keys(stats.techniques || {}) });
   if (!hint) return;
   hintStage = 0;
   game.hints++;

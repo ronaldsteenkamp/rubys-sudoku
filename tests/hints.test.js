@@ -159,3 +159,35 @@ test('hooguit 3 hints per puzzel', () => {
   assert.equal(hintsLeft({ hints: 7 }), 0, 'een oud spel met meer hints: gewoon 0');
   assert.equal(hintsLeft({}), 3);
 });
+
+test('de les van een hint is de zwaarste techniek uit de keten: een Swordfish verdwijnt nooit in "nog een andere stap"', async () => {
+  const { computeCandidates: cc, findStep, applyStep, TECHNIQUES } = await import('../js/techniques.js');
+  const { rubyTargetOf } = await import('../js/generator.js');
+  let checked = 0;
+  for (const [k, s] of BANK.ruby.entries()) {
+    if (rubyTargetOf(k) !== 'swordfish' || checked >= 6) continue;
+    const g = gameFrom(parseGrid(s));
+    // Speel met de logica mee tot de keten naar het volgende cijfer een Swordfish bevat.
+    for (let n = 0; n < 81 && !g.solved; n++) {
+      const grid = g.values.slice(), c = cc(grid), chain = [];
+      for (let m = 0; m < 12; m++) { const st = findStep(grid, c, 4); if (!st || st.place) break; chain.push(st); applyStep(grid, c, st); }
+      const h = getHint(g, rng);
+      if (chain.some((st) => st.technique === 'swordfish')) {
+        const hardest = Math.max(...chain.map((st) => st.level));
+        assert.equal(TECHNIQUES[h.id].level, hardest, `${h.technique} in plaats van de zwaarste`);
+        if (hardest === 4) {
+          // Nog niet in het boekje: dan de Swordfish (ook als er nog een XY-wing in de keten zit).
+          assert.equal(h.id, 'swordfish');
+          // Staat de Swordfish er al in, dan gaat een nog onbekende, even zware techniek voor.
+          const other = chain.find((st) => st.level === 4 && st.technique !== 'swordfish');
+          if (other) assert.equal(getHint(g, rng, { known: ['swordfish'] }).id, other.technique);
+        }
+        if (chain.length > 1) assert.match(h.stages[1].text, /andere stap/);
+        checked++;
+        break;
+      }
+      g.setDigit(h.action.cell, h.action.digit);
+    }
+  }
+  assert.ok(checked >= 4, `maar ${checked} Swordfish-momenten gevonden`);
+});
