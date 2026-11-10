@@ -202,6 +202,7 @@ test('winter over de jaarwisseling: dec 2026 t/m feb 2027 is winter-2026', () =>
 
 test('drie puzzels in de winter, ook over de jaarwisseling heen, ontgrendelen Winter', () => {
   const st = emptyStats();
+  st.unlockedThemes = ['kerst']; // Kerst komt in december toch al vrij (zie de test van { from })
   recordSeasonSolve(st, d(2026, 12, 30));
   assert.deepEqual(checkThemeUnlocks(st, d(2026, 12, 30)), []);
   recordSeasonSolve(st, d(2026, 12, 31));
@@ -210,16 +211,17 @@ test('drie puzzels in de winter, ook over de jaarwisseling heen, ontgrendelen Wi
   recordSeasonSolve(st, d(2027, 1, 1));
   assert.deepEqual(checkThemeUnlocks(st, d(2027, 1, 1)), ['winter']);
   assert.deepEqual(st.seasonSolves, { 'winter-2026': 3 });
-  assert.deepEqual(st.unlockedThemes, ['winter']);
+  assert.deepEqual(st.unlockedThemes, ['kerst', 'winter']);
   // Eenmaal vrij blijft vrij, en komt niet nog eens als 'nieuw'.
   recordSeasonSolve(st, d(2027, 1, 2));
   assert.deepEqual(checkThemeUnlocks(st, d(2027, 1, 2)), []);
   assert.deepEqual(checkThemeUnlocks(st, d(2027, 7, 1)), []);
-  assert.deepEqual(st.unlockedThemes, ['winter']);
+  assert.deepEqual(st.unlockedThemes, ['kerst', 'winter']);
 });
 
 test('puzzels uit een ander seizoen tellen niet mee', () => {
   const st = emptyStats();
+  st.unlockedThemes = ['kerst'];
   recordSeasonSolve(st, d(2026, 11, 29));
   recordSeasonSolve(st, d(2026, 11, 30));
   recordSeasonSolve(st, d(2026, 12, 1));
@@ -403,9 +405,10 @@ test('de kiezer: volgorde en groepjes', async () => {
   assert.deepEqual(THEMES.map((t) => t.id), ['zonnig', 'nacht', 'sterren', 'liefde', 'lelie', 'gran-canaria', 'volleybal', 'briefje',
     'robijn', 'rubyxcube', 'koffiemonster', 'gitaar', 'beachvolleybal', 'dagverloop', 'krant', 'krijtbord', 'zonnebloem', 'hoog-contrast',
     'waddenzee', 'bos', 'noorderlicht', 'regen', 'onderwater',
-    'lente', 'zomer', 'herfst', 'winter', 'gameboy', ...SECRET_ORDER]);
+    'lente', 'zomer', 'herfst', 'winter', 'kerst', 'gameboy', ...SECRET_ORDER]);
   for (const t of THEMES) assert.ok(THEME_GROUPS.some((g) => g.id === t.group), t.id);
-  assert.equal(THEMES.filter((t) => t.group === 'seizoen').every((t) => t.season), true);
+  // In Seizoenen: de vier seizoenen, en Kerst (geen seizoen, maar vrij vanaf 1 december).
+  assert.equal(THEMES.filter((t) => t.group === 'seizoen').every((t) => t.season || t.id === 'kerst'), true);
   assert.deepEqual(THEMES.filter((t) => t.group === 'geheim').map((t) => t.id), ['gameboy', ...SECRET_ORDER]);
 });
 

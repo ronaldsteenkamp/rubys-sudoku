@@ -7,7 +7,8 @@ let server, base;
 before(async () => ({ server, base } = await start()));
 after(async () => { await shutdown(); server.close(); });
 
-const stats = (extra) => ({ totalSolved: 5, streak: 5, bestStreak: 5, lastSolvedDay: '2026-10-21', levels: {}, ...extra });
+// Kerst staat al vrij, anders komt vanaf 1 december eerst de melding 'Er is iets nieuws uitgepakt!'.
+const stats = (extra) => ({ totalSolved: 5, streak: 5, bestStreak: 5, lastSolvedDay: '2026-10-21', levels: {}, unlockedThemes: ['kerst'], ...extra });
 
 test('dagpuzzel om 23:58 begonnen en om 00:03 af: de reeks blijft heel', async () => {
   const page = await open(base, { storage: { stats: stats() }, clock: new Date('2026-10-22T23:58:00+02:00') });

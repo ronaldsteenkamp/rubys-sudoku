@@ -13,7 +13,7 @@ function seededStats() {
   const log = [];
   for (let d = 21; d <= 31; d++) log.push([`2026-10-${d}`, 'koffie', 300 + d, 0, 1, null, 21]);
   log.push(['2026-11-03', 'nadenken', 640, 1, 0, null, 22], ['2026-12-24', 'zondag', 280, 0, 0, null, 20]);
-  return { log };
+  return { log, unlockedThemes: ['kerst'] }; // Kerst al vrij: geen melding bij het openen
 }
 
 test('oudjaarsavond 23:30: slaapstand, slaapberichtje, scherm mag uit; daarna Wrapped tot het einde', async () => {

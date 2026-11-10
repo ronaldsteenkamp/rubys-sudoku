@@ -13,6 +13,8 @@ import { THEMES, THEME_GROUPS, SEASON_AUTO, themeById, resolveTheme, themeToday,
 import { feedback, configure as configureFeedback, hasHaptics } from './feedback.js';
 import { BOOK, TECHNIQUE_IDS, TECHNIQUE_TEXT, lockedHint, discoverFromHint, knownCount, unseen } from './boekje.js';
 import { TECHNIQUES } from './techniques.js';
+import { CROWN_LEVELS, crownLevel, crownById, nextCrown, crownSvg, crownToCelebrate, markCrownShown } from './kroon.js';
+import { KROON_BERICHTJES } from './kroon-berichtjes.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -82,6 +84,16 @@ setInterval(() => {
 }, 30000);
 let stats = store.loadStats();
 let unlocked = store.loadUnlocked();
+
+// De Robijnen Kroon testen: ?kroon=14 zet de teller (hintloze Ruby-puzzels) op 14,
+// alsof de niveaus tot dan al gevierd zijn. Los er dan één op zonder hints en je
+// ziet het volgende niveau in beeld vliegen. Alleen met een testdatum (?vandaag=),
+// dus in de aparte testopslag: Ruby's echte teller blijft onaangeroerd.
+if (testDate && /^\d{1,3}$/.test(params.get('kroon') || '')) {
+  stats.rubyNoHintSolved = Number(params.get('kroon'));
+  stats.crownShown = crownLevel(stats.rubyNoHintSolved);
+  store.saveStats(stats);
+}
 let game = Game.fromJSON(store.loadGame());
 let selected = null;
 let focusDigit = null;
@@ -227,7 +239,8 @@ function updateThemeColor() {
 // geladen wordt als dat thema te zien is. Een module kan hebben:
 //   start(ctx) / stop()   thema aan of uit
 //   home(ctx)             het startscherm is (opnieuw) getekend
-//   solved(ctx)           puzzel opgelost; geeft { sound: true } als hij zelf geluid maakte
+//   solved(ctx)           puzzel opgelost; geeft { sound: true } als hij zelf geluid maakte,
+//                         en { celebrated: true } als hij de gewone confetti vervangt (Kerst)
 //   placed(ctx, { cell, digit })  ze heeft net een cijfer gezet (alleen voor de show)
 let fx = null, fxName = null;
 const fxCtx = {
@@ -1253,7 +1266,9 @@ function onSolved() {
   $('#solved-again').hidden = asleep;
   $('#solved-again-small').hidden = !asleep;
   if (asleep) letScreenSleep();
-  celebrate(special?.celebrate || null, jersey, !special || shapeColor(special.shape) === 'heart');
+  // Een thema met een eigen feestje (Kerst: sneeuw) slaat de gewone confetti over,
+  // behalve bij een speciale puzzel of het rugnummer: die houden hun eigen emoji.
+  if (!own?.celebrated || special || jersey) celebrate(special?.celebrate || null, jersey, !special || shapeColor(special.shape) === 'heart');
 
   let note;
   if (special) note = special.solvedText;
@@ -1308,6 +1323,7 @@ function onSolved() {
         feedback('unlock');
         await showMessage({ icon: m.icon, title: `🔓 ${m.title}`, text: m.text, ok: 'Wat lief 💛' });
       }
+      await celebrateCrown();
       for (const id of freshThemes) await offerTheme(id);
       if (d.returnValue === 'again') startGame({ kind: 'level', levelId: $('#solved-again').dataset.level });
       else if (d.returnValue === 'home') goHome();
@@ -1319,7 +1335,8 @@ function onSolved() {
 async function offerTheme(id) {
   const t = themeById(id);
   feedback('unlock');
-  const yes = await confirmDialog(`Nieuw thema: ${t.name} ${t.emoji}`, M.THEME_UNLOCK_TEXT[id], 'Probeer maar!', 'Later', t.icon);
+  // Een thema kan een eigen titel hebben (Kerst: "🎄 Er is iets nieuws uitgepakt!").
+  const yes = await confirmDialog(t.unlockTitle || `Nieuw thema: ${t.name} ${t.emoji}`, M.THEME_UNLOCK_TEXT[id], 'Probeer maar!', 'Later', t.icon);
   if (!yes) return;
   settings.theme = id;
   store.saveSettings(settings);
@@ -1328,8 +1345,8 @@ async function offerTheme(id) {
   render();
 }
 
-// Thema's die vrijkomen door alleen de app te openen (een datumvenster, zoals
-// het WK Beachvolleybal). Bij het opstarten en bij terugkomen in de app.
+// Thema's die vrijkomen door alleen de app te openen (een datumregel, zoals
+// het WK Beachvolleybal of Kerst vanaf 1 december). Bij het opstarten en bij terugkomen in de app.
 async function checkOpeningUnlocks() {
   const fresh = checkThemeUnlocks(stats, today(), { opening: true });
   if (!fresh.length) return;
@@ -1667,8 +1684,10 @@ function showStatsView(view) {
   $('#stats-body').hidden = view !== 'overzicht';
   $('#calendar').hidden = view !== 'kalender';
   $('#book').hidden = view !== 'boekje';
+  $('#crown-case').hidden = view !== 'kroon';
   if (view === 'kalender') renderCalendar();
   if (view === 'boekje') renderBook();
+  if (view === 'kroon') renderCrownCase();
 }
 for (const r of document.querySelectorAll('input[name="stats-view"]')) r.addEventListener('change', () => showStatsView(r.value));
 
@@ -1805,6 +1824,89 @@ async function renderBook() {
   // Gezien: het stipje mag weg.
   store.saveBookSeen([...store.loadBookSeen(), ...TECHNIQUE_IDS.filter((id) => stats.techniques[id])]);
   renderBookDot();
+}
+
+// ---------- De Robijnen Kroon ----------
+
+// De trofeeënkast (Statistieken → Kroon): het huidige niveau, de teller, hoeveel
+// er nog nodig zijn, en de plank met alle niveaus (nog niet gehaald = grijs silhouet).
+// Een gehaald niveau op de plank is een knopje: dan vliegt hij nog een keer in beeld.
+function renderCrownCase() {
+  const box = $('#crown-case');
+  const count = stats.rubyNoHintSolved || 0;
+  const level = crownLevel(count);
+  const now = crownById(level);
+  const next = nextCrown(count);
+  const from = now ? now.at : 0;
+  const progress = next ? (count - from) / (next.at - from) : 1;
+  box.innerHTML = `
+    <div class="crown-hero">${level ? crownSvg(level, { label: now.name }) : crownSvg(1, { silhouette: true, label: 'Nog geen kroon' })}</div>
+    <p class="crown-name">${level ? escapeHtml(now.name) : 'Nog geen kroon'}</p>
+    <p class="crown-count"><strong>${count}</strong> ${count === 1 ? 'Ruby-puzzel' : 'Ruby-puzzels'} zonder hints</p>
+    ${next ? `<div class="book-progress" role="progressbar" aria-valuemin="${from}" aria-valuemax="${next.at}" aria-valuenow="${count}" aria-label="Op weg naar ${escapeHtml(next.name)}"><span style="--p:${progress}"></span></div>
+    <p class="crown-next">Nog ${next.left} tot ${escapeHtml(next.name)}&nbsp;🔥</p>` : '<p class="crown-next">Je hebt ze allemaal. Mijn koningin&nbsp;👑</p>'}
+    <ol class="crown-shelf">${CROWN_LEVELS.map((l) => {
+      const got = level >= l.level;
+      const inner = `<span class="crown-mini">${crownSvg(l.level, { silhouette: !got })}</span>
+        <span class="crown-label">${escapeHtml(l.id === 'kroon' ? 'Kroon' : l.name)}</span><span class="crown-at">${l.at}×</span>`;
+      return got
+        ? `<li><button type="button" data-crown="${l.level}" aria-label="${escapeHtml(l.name)}, behaald. Nog een keer bekijken">${inner}</button></li>`
+        : `<li class="locked"><span class="crown-slot" aria-label="${escapeHtml(l.name)}: nog niet behaald, bij ${l.at} keer">${inner}</span></li>`;
+    }).join('')}</ol>
+    ${level ? '<p class="crown-replay">Tik op een trofee om hem nog eens te zien</p>' : '<p class="crown-replay">Los een Ruby-modus-puzzel op zonder hints&nbsp;🔥</p>'}`;
+  for (const b of box.querySelectorAll('[data-crown]')) b.addEventListener('click', () => showCrownMoment(Number(b.dataset.crown)));
+}
+
+// Een niveau vliegt groot in beeld, met robijnrode confetti en het berichtje uit
+// js/kroon-berichtjes.js. Geeft een belofte die klaar is als ze op de knop tikt.
+function showCrownMoment(level) {
+  const l = crownById(level);
+  const text = KROON_BERICHTJES[l.id];
+  const d = $('#crown-dialog');
+  d.className = `crown-moment lvl-${level}`;
+  $('#crown-art').innerHTML = crownSvg(level, { label: l.name });
+  $('#crown-kicker').textContent = level === 4 ? '33 × zonder hints' : `${l.name} · ${l.at}× zonder hints`;
+  // Het laatste woord (vaak een emoji) nooit in zijn eentje op een nieuwe regel.
+  const glue = (t) => t.trim().replace(/ (\S+)$/, '\u00a0$1');
+  $('#crown-title').textContent = glue(text.titel);
+  $('#crown-text').textContent = glue(text.bericht);
+  $('#crown-ok').textContent = text.knop;
+  const confetti = d.querySelector('.crown-confetti');
+  confetti.innerHTML = '';
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const reds = ['#e0115f', '#9b111e', '#ff4d6d', '#c8143f', '#ff8fa3'];
+    const pieces = (sleeping() ? 22 : 54) + (level === 4 ? 20 : 0);
+    for (let k = 0; k < pieces; k++) {
+      const i = document.createElement('i');
+      const gold = k % 6 === 5;
+      if (gold) i.className = 'goud';
+      i.style.left = `${Math.random() * 100}%`;
+      i.style.setProperty('--c', gold ? '#f0c46a' : reds[k % reds.length]);
+      i.style.setProperty('--s', `${8 + Math.random() * 10}px`);
+      i.style.setProperty('--d', `${(3 + Math.random() * 2.5) * (sleeping() ? 1.6 : 1)}s`);
+      i.style.setProperty('--delay', `${(level === 4 ? 0.9 : 0.5) + Math.random() * 1.6}s`);
+      i.style.setProperty('--x', `${(Math.random() - 0.5) * 140}px`);
+      i.style.setProperty('--r', `${(Math.random() - 0.5) * 720}deg`);
+      confetti.append(i);
+    }
+  }
+  feedback('unlock');
+  openDialog('crown-dialog');
+  return new Promise((resolve) => {
+    const onOk = () => d.close();
+    $('#crown-ok').addEventListener('click', onOk, { once: true });
+    d.addEventListener('close', () => { $('#crown-ok').removeEventListener('click', onOk); confetti.innerHTML = ''; resolve(); }, { once: true });
+  });
+}
+
+// Is er een nieuw kroonniveau (na een puzzel, of bij het openen als de teller uit
+// het logboek al een niveau haalde)? Dan alleen het hoogste vieren, één keer.
+async function celebrateCrown() {
+  const level = crownToCelebrate(stats);
+  if (!level) return;
+  markCrownShown(stats, level);
+  saved(store.saveStats(stats));
+  await showCrownMoment(level);
 }
 
 // ---------- Ruby Wrapped ----------
@@ -2282,7 +2384,12 @@ buildBoard();
 renderHome();
 showScreen('home');
 if (stats.totalSolved > 0) requestPersist();
-checkOpeningUnlocks();
+// Eerst een thema dat vrijkomt (Kerst!), dan een kroonniveau dat nog gevierd moet worden.
+// Met ?kroon-toon=1 (… 4) vliegt dat niveau meteen in beeld, om te bekijken; er verandert niets.
+checkOpeningUnlocks().then(() => {
+  const show = Number(params.get('kroon-toon'));
+  return crownById(show) ? showCrownMoment(show) : celebrateCrown();
+});
 
 const idle = globalThis.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
 idle(() => fillStash());

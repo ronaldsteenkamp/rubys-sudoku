@@ -83,7 +83,7 @@ test('op haar verjaardag gaat een tik op de kaart verder met het halve hart, in 
   for (let i = 0; i < 81; i++) if (!values[i] && n++ < 5) values[i] = heart.solution[i];
   const game = { v: 1, id: 'hart', givens: heart.givens, solution: heart.solution, levelId: heart.levelId, special: 'verjaardag-2027', shape: 'heart',
     values, notes: new Array(81).fill(0), elapsed: 90000, mistakes: 0, hints: 0, solved: false, startedAt: 0 };
-  const page = await open(base, { query: '?vandaag=2027-10-12', prefix: TEST_PREFIX, storage: { game } });
+  const page = await open(base, { query: '?vandaag=2027-10-12', prefix: TEST_PREFIX, storage: { game, stats: { unlockedThemes: ['kerst'] } } });
   assert.match(await page.textContent('#special-slot'), /Verder/);
   assert.equal(await page.locator('#continue-slot .card').count(), 0, 'geen dubbele Verder puzzelen-kaart');
   await page.click('#special-slot .card');
