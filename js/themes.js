@@ -169,6 +169,15 @@ export const THEMES = [
     celebrate: ['❄️', '⛄', '🧣', '✨'],
     swatch: { bg: '#f3f7fb', surface: '#ffffff', accent: '#7fb0dc', digit: '#2a5b8c' },
   },
+  {
+    // Komt vanzelf vrij zodra de app op of na 1 december 2026 opent, en blijft daarna altijd vrij.
+    // Bij het oplossen dwarrelt er sneeuw (js/fx/kerst.js) in plaats van de gewone confetti.
+    id: 'kerst', name: 'Kerst', scheme: 'dark', group: 'seizoen', emoji: '🎄', icon: '🎄', fx: 'kerst',
+    unlock: { from: '2026-12-01' }, hint: () => 'Pakje ligt klaar vanaf 1 december 🎁',
+    unlockTitle: '🎄 Er is iets nieuws uitgepakt!',
+    celebrate: ['❄️', '🎄', '⭐', '🎁'],
+    swatch: { bg: '#1b3a2f', surface: '#1f4436', accent: '#c9a24b', digit: '#ffe7a8' },
+  },
   // ---------- Geheim ----------
   {
     // Vrij door 8 keer snel op het logo te tikken (zie tapCounter); tot dan staat hij nergens.
@@ -294,6 +303,7 @@ export function seasonProgress(stats, date = new Date()) {
 //                            mag over middernacht: [22, 2] = 22:00 tot 02:00 (uit het logboek)
 //   { noHint: n }            n puzzels opgelost zonder hints
 //   { window: [van, tot] }   de app geopend tussen die dagen (allebei meegerekend)
+//   { from: dag }            de app geopend op of na die dag ('JJJJ-MM-DD'), zoals Kerst vanaf 1 december
 //   { secret: true }         alleen via een easter egg (zie unlockTheme)
 // Eenmaal vrij blijft vrij: het staat in stats.unlockedThemes, met de dag in stats.themeUnlockDates.
 
@@ -318,6 +328,7 @@ export function unlockProgress(theme, stats, date = new Date()) {
   }
   if ('noHint' in r) return { current: stats.noHintSolved || 0, target: r.noHint };
   if (r.window) { const k = dayKey(date); return { current: r.window[0] <= k && k <= r.window[1] ? 1 : 0, target: 1 }; }
+  if (r.from) return { current: dayKey(date) >= r.from ? 1 : 0, target: 1 };
   return { current: 0, target: 1 }; // geheim: niet door te spelen
 }
 
@@ -343,10 +354,10 @@ export function unlockTheme(stats, id, date = new Date()) {
 
 // Kijkt welke thema's er vrijkomen, zet ze vrij en geeft de nieuwe id's terug.
 // Na een opgeloste puzzel tellen alle regels; bij het openen van de app
-// (`opening`) alleen de datumvensters, zodat er niet zomaar iets opduikt.
+// (`opening`) alleen de datumregels (window en from), zodat er niet zomaar iets opduikt.
 export function checkThemeUnlocks(stats, date = new Date(), { opening = false } = {}) {
   const fresh = THEMES.filter((t) => t.unlock && !(stats.unlockedThemes || []).includes(t.id)
-    && (!opening || t.unlock.window) && unlockRuleMet(t, stats, date));
+    && (!opening || t.unlock.window || t.unlock.from) && unlockRuleMet(t, stats, date));
   for (const t of fresh) unlockTheme(stats, t.id, date);
   return fresh.map((t) => t.id);
 }
@@ -481,8 +492,10 @@ export function resolveTheme(setting, date = new Date(), unlocked = [], device =
 export const VACATIONS = [];
 
 // Welk thema bij welke speciale dag (de soorten uit SPECIAL_DAYS in
-// messages.js). Een functie krijgt de vrijgespeelde seizoenen mee.
+// messages.js). Een functie krijgt de vrijgespeelde thema's mee.
 const winterOr = (fallback) => (unlocked) => (unlocked.includes('winter') ? 'winter' : fallback);
+// Met kerst Kerst (als dat vrij is), anders Winter of Sterren.
+const kerstOr = (fallback) => (unlocked) => (unlocked.includes('kerst') ? 'kerst' : fallback(unlocked));
 export const DAY_THEMES = {
   jubileum: 'liefde',
   halfjaar: 'liefde',
@@ -490,8 +503,8 @@ export const DAY_THEMES = {
   valentijn: 'liefde',
   verjaardag: 'zonnig',
   'app-verjaardag': 'briefje',
-  kerst: winterOr('sterren'),
-  'tweede-kerstdag': winterOr('sterren'),
+  kerst: kerstOr(winterOr('sterren')),
+  'tweede-kerstdag': kerstOr(winterOr('sterren')),
   sinterklaas: winterOr('sterren'),
   oudjaar: 'sterren', // 31 december; staat niet tussen de speciale dagen
   nieuwjaar: 'sterren',

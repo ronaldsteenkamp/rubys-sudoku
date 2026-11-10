@@ -16,7 +16,7 @@ test('elk vergrendeld thema heeft een regel, een hint en een tekst voor het "Nie
     assert.ok(t.emoji && t.icon, `${t.id}: emoji`);
     if (!t.unlock.secret) assert.ok(unlockHint(t, emptyStats(), at(2026, 11, 3)), `${t.id}: hint`);
   }
-  assert.deepEqual(LOCKED_THEME_IDS.sort(), ['beachvolleybal', 'bos', 'gameboy', 'herfst', 'kampvuur', 'koffiemonster', 'lente', 'middernacht', 'noorderlicht', 'onderwater', 'onzichtbare-inkt', 'preitaart', 'robijn', 'rubyxcube', 'sporthal', 'vertrekhal', 'wandeltijd', 'winter', 'zomer', 'zonnebloem']);
+  assert.deepEqual(LOCKED_THEME_IDS.sort(), ['beachvolleybal', 'bos', 'gameboy', 'herfst', 'kampvuur', 'kerst', 'koffiemonster', 'lente', 'middernacht', 'noorderlicht', 'onderwater', 'onzichtbare-inkt', 'preitaart', 'robijn', 'rubyxcube', 'sporthal', 'vertrekhal', 'wandeltijd', 'winter', 'zomer', 'zonnebloem']);
   // Meteen vrij:
   for (const id of ['gitaar', 'dagverloop', 'krant', 'krijtbord', 'hoog-contrast', 'waddenzee', 'regen']) assert.equal(themeById(id).unlock, undefined, id);
 });
@@ -62,7 +62,7 @@ test('{ window }: Beachvolleybal tijdens het WK (13 t/m 22 augustus 2027), daarn
   assert.equal(unlockRuleMet(t, stats(), at(2027, 8, 22, 23)), true);
   assert.equal(unlockRuleMet(t, stats(), at(2027, 8, 23, 0)), false);
   // Gewoon de app openen is genoeg; daarna blijft hij vrij.
-  const st = stats();
+  const st = stats({ unlockedThemes: ['kerst'] }); // Kerst is in 2027 al lang vrij
   assert.deepEqual(checkThemeUnlocks(st, at(2027, 8, 12), { opening: true }), []);
   assert.deepEqual(checkThemeUnlocks(st, at(2027, 8, 13), { opening: true }), ['beachvolleybal']);
   assert.deepEqual(st.themeUnlockDates, { beachvolleybal: '2027-08-13' });
@@ -167,4 +167,32 @@ test('Bos: 40 puzzels; Waddenzee en Regenachtige dag meteen vrij', () => {
   assert.equal(resolveTheme('waddenzee', at(2026, 11, 3), []), 'waddenzee');
   assert.equal(resolveTheme('regen', at(2026, 11, 3), []), 'regen');
   assert.equal(resolveTheme('noorderlicht', at(2026, 11, 3), []), 'zonnig');
+});
+
+test('{ from }: Kerst komt vrij vanaf 1 december 2026 (lokale datum) en blijft daarna vrij', () => {
+  const t = themeById('kerst');
+  assert.deepEqual(t.unlock, { from: '2026-12-01' });
+  assert.equal(unlockRuleMet(t, stats(), new Date(2026, 10, 30, 23, 59)), false, '30 november 23:59');
+  assert.equal(unlockRuleMet(t, stats(), new Date(2026, 11, 1, 0, 0)), true, '1 december 00:00');
+  assert.equal(unlockRuleMet(t, stats(), at(2027, 3, 14)), true, 'ook later nog (eerste keer openen in maart)');
+  // Gewoon de app openen is genoeg, en het komt maar één keer als "nieuw".
+  const st = stats();
+  assert.deepEqual(checkThemeUnlocks(st, at(2026, 11, 30), { opening: true }), []);
+  assert.deepEqual(checkThemeUnlocks(st, at(2026, 12, 1), { opening: true }), ['kerst']);
+  assert.deepEqual(st.themeUnlockDates, { kerst: '2026-12-01' });
+  assert.deepEqual(checkThemeUnlocks(st, at(2026, 12, 2), { opening: true }), []);
+  // Na december blijft hij gewoon te kiezen (ook na een herstart: het staat in de statistieken).
+  const back = migrateStats(JSON.parse(JSON.stringify(st)));
+  assert.equal(resolveTheme('kerst', at(2027, 7, 1), back.unlockedThemes), 'kerst');
+  assert.equal(resolveTheme('kerst', at(2026, 11, 20), []), 'zonnig', 'vóór december nog niet');
+  assert.match(unlockHint(t, stats(), at(2026, 11, 10)), /1 december/);
+  assert.equal(t.unlockTitle, '🎄 Er is iets nieuws uitgepakt!');
+});
+
+test('Kerst is het dagthema op 25 en 26 december (als hij vrij is), anders Winter of Sterren', () => {
+  const day = (date, unlocked) => themeForDay(date, { unlocked, specials: date.getDate() === 25 ? ['kerst'] : ['tweede-kerstdag'] })?.theme;
+  assert.equal(day(at(2026, 12, 25), ['kerst', 'winter']), 'kerst');
+  assert.equal(day(at(2026, 12, 26), ['kerst']), 'kerst');
+  assert.equal(day(at(2026, 12, 25), ['winter']), 'winter');
+  assert.equal(day(at(2026, 12, 25), []), 'sterren');
 });

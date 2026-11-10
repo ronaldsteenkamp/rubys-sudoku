@@ -4,6 +4,7 @@
 import { LOCKED_THEME_IDS } from './themes.js';
 import { isValidGameData } from './game.js';
 import { cleanTechniques } from './boekje.js';
+import { countsForCrown, crownCountFromLog, MAX_CROWN } from './kroon.js';
 
 let PREFIX = 'rubys-sudoku:';
 
@@ -113,6 +114,8 @@ export function emptyStats() {
     matches: {}, // per wedstrijddatum: { uitslag, warmup, herstel, pep }, zie hieronder
     wrapped: {}, // per jaar het laatst berekende Ruby Wrapped, zie hieronder
     techniques: {}, // het Techniekenboekje: { 'x-wing': { since: '2026-10-23', hints: 2 } }, zie boekje.js
+    rubyNoHintSolved: 0, // De Robijnen Kroon: Ruby-modus-puzzels opgelost zonder één hint, zie kroon.js
+    crownShown: 0, // het hoogste kroonniveau dat al gevierd is (0 = nog niets, 4 = de Robijnen Kroon)
   };
 }
 
@@ -304,6 +307,10 @@ export function migrateStats(raw) {
   s.log = Array.isArray(r.log)
     ? r.log.map(cleanLogRow).filter(Boolean).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).slice(-LOG_MAX)
     : logFromDailies(s.dailyDone, s.dailyTimes);
+  // De Robijnen Kroon. Opslag van vóór de kroon heeft nog geen teller: dan tellen
+  // de hintloze Ruby-puzzels uit het logboek mee, zodat er niets verloren gaat.
+  s.rubyNoHintSolved = Number.isFinite(r.rubyNoHintSolved) ? count(r.rubyNoHintSolved) : crownCountFromLog(s.log);
+  s.crownShown = Math.min(MAX_CROWN, count(r.crownShown));
   return s;
 }
 
@@ -355,6 +362,7 @@ export function recordSolve(stats, { levelId, elapsed, hints, daily, special, st
   const record = previousBest != null && newBest;
   stats.totalSolved++;
   if (!hints) stats.noHintSolved++;
+  if (countsForCrown(levelId, hints)) stats.rubyNoHintSolved = (stats.rubyNoHintSolved || 0) + 1;
   if (daily) {
     stats.dailySolved++;
     stats.dailyDone = [...stats.dailyDone, daily].slice(-60);

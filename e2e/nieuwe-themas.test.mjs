@@ -117,7 +117,8 @@ test('Game Boy: pixelcijfers op het bord en een 8-bit-deuntje bij het oplossen',
 
 for (const [day, free] of [['2027-08-12', false], ['2027-08-13', true], ['2027-08-15', true], ['2027-08-22', true], ['2027-08-23', false]]) {
   test(`Beachvolleybal: de app openen op ${day} ${free ? 'speelt hem vrij' : 'doet niets'}`, async () => {
-    const page = await open(base, { query: `?vandaag=${day}`, prefix: TEST_PREFIX, storage: { settings: { theme: 'zonnig' } } });
+    // Kerst is in 2027 al vrij (anders komt eerst die melding).
+    const page = await open(base, { query: `?vandaag=${day}`, prefix: TEST_PREFIX, storage: { settings: { theme: 'zonnig' }, stats: { unlockedThemes: ['kerst'] } } });
     if (free) {
       await page.waitForSelector('#confirm-dialog[open]');
       assert.match(await page.textContent('#confirm-title'), /Beachvolleybal/);
@@ -185,9 +186,9 @@ test('de kiezer: groepjes, vergrendelde thema\'s met een slotje en een hint', as
   const groups = await page.$$eval('.theme-group-title', (els) => els.map((e) => e.textContent));
   assert.deepEqual(groups, ['Van jou', 'Sfeer', 'Natuur', 'Seizoenen']);
   const names = await page.$$eval('#theme-picker .theme-name', (els) => els.map((e) => e.textContent));
-  assert.equal(names.length, 27, 'alles behalve het geheime thema');
+  assert.equal(names.length, 28, 'alles behalve het geheime thema');
   assert.ok(!names.includes('Game Boy'));
-  for (const name of ['Robijn', 'RubyxCube', 'Koffiemonster', 'Beachvolleybal', 'Zonnebloem']) {
+  for (const name of ['Robijn', 'RubyxCube', 'Koffiemonster', 'Beachvolleybal', 'Zonnebloem', 'Kerst']) {
     const card = page.locator('.theme-opt.locked', { hasText: name });
     assert.equal(await card.count(), 1, `${name} op slot`);
   }

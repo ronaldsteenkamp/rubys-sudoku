@@ -85,6 +85,7 @@ test('seizoen: de dag van vrijspelen, en het jaar erna de eerste dag van het sei
 
 test('seizoen over de jaargrens: winter vrijgespeeld in februari telt voor 1 december', () => {
   const stats = emptyStats();
+  stats.unlockedThemes = ['kerst']; // al vrij sinds december
   for (let k = 0; k < 3; k++) recordSeasonSolve(stats, at(2027, 2, 10));
   assert.deepEqual(checkThemeUnlocks(stats, at(2027, 2, 10)), ['winter']);
   assert.deepEqual(stats.themeUnlockDates, { winter: '2027-02-10' });

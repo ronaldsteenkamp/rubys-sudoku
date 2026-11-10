@@ -11,7 +11,8 @@ after(async () => { await shutdown(); server.close(); });
 
 test('kerst: de kerstboom oplossen, met het eigen berichtje en feest, en daarna gedaan', async () => {
   const kerst = specialDay(new Date(2026, 11, 25, 12));
-  const page = await open(base, { query: '?vandaag=2026-12-25T10:00', prefix: TEST_PREFIX });
+  const page = await open(base, { query: '?vandaag=2026-12-25T10:00', prefix: TEST_PREFIX, storage: { stats: { unlockedThemes: ['kerst'] } } });
+  assert.equal(await page.getAttribute('html', 'data-theme'), 'kerst', 'met kerst het thema Kerst');
   assert.match(await page.textContent('#special-slot'), /Vrolijk kerstfeest 🎄/);
   await page.click('#special-slot .card');
   await page.waitForSelector('#message-dialog[open]');
