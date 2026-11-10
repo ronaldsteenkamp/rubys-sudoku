@@ -108,7 +108,8 @@ test('Kampvuur: in Gitaar zes oplopende tonen zonder gekozen vakje (de puzzel ve
 
 test('Preitaart: drie keer op de 🥧 in de begroeting tikken (met ?begroeting=preitaart)', async () => {
   const page = await open(base, { clock: GEWOON, query: '?begroeting=preitaart', storage: { settings: { theme: 'zonnig' } } });
-  assert.match(await page.textContent('#greeting'), /^Hé \S+, preitaart gegeten\?\s🥧$/);
+  // Een bijnaam kan uit twee woorden bestaan ("Au Pair").
+  assert.match(await page.textContent('#greeting'), /^Hé [^,]+, preitaart gegeten\?\s🥧$/);
   const pie = page.locator('#greeting .pie-tap');
   await pie.click();
   await pie.click();

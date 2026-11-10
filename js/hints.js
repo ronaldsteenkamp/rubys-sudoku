@@ -3,7 +3,8 @@
 //   2. welke techniek en waarom (1–2 zinnen)
 //   3. pas dan: het antwoord
 //
-// getHint(game) → { kind, technique, stages: [{ text, cells, units, digit }], action }
+// getHint(game, rng, { known }) → { kind, technique, stages: [{ text, cells, units, digit }], action }
+// `known`: de technieken die al in haar Techniekenboekje staan (zie hieronder bij de les).
 
 import { UNITS, bit, rowOf, colOf, boxOf } from './solver.js';
 import { computeCandidates, findStep, applyStep, TECHNIQUES } from './techniques.js';
@@ -89,7 +90,7 @@ export const hintsLeft = (game) => Math.max(0, MAX_HINTS - (game?.hints || 0));
 
 const regionCells = (units) => [...new Set(units.flatMap((u) => UNITS[u]))];
 
-export function getHint(game, rng = Math.random) {
+export function getHint(game, rng = Math.random, { known = [] } = {}) {
   const { values, solution, notes } = game;
 
   // 1) Eerst eventuele foutjes rechtzetten — anders klopt de rest ook niet.
@@ -156,12 +157,17 @@ export function getHint(game, rng = Math.random) {
   }
 
   if (placing && chain.length) {
-    // De laatste stap uit de keten is de "les": vóór die stap viel er nog niets
-    // in te vullen (findStep probeert altijd eerst de singles), erna wel. Die
-    // stap maakte het cijfer dus mogelijk. Eerdere stappen noemen we eerlijk.
-    const main = chain[chain.length - 1];
-    const before = chain.length - 1;
-    const extra = before ? ` (Daarvoor ${before === 1 ? 'was er nog één andere stap' : `waren er nog ${before} andere stappen`} nodig; die neem ik je uit handen.)` : '';
+    // De "les" is de zwaarste techniek uit de keten: die maakte het cijfer echt
+    // mogelijk, en zo verdwijnt een Swordfish of XYZ-wing nooit in "nog een andere
+    // stap". Zijn er meer even zware, dan eerst een die nog niet in haar boekje staat
+    // (dan ontdekt ze hem), en anders de eerste (die maakt de volgende meestal mogelijk).
+    // De overige stappen noemen we eerlijk.
+    const hardest = Math.max(...chain.map((st) => st.level));
+    const top = chain.map((st, k) => k).filter((k) => chain[k].level === hardest);
+    const mainIndex = top.find((k) => !known.includes(chain[k].technique)) ?? top[0];
+    const main = chain[mainIndex];
+    const others = chain.length - 1;
+    const extra = others ? ` (Er ${others === 1 ? 'was nog één andere stap' : `waren nog ${others} andere stappen`} nodig; die neem ik je uit handen.)` : '';
     const elims = chain.flatMap((s) => s.eliminations);
     // Waar ze moet kijken: de les, plus de rij, kolom of het blok van het vakje dat het wordt.
     const look = [...new Set([...main.units.slice(0, 2), placing.units[0]])];
