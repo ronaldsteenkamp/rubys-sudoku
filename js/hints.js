@@ -1,9 +1,10 @@
-// Slimme hints in drie stappen, zoals een lieve puzzelcoach (altijd met een bijnaam):
+// Slimme hints, stap voor stap, zoals een lieve puzzelcoach (altijd met een bijnaam):
 //   1. waar moet je kijken (regio)
-//   2. welke techniek en waarom (1–2 zinnen)
+//   2. welke techniek en waarom (1–2 zinnen) — zijn er eerst wegstreepstappen
+//      nodig, dan krijgt elke stap zijn eigen uitleg, in volgorde
 //   3. pas dan: het antwoord
 //
-// getHint(game, rng, { known }) → { kind, technique, stages: [{ text, cells, units, digit }], action }
+// getHint(game, rng, { known }) → { kind, technique, stages: [{ text, cells, units, digit, id?, tech?, strike? }], action }
 // `known`: de technieken die al in haar Techniekenboekje staan (zie hieronder bij de les).
 
 import { UNITS, bit, rowOf, colOf, boxOf } from './solver.js';
@@ -146,6 +147,8 @@ export function getHint(game, rng = Math.random, { known = [] } = {}) {
         { text: lookHere(placing.units.slice(0, 1), rng), units: placing.units.slice(0, 1), cells: [] },
         {
           text: explain(placing),
+          id: placing.technique,
+          tech: TECHNIQUES[placing.technique].name,
           units: placing.units.slice(0, 1),
           cells: placing.technique === 'naked-single' ? [placing.place.cell] : [],
           digit: placing.technique === 'hidden-single' ? placing.place.digit : null,
@@ -157,33 +160,42 @@ export function getHint(game, rng = Math.random, { known = [] } = {}) {
   }
 
   if (placing && chain.length) {
-    // De "les" is de zwaarste techniek uit de keten: die maakte het cijfer echt
-    // mogelijk, en zo verdwijnt een Swordfish of XYZ-wing nooit in "nog een andere
-    // stap". Zijn er meer even zware, dan eerst een die nog niet in haar boekje staat
-    // (dan ontdekt ze hem), en anders de eerste (die maakt de volgende meestal mogelijk).
-    // De overige stappen noemen we eerlijk.
+    // Elke wegstreepstap krijgt zijn eigen uitleg, in de volgorde waarin ze nodig
+    // zijn: niets gaat stilletjes. De "les" (de naam van de hint) is de zwaarste
+    // techniek uit de keten; bij even zware eerst een die nog niet in haar boekje
+    // staat, en anders de eerste (die maakt de volgende meestal mogelijk).
     const hardest = Math.max(...chain.map((st) => st.level));
     const top = chain.map((st, k) => k).filter((k) => chain[k].level === hardest);
     const mainIndex = top.find((k) => !known.includes(chain[k].technique)) ?? top[0];
     const main = chain[mainIndex];
-    const others = chain.length - 1;
-    const extra = others ? ` (Er ${others === 1 ? 'was nog één andere stap' : `waren nog ${others} andere stappen`} nodig; die neem ik je uit handen.)` : '';
     const elims = chain.flatMap((s) => s.eliminations);
-    // Waar ze moet kijken: de les, plus de rij, kolom of het blok van het vakje dat het wordt.
-    const look = [...new Set([...main.units.slice(0, 2), placing.units[0]])];
+    // Waar ze moet kijken: de eerste stap, plus de rij, kolom of het blok van het vakje dat het wordt.
+    const look = [...new Set([...chain[0].units.slice(0, 2), placing.units[0]])];
+    const n = chain.length;
+    const steps = chain.map((s, k) => {
+      const name = TECHNIQUES[s.technique].name;
+      const lead = n === 1 ? `${name}! `
+        : k === 0 ? `Er zijn ${n} stapjes nodig; we doen ze één voor één. Eerst: ${name}! `
+          : k === n - 1 ? `En als laatste: ${name}! `
+            : chain[k - 1].technique === s.technique ? `Nog een keer ${name}! ` : `Dan: ${name}! `;
+      return {
+        text: lead + explain(s),
+        id: s.technique,
+        tech: name,
+        units: s.units,
+        cells: s.cells,
+        digit: s.digits.length === 1 ? s.digits[0] : null,
+        // Wat in eerdere stappen al weg mocht, blijft doorgestreept.
+        strike: chain.slice(0, k + 1).flatMap((st) => st.eliminations),
+      };
+    });
     return {
       kind: 'step',
       id: main.technique,
       technique: TECHNIQUES[main.technique].name,
       stages: [
         { text: lookHere(look, rng), units: look, cells: [] },
-        {
-          text: `${TECHNIQUES[main.technique].name}! ${explain(main)}${extra}`,
-          units: main.units,
-          cells: main.cells,
-          digit: main.digits.length === 1 ? main.digits[0] : null,
-          strike: main.eliminations,
-        },
+        ...steps,
         { text: placementOutro(placing, true, rng), units: [], cells: [placing.place.cell] },
       ],
       action: { type: 'place', ...placing.place, eliminations: elims },

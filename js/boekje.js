@@ -37,12 +37,16 @@ export function lockedHint(id) {
   return `Vraag eens om een hint in ${l.name}${l.id === 'ruby' ? ' 🔥' : ''}`;
 }
 
-// Een hint is bij stap `stage` (0 = waar kijken, 1 = de uitleg, 2 = het antwoord).
-// Pas bij de uitleg ziet ze de techniek; Foutje, Notitie en Cadeautje zijn geen techniek.
+// Een hint is bij stap `stage` (0 = waar kijken, dan de uitleg (één of meer stappen),
+// als laatste het antwoord). Pas bij een uitlegstap ziet ze de techniek; Foutje, Notitie en Cadeautje zijn geen techniek.
 // Geeft { id, fresh } als dit een techniek uit het boekje is, anders null.
 export function discoverFromHint(stats, hint, stage, day) {
-  if (stage !== 1 || hint?.kind !== 'step' || !TECHNIQUES[hint.id]) return null;
-  return { id: hint.id, fresh: discoverTechnique(stats, hint.id, day) };
+  // Elke uitlegstap noemt zijn techniek (`id`); bij een keten zijn dat er meer.
+  // Komt dezelfde techniek twee keer voor in één hint, dan telt hij één keer.
+  if (hint?.kind !== 'step') return null;
+  const id = hint.stages?.[stage]?.id;
+  if (!TECHNIQUES[id] || hint.stages.slice(0, stage).some((s) => s.id === id)) return null;
+  return { id, fresh: discoverTechnique(stats, id, day) };
 }
 
 // Een hint liet bij stap 2 techniek `id` zien. Nieuw: met de dag erbij; al bekend:

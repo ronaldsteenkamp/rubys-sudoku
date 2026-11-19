@@ -139,3 +139,14 @@ test('het stipje: wat ontdekt is maar nog niet gezien', () => {
   assert.deepEqual(unseen(st, ['pointing']), ['x-wing']);
   assert.deepEqual(unseen(st, ['pointing', 'x-wing']), []);
 });
+
+test('een hint met tussenstappen: elke techniek uit de keten komt in het boekje, één keer per hint', () => {
+  const h = { kind: 'step', id: 'x-wing', stages: [{ text: '' }, { id: 'pointing' }, { id: 'x-wing' }, { id: 'pointing' }, { text: '' }] };
+  const st = S.emptyStats();
+  assert.equal(discoverFromHint(st, h, 0, '2026-11-19'), null);
+  assert.deepEqual(discoverFromHint(st, h, 1, '2026-11-19'), { id: 'pointing', fresh: true });
+  assert.deepEqual(discoverFromHint(st, h, 2, '2026-11-19'), { id: 'x-wing', fresh: true });
+  assert.equal(discoverFromHint(st, h, 3, '2026-11-19'), null, 'Wijzende cijfers telde al bij deze hint');
+  assert.equal(discoverFromHint(st, h, 4, '2026-11-19'), null);
+  assert.deepEqual(st.techniques, { pointing: { since: '2026-11-19', hints: 1 }, 'x-wing': { since: '2026-11-19', hints: 1 } });
+});

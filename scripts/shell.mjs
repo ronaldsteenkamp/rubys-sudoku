@@ -3,8 +3,9 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export const ROOT = new URL('..', import.meta.url).pathname;
+export const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SW = join(ROOT, 'sw.js');
 
 export const readSw = () => readFileSync(SW, 'utf8');

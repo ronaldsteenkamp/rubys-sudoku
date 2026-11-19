@@ -20,7 +20,7 @@ function playWithHints(game) {
   for (let n = 0; n < 200 && !game.solved; n++) {
     const h = getHint(game, rng);
     assert.ok(h, 'er moet altijd een hint zijn');
-    assert.equal(h.stages.length, 3);
+    assert.ok(h.stages.length >= 3, 'minstens waar kijken, uitleg en antwoord');
     assert.ok(hasNick(h.stages[0].text), `geen bijnaam in: ${h.stages[0].text}`);
     assert.ok(h.stages[0].units.length > 0, 'stap 1 wijst een regio aan');
     assert.equal(h.stages[0].cells.length, h.kind === 'reveal' ? 1 : 0, 'stap 1 verklapt nog geen vakje');
@@ -48,7 +48,7 @@ test('hint op een makkelijke puzzel: regio → uitleg → cijfer', () => {
   assert.equal(h.kind, 'step');
   assert.match(h.stages[0].text, /Kijk|Psst|kijken/);
   assert.ok(h.stages[1].text.length > 20);
-  assert.match(h.stages[2].text, new RegExp(String(h.action.digit)));
+  assert.match(h.stages.at(-1).text, new RegExp(String(h.action.digit)));
 });
 
 test('hint wijst eerst een fout ingevuld cijfer aan', () => {
@@ -85,7 +85,7 @@ test('hint bij een eliminatie-techniek benoemt de techniek en wat er weg kan', (
   }
   assert.ok(h.action.eliminations.length > 0);
   assert.ok(h.stages[1].strike.length > 0);
-  assert.match(h.stages[2].text, /blijft|één plek/);
+  assert.match(h.stages.at(-1).text, /blijft|één plek/);
 });
 
 // Speelt hints af en geeft alle hints terug waarbij eerst notities weg moesten.
@@ -116,11 +116,11 @@ test('een hint met tussenstappen wijst de plek aan waar het cijfer komt, en de u
     assert.ok(region.has(cell), `vakje ${cell} valt buiten ${h.stages[0].text}`);
     // "Alleen de X blijft over" alleen als dat ook echt zo is: na alle eliminaties
     // heeft het vakje dan nog maar één kandidaat.
-    if (/blijft voor dit vakje alleen/.test(h.stages[2].text)) {
+    if (/blijft voor dit vakje alleen/.test(h.stages.at(-1).text)) {
       const cands = computeCandidates(g.values);
       for (const e of h.action.eliminations) cands[e.cell] &= ~bit(e.digit);
-      assert.equal(cands[cell], bit(digit), h.stages[2].text);
-    } else assert.match(h.stages[2].text, /nog maar op één plek/);
+      assert.equal(cands[cell], bit(digit), h.stages.at(-1).text);
+    } else assert.match(h.stages.at(-1).text, /nog maar op één plek/);
   }
 });
 
@@ -182,7 +182,9 @@ test('de les van een hint is de zwaarste techniek uit de keten: een Swordfish ve
           const other = chain.find((st) => st.level === 4 && st.technique !== 'swordfish');
           if (other) assert.equal(getHint(g, rng, { known: ['swordfish'] }).id, other.technique);
         }
-        if (chain.length > 1) assert.match(h.stages[1].text, /andere stap/);
+        // Elke stap uit de keten krijgt zijn eigen uitleg, in volgorde; niets wordt overgeslagen.
+        assert.deepEqual(h.stages.slice(1, -1).map((st) => st.id), chain.map((st) => st.technique));
+        assert.doesNotMatch(h.stages.map((st) => st.text).join(' '), /uit handen/);
         checked++;
         break;
       }
@@ -190,4 +192,24 @@ test('de les van een hint is de zwaarste techniek uit de keten: een Swordfish ve
     }
   }
   assert.ok(checked >= 4, `maar ${checked} Swordfish-momenten gevonden`);
+});
+
+test('een hint met tussenstappen legt elke stap uit, met zijn eigen naam en wat er weg mag', async () => {
+  const { TECHNIQUES } = await import('../js/techniques.js');
+  const hints = chainHints([...BANK.nadenken.slice(0, 10), ...BANK.ruby.slice(0, 10)]);
+  const long = hints.filter(({ h }) => h.stages.length > 3);
+  assert.ok(long.length > 5, `maar ${long.length} hints met meer dan één tussenstap`);
+  for (const { h } of hints) {
+    const steps = h.stages.slice(1, -1);
+    for (const [k, st] of steps.entries()) {
+      assert.ok(TECHNIQUES[st.id], `stap ${k + 2} noemt een techniek`);
+      assert.equal(st.tech, TECHNIQUES[st.id].name);
+      assert.ok(st.text.includes(st.tech), st.text);
+      assert.ok(st.strike.length > 0, 'elke tussenstap streept iets weg');
+      // Wat eerder weg mocht, blijft doorgestreept.
+      if (k) assert.ok(steps[k - 1].strike.every((e) => st.strike.includes(e)));
+    }
+    assert.deepEqual(steps.at(-1).strike, h.action.eliminations, 'samen precies wat er weg mag');
+    if (steps.length > 1) assert.match(steps[0].text, new RegExp(`${steps.length} stapjes`));
+  }
 });

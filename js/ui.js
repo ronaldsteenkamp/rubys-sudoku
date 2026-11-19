@@ -1084,26 +1084,29 @@ function renderHint() {
   const controls = $('.controls').getBoundingClientRect();
   card.style.setProperty('--hint-max', `${Math.max(controls.height, window.innerHeight - controls.top - 8)}px`);
   const stage = hint.stages[hintStage];
-  $('#hint-tech').textContent = hintStage === 0 ? '💡 Hint' : `💡 ${hint.technique}`;
-  $('#hint-step').textContent = `stap ${hintStage + 1} van 3`;
+  // Een hint heeft minstens drie stappen; met tussenstappen krijgt elke stap zijn eigen kaart.
+  const last = hint.stages.length - 1;
+  $('#hint-tech').textContent = hintStage === 0 ? '💡 Hint' : `💡 ${stage.tech || hint.technique}`;
+  $('#hint-step').textContent = `stap ${hintStage + 1} van ${last + 1}`;
   $('#hint-text').textContent = stage.text;
-  const labels = hint.kind === 'mistake' ? ['Welk vakje?', 'Haal maar weg', 'Oké!']
+  const [first, apply, done] = hint.kind === 'mistake' ? ['Welk vakje?', 'Haal maar weg', 'Oké!']
     : hint.kind === 'notes' ? ['Welk vakje?', 'Zet maar terug', 'Oké!']
       : ['Meer uitleg', 'Vul maar in', 'Dankjewel!'];
-  $('#hint-next').textContent = labels[hintStage];
-  $('#hint-close').hidden = hintStage === 2;
+  $('#hint-next').textContent = hintStage === 0 ? first : hintStage === last ? done : hintStage === last - 1 ? apply : 'Volgende stap';
+  $('#hint-close').hidden = hintStage === last;
 }
 
 function advanceHint() {
   if (!hint) return;
-  if (hintStage < 2) {
+  const last = hint.stages.length - 1;
+  if (hintStage < last) {
     hintStage++;
-    // Stap 2 laat de techniek zien: dan staat hij in het Techniekenboekje (ook als ze de puzzel niet afmaakt).
+    // Een uitlegstap laat de techniek zien: dan staat hij in het Techniekenboekje (ook als ze de puzzel niet afmaakt).
     if (discoverFromHint(stats, hint, hintStage, dateKey(today()))) {
       saved(store.saveStats(stats));
       renderBookDot();
     }
-    if (hintStage === 2) applyHintAction(hint.action);
+    if (hintStage === last) applyHintAction(hint.action);
     renderHint();
     render();
   } else closeHint();
