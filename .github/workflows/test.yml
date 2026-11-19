@@ -16,7 +16,8 @@ jobs:
 
   # De app echt in een browser: oplossen, opslag, de reeks, offline en updates.
   e2e:
-    runs-on: ubuntu-latest
+    # Vast op 24.04: Playwright 1.56 installeert geen Chromium op ubuntu-latest (26.04).
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
